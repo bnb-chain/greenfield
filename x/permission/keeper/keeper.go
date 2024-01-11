@@ -143,11 +143,10 @@ func (k Keeper) updatePolicy(ctx sdk.Context, policy, newPolicy *types.Policy) *
 
 func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
-
 	var newPolicy *types.Policy
 	if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
-			policy.Principal.MustGetAccountAddress())
+			policy.Principal.MustGetAccountAddress(), ctx.IsUpgraded(upgradetypes.HulunbeierPatch))
 		bz := store.Get(policyKey)
 		if bz != nil {
 			id := k.policySeq.DecodeSequence(bz)
@@ -257,13 +256,11 @@ func (k Keeper) GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint,
 	isFound bool,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, addr)
-
+	policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, addr, ctx.IsUpgraded(upgradetypes.HulunbeierPatch))
 	bz := store.Get(policyKey)
 	if bz == nil {
 		return policy, false
 	}
-
 	return k.GetPolicyByID(ctx, k.policySeq.DecodeSequence(bz))
 }
 
@@ -315,7 +312,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 		accAddr := sdk.MustAccAddressFromHex(principal.Value)
 		policy, found := k.GetPolicyForAccount(ctx, resourceID, resourceType, accAddr)
 		if found {
-			store.Delete(types.GetPolicyForAccountKey(resourceID, resourceType, accAddr))
+			store.Delete(types.GetPolicyForAccountKey(resourceID, resourceType, accAddr, ctx.IsUpgraded(upgradetypes.HulunbeierPatch)))
 			store.Delete(types.GetPolicyByIDKey(policy.Id))
 			if policy.ExpirationTime != nil {
 				store.Delete(types.PolicyPrefixQueue(policy.ExpirationTime, policy.Id.Bytes()))
@@ -380,7 +377,7 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 		return deletedTotal, true
 	}
 	store := ctx.KVStore(k.storeKey)
-	resourceAccountsPolicyStore := prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType))
+	resourceAccountsPolicyStore := prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType, ctx.IsUpgraded(upgradetypes.HulunbeierPatch)))
 	iterator := resourceAccountsPolicyStore.Iterator(nil, nil)
 	defer iterator.Close()
 	isNagquUpgraded := ctx.IsUpgraded(upgradetypes.Nagqu)
@@ -494,7 +491,7 @@ func (k Keeper) ExistAccountPolicyForResource(ctx sdk.Context, resourceType reso
 		return false
 	}
 	store := ctx.KVStore(k.storeKey)
-	resourceAccountsPolicyStore := prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType))
+	resourceAccountsPolicyStore := prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType, ctx.IsUpgraded(upgradetypes.HulunbeierPatch)))
 	iterator := resourceAccountsPolicyStore.Iterator(nil, nil)
 	defer iterator.Close()
 	return iterator.Valid()
@@ -545,7 +542,8 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 		if ctx.IsUpgraded(upgradetypes.Pampas) {
 			if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 				policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
-					policy.Principal.MustGetAccountAddress())
+					policy.Principal.MustGetAccountAddress(),
+					ctx.IsUpgraded(upgradetypes.HulunbeierPatch))
 				store.Delete(policyKey)
 			} else if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_GROUP {
 				policyGroupKey := types.GetPolicyForGroupKey(policy.ResourceId, policy.ResourceType)
@@ -569,4 +567,29 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 			}
 		}
 	}
+}
+
+func (k Keeper) MigrateAccountPolicyForResources(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	// PolicyForAccountKey:
+	// ResourcePolicyForAccountPrefix| ResourceID | AccountAddr
+	// iterator key:
+	// ResourceID | AccountAddr
+	migration := func(resourcePolicyForAccountPrefix []byte, resourceType resource.ResourceType) {
+		resourceAccountPolicyStore := prefix.NewStore(store, resourcePolicyForAccountPrefix)
+		iterator := resourceAccountPolicyStore.Iterator(nil, nil)
+		defer iterator.Close()
+		for ; iterator.Valid(); iterator.Next() {
+			resourceAccountPolicyStore.Delete(iterator.Key())
+
+			// newKey might be the same as the previous one
+			resourceIDBz := iterator.Key()[:len(iterator.Key())-sdk.EthAddressLength]
+			addrBz := iterator.Key()[len(iterator.Key())-sdk.EthAddressLength:]
+			newKey := types.GetPolicyForAccountKey(math.ZeroUint().SetBytes(resourceIDBz), resourceType, addrBz, true)
+			store.Set(newKey, iterator.Value())
+		}
+	}
+	migration(types.BucketPolicyForAccountPrefix, resource.RESOURCE_TYPE_BUCKET)
+	migration(types.ObjectPolicyForAccountPrefix, resource.RESOURCE_TYPE_OBJECT)
+	migration(types.GroupPolicyForAccountPrefix, resource.RESOURCE_TYPE_GROUP)
 }
