@@ -453,7 +453,9 @@ func TestMsgUpdateObjectInfo_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.msg.ValidateBasic()
+			upgradeChecker := func(sdk.Context, string) bool { return true }
+			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
+			err := tt.msg.ValidateRuntime(ctx)
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
@@ -566,7 +568,9 @@ func TestMsgDiscontinueObject_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.msg.ValidateBasic()
+			upgradeChecker := func(sdk.Context, string) bool { return true }
+			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
+			err := tt.msg.ValidateRuntime(ctx)
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
