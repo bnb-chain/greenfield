@@ -230,7 +230,7 @@ func (app *BucketApp) handleCreateBucketFailAckPackageV2(ctx sdk.Context, appCtx
 }
 
 func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, createBucketPackage *types.CreateBucketSynPackage) sdk.ExecuteResult {
-	err := createBucketPackage.ValidateBasic()
+	err := createBucketPackage.ValidateBasic(ctx)
 	if err != nil {
 		return sdk.ExecuteResult{
 			Payload: types.CreateBucketAckPackage{
@@ -288,7 +288,7 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 }
 
 func (app *BucketApp) handleCreateBucketSynPackageV2(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, createBucketPackageV2 *types.CreateBucketSynPackageV2) sdk.ExecuteResult {
-	err := createBucketPackageV2.ValidateBasic()
+	err := createBucketPackageV2.ValidateBasic(ctx)
 	if err != nil {
 		return sdk.ExecuteResult{
 			Payload: types.CreateBucketAckPackage{
