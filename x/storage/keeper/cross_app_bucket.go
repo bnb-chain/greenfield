@@ -206,25 +206,25 @@ func (app *BucketApp) handleMirrorBucketFailAckPackage(ctx sdk.Context, appCtx *
 }
 
 func (app *BucketApp) handleMirrorBucketSynPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, synPackage *types.MirrorBucketSynPackage) sdk.ExecuteResult {
-	app.storageKeeper.Logger(ctx).Error("received mirror bucket syn package ")
+	app.storageKeeper.Logger(ctx).Error("received mirror bucket syn package")
 
 	return sdk.ExecuteResult{}
 }
 
 func (app *BucketApp) handleCreateBucketAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, ackPackage *types.CreateBucketAckPackage) sdk.ExecuteResult {
-	app.storageKeeper.Logger(ctx).Error("received create bucket ack package ")
+	app.storageKeeper.Logger(ctx).Error("received create bucket ack package")
 
 	return sdk.ExecuteResult{}
 }
 
 func (app *BucketApp) handleCreateBucketFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, synPackage *types.CreateBucketSynPackage) sdk.ExecuteResult {
-	app.storageKeeper.Logger(ctx).Error("received create bucket fail ack package ")
+	app.storageKeeper.Logger(ctx).Error("received create bucket fail ack package")
 
 	return sdk.ExecuteResult{}
 }
 
 func (app *BucketApp) handleCreateBucketFailAckPackageV2(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, synPackage *types.CreateBucketSynPackageV2) sdk.ExecuteResult {
-	app.storageKeeper.Logger(ctx).Error("received create bucket fail ack package ")
+	app.storageKeeper.Logger(ctx).Error("received create bucket fail ack package")
 
 	return sdk.ExecuteResult{}
 }

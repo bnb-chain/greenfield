@@ -608,7 +608,7 @@ func DeserializeCreateBucketSynPackage(serializedPackage []byte) (interface{}, e
 }
 
 func (p CreateBucketSynPackageV2) MustSerialize() []byte {
-	encodedBytes, err := createBucketSynPackageStructArgs.Pack(&CreateBucketSynPackageV2Struct{
+	encodedBytes, err := createBucketSynPackageV2StructArgs.Pack(&CreateBucketSynPackageV2Struct{
 		Creator:                        common.BytesToAddress(p.Creator),
 		BucketName:                     p.BucketName,
 		Visibility:                     p.Visibility,
