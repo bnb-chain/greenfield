@@ -4,6 +4,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/types/s3util"
@@ -49,10 +50,7 @@ func (msg *MsgCompleteMigrateBucket) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-	err = s3util.CheckValidBucketName(msg.BucketName)
-	if err != nil {
-		return err
-	}
+
 	if msg.GlobalVirtualGroupFamilyId == types.NoSpecifiedFamilyId {
 		return gnfderrors.ErrInvalidMessage.Wrap("the global virtual group family id not specify.")
 	}
@@ -72,5 +70,24 @@ func (msg *MsgCompleteMigrateBucket) ValidateBasic() error {
 		}
 		mappingMap[gvgMapping.SrcGlobalVirtualGroupId] = gvgMapping.DstGlobalVirtualGroupId
 	}
+
+	return nil
+}
+
+func (msg *MsgCompleteMigrateBucket) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
+	} else {
+		err = s3util.CheckValidBucketName(msg.BucketName)
+	}
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

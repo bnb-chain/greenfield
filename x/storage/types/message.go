@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -180,10 +181,24 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
+	return nil
+}
+
+func (msg *MsgCreateBucket) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
 		return err
 	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
+	} else {
+		err = s3util.CheckValidBucketName(msg.BucketName)
+	}
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -227,7 +242,20 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
+	return nil
+}
+
+func (msg *MsgDeleteBucket) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
+	} else {
+		err = s3util.CheckValidBucketName(msg.BucketName)
+	}
 	if err != nil {
 		return err
 	}
@@ -279,15 +307,29 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
-		return err
-	}
-
 	if msg.PaymentAddress != "" {
 		_, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
 		if err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
 		}
+	}
+
+	return nil
+}
+
+func (msg *MsgUpdateBucketInfo) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
+	} else {
+		err = s3util.CheckValidBucketName(msg.BucketName)
+	}
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -347,16 +389,6 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
-	if err != nil {
-		return err
-	}
-
-	err = s3util.CheckValidObjectName(msg.ObjectName)
-	if err != nil {
-		return err
-	}
-
 	err = s3util.CheckValidExpectChecksums(msg.ExpectChecksums)
 	if err != nil {
 		return err
@@ -370,6 +402,31 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
 		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
 	}
+	return nil
+}
+
+func (msg *MsgCreateObject) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.ObjectName); err != nil {
+			return err
+		}
+	} else {
+		if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -414,14 +471,30 @@ func (msg *MsgCancelCreateObject) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-	err = s3util.CheckValidBucketName(msg.BucketName)
+
+	return nil
+}
+
+func (msg *MsgCancelCreateObject) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
 		return err
 	}
 
-	err = s3util.CheckValidObjectName(msg.ObjectName)
-	if err != nil {
-		return err
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.ObjectName); err != nil {
+			return err
+		}
+	} else {
+		if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -467,15 +540,31 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
+	return nil
+}
+
+func (msg *MsgDeleteObject) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
 		return err
 	}
 
-	err = s3util.CheckValidObjectName(msg.ObjectName)
-	if err != nil {
-		return err
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.ObjectName); err != nil {
+			return err
+		}
+	} else {
+		if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 
@@ -524,20 +613,35 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
-	if err != nil {
-		return err
-	}
-
-	err = s3util.CheckValidObjectName(msg.ObjectName)
-	if err != nil {
-		return err
-	}
-
 	if len(msg.GetSecondarySpBlsAggSignatures()) != sdk.BLSSignatureLength {
 		return errors.Wrap(gnfderrors.ErrInvalidBlsSignature,
 			fmt.Sprintf("length of signature should be %d", sdk.BLSSignatureLength),
 		)
+	}
+
+	return nil
+}
+
+func (msg *MsgSealObject) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.ObjectName); err != nil {
+			return err
+		}
+	} else {
+		if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -599,25 +703,45 @@ func (msg *MsgCopyObject) ValidateBasic() error {
 		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
 	}
 
-	err = s3util.CheckValidBucketName(msg.SrcBucketName)
+	return nil
+}
+
+func (msg *MsgCopyObject) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
 		return err
 	}
 
-	err = s3util.CheckValidObjectName(msg.SrcObjectName)
-	if err != nil {
-		return err
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.SrcBucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.SrcObjectName); err != nil {
+			return err
+		}
+
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.DstBucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.DstObjectName); err != nil {
+			return err
+		}
+	} else {
+		if err = s3util.CheckValidBucketName(msg.SrcBucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectName(msg.SrcObjectName); err != nil {
+			return err
+		}
+
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.DstBucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.DstObjectName); err != nil {
+			return err
+		}
 	}
 
-	err = s3util.CheckValidBucketName(msg.DstBucketName)
-	if err != nil {
-		return err
-	}
-
-	err = s3util.CheckValidObjectName(msg.DstObjectName)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -660,14 +784,30 @@ func (msg *MsgRejectSealObject) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-	err = s3util.CheckValidBucketName(msg.BucketName)
+
+	return nil
+}
+
+func (msg *MsgRejectSealObject) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
 		return err
 	}
 
-	err = s3util.CheckValidObjectName(msg.ObjectName)
-	if err != nil {
-		return err
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.ObjectName); err != nil {
+			return err
+		}
+	} else {
+		if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -714,17 +854,30 @@ func (msg *MsgDiscontinueObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
-	if err != nil {
-		return err
-	}
-
 	if len(msg.ObjectIds) == 0 || len(msg.ObjectIds) > MaxDiscontinueObjects {
 		return errors.Wrapf(ErrInvalidObjectIds, "length of ids is %d", len(msg.ObjectIds))
 	}
 
 	if len(msg.Reason) > MaxDiscontinueReasonLen {
 		return errors.Wrapf(ErrInvalidReason, "reason is too long with length %d", len(msg.Reason))
+	}
+
+	return nil
+}
+
+func (msg *MsgDiscontinueObject) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
+	} else {
+		err = s3util.CheckValidBucketName(msg.BucketName)
+	}
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -770,13 +923,26 @@ func (msg *MsgDiscontinueBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
+	if len(msg.Reason) > MaxDiscontinueReasonLen {
+		return errors.Wrapf(ErrInvalidReason, "reason is too long with length %d", len(msg.Reason))
+	}
+
+	return nil
+}
+
+func (msg *MsgDiscontinueBucket) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
 		return err
 	}
 
-	if len(msg.Reason) > MaxDiscontinueReasonLen {
-		return errors.Wrapf(ErrInvalidReason, "reason is too long with length %d", len(msg.Reason))
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
+	} else {
+		err = s3util.CheckValidBucketName(msg.BucketName)
+	}
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -825,18 +991,33 @@ func (msg *MsgUpdateObjectInfo) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
-	if err != nil {
-		return err
-	}
-
-	err = s3util.CheckValidObjectName(msg.ObjectName)
-	if err != nil {
-		return err
-	}
-
 	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
 		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
+	}
+
+	return nil
+}
+
+func (msg *MsgUpdateObjectInfo) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.ObjectName); err != nil {
+			return err
+		}
+	} else {
+		if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -882,14 +1063,27 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	err = s3util.CheckValidGroupName(msg.GroupName)
-	if err != nil {
-		return gnfderrors.ErrInvalidGroupName.Wrapf("invalid groupName (%s)", err)
-	}
-
 	if len(msg.Extra) > MaxGroupExtraInfoLimit {
 		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d, limit to %d", len(msg.Extra), MaxGroupExtraInfoLimit)
 	}
+	return nil
+}
+
+func (msg *MsgCreateGroup) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
+	} else {
+		err = s3util.CheckValidGroupName(msg.GroupName)
+	}
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -932,10 +1126,24 @@ func (msg *MsgDeleteGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	err = s3util.CheckValidGroupName(msg.GroupName)
+	return nil
+}
+
+func (msg *MsgDeleteGroup) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
-		return errors.Wrapf(gnfderrors.ErrInvalidGroupName, "invalid groupName (%s)", err)
+		return err
 	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
+	} else {
+		err = s3util.CheckValidGroupName(msg.GroupName)
+	}
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -984,10 +1192,24 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner (%s)", err)
 	}
 
-	err = s3util.CheckValidGroupName(msg.GroupName)
+	return nil
+}
+
+func (msg *MsgLeaveGroup) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
 		return err
 	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
+	} else {
+		err = s3util.CheckValidGroupName(msg.GroupName)
+	}
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1045,11 +1267,6 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner address (%s)", err)
 	}
 
-	err = s3util.CheckValidGroupName(msg.GroupName)
-	if err != nil {
-		return err
-	}
-
 	if len(msg.MembersToAdd)+len(msg.MembersToDelete) > MaxGroupMemberLimitOnce {
 		return gnfderrors.ErrInvalidParameter.Wrapf("Once update group member limit exceeded")
 	}
@@ -1069,6 +1286,25 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid member address (%s)", err)
 		}
 	}
+
+	return nil
+}
+
+func (msg *MsgUpdateGroupMember) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
+	} else {
+		err = s3util.CheckValidGroupName(msg.GroupName)
+	}
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1118,12 +1354,26 @@ func (msg *MsgUpdateGroupExtra) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner address (%s)", err)
 	}
 
-	err = s3util.CheckValidGroupName(msg.GroupName)
+	if len(msg.Extra) > MaxGroupExtraInfoLimit {
+		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d, limit to %d", len(msg.Extra), MaxGroupExtraInfoLimit)
+	}
+
+	return nil
+}
+
+func (msg *MsgUpdateGroupExtra) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
 		return err
 	}
-	if len(msg.Extra) > MaxGroupExtraInfoLimit {
-		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d, limit to %d", len(msg.Extra), MaxGroupExtraInfoLimit)
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
+	} else {
+		err = s3util.CheckValidGroupName(msg.GroupName)
+	}
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -1319,7 +1569,20 @@ func (msg *MsgMirrorBucket) ValidateBasic() error {
 		return nil
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
+	return nil
+}
+
+func (msg *MsgMirrorBucket) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
+	} else {
+		err = s3util.CheckValidBucketName(msg.BucketName)
+	}
 	if err != nil {
 		return err
 	}
@@ -1380,14 +1643,29 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 		return nil
 	}
 
-	err = s3util.CheckValidBucketName(msg.BucketName)
+	return nil
+}
+
+func (msg *MsgMirrorObject) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
 		return err
 	}
 
-	err = s3util.CheckValidObjectName(msg.ObjectName)
-	if err != nil {
-		return err
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.ObjectName); err != nil {
+			return err
+		}
+	} else {
+		if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -1442,9 +1720,22 @@ func (msg *MsgMirrorGroup) ValidateBasic() error {
 		return nil
 	}
 
-	err = s3util.CheckValidGroupName(msg.GroupName)
+	return nil
+}
+
+func (msg *MsgMirrorGroup) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
 	if err != nil {
-		return gnfderrors.ErrInvalidGroupName.Wrapf("invalid groupName (%s)", err)
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
+	} else {
+		err = s3util.CheckValidGroupName(msg.GroupName)
+	}
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -1522,11 +1813,6 @@ func (msg *MsgRenewGroupMember) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner address (%s)", err)
 	}
 
-	err = s3util.CheckValidGroupName(msg.GroupName)
-	if err != nil {
-		return err
-	}
-
 	if len(msg.Members) > MaxGroupMemberLimitOnce {
 		return gnfderrors.ErrInvalidParameter.Wrapf("Once renew group member limit exceeded")
 	}
@@ -1538,6 +1824,24 @@ func (msg *MsgRenewGroupMember) ValidateBasic() error {
 		if member.ExpirationTime != nil && member.ExpirationTime.UTC().After(MaxTimeStamp) {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Expiration time is bigger than max timestamp [%s]", MaxTimeStamp)
 		}
+	}
+
+	return nil
+}
+
+func (msg *MsgRenewGroupMember) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
+	} else {
+		err = s3util.CheckValidGroupName(msg.GroupName)
+	}
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -1592,13 +1896,32 @@ func (msg *MsgSetTag) ValidateBasic() error {
 	if len(msg.Tags.GetTags()) > MaxTagCount {
 		return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
 	}
+
+	return nil
+}
+
+func (msg *MsgSetTag) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
 	if len(msg.Tags.GetTags()) > 0 {
 		for _, tag := range msg.Tags.GetTags() {
-			if len(tag.GetKey()) > MaxTagKeyLength {
-				return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
-			}
-			if len(tag.GetValue()) > MaxTagValueLength {
-				return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
+			if ctx.IsUpgraded(upgradetypes.Ural) {
+				if utf8.RuneCountInString(tag.GetKey()) > MaxTagKeyLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
+				}
+				if utf8.RuneCountInString(tag.GetValue()) > MaxTagValueLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
+				}
+			} else {
+				if len(tag.GetKey()) > MaxTagKeyLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
+				}
+				if len(tag.GetValue()) > MaxTagValueLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
+				}
 			}
 		}
 	}

@@ -93,6 +93,8 @@ github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/PuerkitoBio/purell v1.0.0/go.mod h1:c11w/QuzBsJSee3cPx9rAFu61PvFxuPbtSwDGJws/X0=
 github.com/PuerkitoBio/urlesc v0.0.0-20160726150825-5bd2802263f2/go.mod h1:uGdkoq3SwY9Y+13GIhn11/XLaGBb4BfwItxLd5jeuXE=
+github.com/Pythonberg1997/greenfield-cosmos-sdk v0.0.0-20240112053628-9e3d8de9d89e h1:O3Ox4jTazMw0v5kWbJlq5uJMAR1C/UsnbwkF1SncZ4w=
+github.com/Pythonberg1997/greenfield-cosmos-sdk v0.0.0-20240112053628-9e3d8de9d89e/go.mod h1:Yrvq+J1Lsm7OHFX+M/AZWBTGt1TRHUTC4VYOMlvW3fs=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/sarama v1.26.1/go.mod h1:NbSGBSSndYaIhRcBtY9V0U7AyH+x71bG668AuWys/yU=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
@@ -163,8 +165,6 @@ github.com/bnb-chain/greenfield-cometbft v1.1.0 h1:jqnkDWIZW6f/rUn5/pE26YZMT9xzp
 github.com/bnb-chain/greenfield-cometbft v1.1.0/go.mod h1:NZ2/ZJK2HYe3++0CsPiw4LTG6UrC6pH7fQ3VOz6pqJw=
 github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1 h1:XcWulGacHVRiSCx90Q8Y//ajOrLNBQWR/KDB89dy3cU=
 github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1/go.mod h1:ey1CiK4bYo1RBNJLRiVbYr5CMdSxci9S/AZRINLtppI=
-github.com/bnb-chain/greenfield-cosmos-sdk v1.2.2-0.20240102032738-3661d43faf8f h1:cU9Zsbmiy5NKDmaYU8kS8uZR0J1AyQrq5RR1EJgVO+k=
-github.com/bnb-chain/greenfield-cosmos-sdk v1.2.2-0.20240102032738-3661d43faf8f/go.mod h1:Yrvq+J1Lsm7OHFX+M/AZWBTGt1TRHUTC4VYOMlvW3fs=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230816082903-b48770f5e210 h1:GHPbV2bC+gmuO6/sG0Tm8oGal3KKSRlyE+zPscDjlA8=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230816082903-b48770f5e210/go.mod h1:vhsZxXE9tYJeYB5JR4hPhd6Pc/uPf7j1T8IJ7p9FdeM=
 github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230816082903-b48770f5e210 h1:FLVOn4+OVbsKi2+YJX5kmD27/4dRu4FW7xCXFhzDO5s=

@@ -4,6 +4,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/bnb-chain/greenfield/types/s3util"
 )
@@ -55,12 +56,29 @@ func (msg *MsgSubmit) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp operator address (%s)", err)
 	}
 
-	if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+	return nil
+}
+
+func (msg *MsgSubmit) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
 		return err
 	}
 
-	if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
-		return err
+	if ctx.IsUpgraded(upgradetypes.Ural) {
+		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectNameByCharacterLength(msg.ObjectName); err != nil {
+			return err
+		}
+	} else {
+		if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+			return err
+		}
+		if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
+			return err
+		}
 	}
 
 	return nil
