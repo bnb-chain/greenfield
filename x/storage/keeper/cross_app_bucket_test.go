@@ -58,12 +58,17 @@ func (s *TestSuite) TestSynCreateBucket() {
 	storageKeeper.EXPECT().Logger(gomock.Any()).Return(s.ctx.Logger()).AnyTimes()
 
 	app := keeper.NewBucketApp(storageKeeper)
-	createSynPackage := types.CreateBucketSynPackage{
-		Creator:          sample.RandAccAddress(),
-		BucketName:       "bucketname",
-		ExtraData:        []byte("extra data"),
-		PaymentAddress:   sample.RandAccAddress(),
-		PrimarySpAddress: sample.RandAccAddress(),
+	createSynPackage := types.CreateBucketSynPackageV2{
+		Creator:                        sample.RandAccAddress(),
+		BucketName:                     "bucketname",
+		Visibility:                     0,
+		PaymentAddress:                 sample.RandAccAddress(),
+		PrimarySpAddress:               sample.RandAccAddress(),
+		PrimarySpApprovalExpiredHeight: 0,
+		GlobalVirtualGroupFamilyId:     0,
+		PrimarySpApprovalSignature:     nil,
+		ChargedReadQuota:               0,
+		ExtraData:                      []byte("extra data"),
 	}
 	serializedSynPackage := createSynPackage.MustSerialize()
 	serializedSynPackage = append([]byte{types.OperationCreateBucket}, serializedSynPackage...)
@@ -230,7 +235,7 @@ func (s *TestSuite) TestFailAckCreateBucket() {
 	app := keeper.NewBucketApp(storageKeeper)
 	createSynPackage := types.CreateBucketSynPackageV2{
 		Creator:                        sample.RandAccAddress(),
-		BucketName:                     "bucketName",
+		BucketName:                     "bucketname",
 		Visibility:                     0,
 		PaymentAddress:                 sample.RandAccAddress(),
 		PrimarySpAddress:               sample.RandAccAddress(),
