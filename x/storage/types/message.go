@@ -1562,13 +1562,6 @@ func (msg *MsgMirrorBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
-		if msg.BucketName != "" {
-			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
-		}
-		return nil
-	}
-
 	return nil
 }
 
@@ -1576,6 +1569,13 @@ func (msg *MsgMirrorBucket) ValidateRuntime(ctx sdk.Context) error {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return err
+	}
+
+	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
+		if msg.BucketName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
+		}
+		return nil
 	}
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
