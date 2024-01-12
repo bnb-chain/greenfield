@@ -1633,6 +1633,15 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	return nil
+}
+
+func (msg *MsgMirrorObject) ValidateRuntime(ctx sdk.Context) error {
+	err := msg.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
 	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.BucketName != "" {
 			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
@@ -1641,15 +1650,6 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 			return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name should be empty")
 		}
 		return nil
-	}
-
-	return nil
-}
-
-func (msg *MsgMirrorObject) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
 	}
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
@@ -1713,13 +1713,6 @@ func (msg *MsgMirrorGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
-		if msg.GroupName != "" {
-			return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name should be empty")
-		}
-		return nil
-	}
-
 	return nil
 }
 
@@ -1727,6 +1720,13 @@ func (msg *MsgMirrorGroup) ValidateRuntime(ctx sdk.Context) error {
 	err := msg.ValidateBasic()
 	if err != nil {
 		return err
+	}
+
+	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
+		if msg.GroupName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name should be empty")
+		}
+		return nil
 	}
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
