@@ -780,7 +780,7 @@ func (k Keeper) SealObject(
 	}
 	// validate seal object bls aggregated sig from secondary sps
 	secondarySpsSealObjectBlsSignHash := types.NewSecondarySpSealObjectSignDoc(ctx.ChainID(), gvg.Id, objectInfo.Id, types.GenerateHash(objectInfo.Checksums[:])).GetBlsSignHash()
-	err := k.VerifyGVGSecondarySPsBlsSignature(ctx, gvg, secondarySpsSealObjectBlsSignHash, opts.SecondarySpBlsSignatures)
+	err := k.VerifyGVGSecondarySPsBlsSignatureAndStatus(ctx, gvg, secondarySpsSealObjectBlsSignHash, opts.SecondarySpBlsSignatures)
 	if err != nil {
 		return err
 	}

@@ -3,9 +3,11 @@ package keeper
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	vgtypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
@@ -115,12 +117,17 @@ func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketI
 	return nil
 }
 
-func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *vgtypes.GlobalVirtualGroup, signHash [32]byte, signature []byte) error {
+func (k Keeper) VerifyGVGSecondarySPsBlsSignatureAndStatus(ctx sdk.Context, gvg *vgtypes.GlobalVirtualGroup, signHash [32]byte, signature []byte) error {
 	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
 	for _, spId := range gvg.GetSecondarySpIds() {
 		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)
 		if !found {
 			panic("should not happen")
+		}
+		if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+			if secondarySp.Status != sptypes.STATUS_IN_SERVICE {
+				return sptypes.ErrStorageProviderNotInService
+			}
 		}
 		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.BlsKey)
 		if err != nil {
