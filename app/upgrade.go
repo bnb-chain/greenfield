@@ -65,13 +65,17 @@ func (app *App) registerNagquUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Nagqu,
 		func() error {
 			app.Logger().Info("Init Nagqu upgrade")
-			mm, ok := app.mm.Modules[paymenttypes.ModuleName].(*paymentmodule.AppModule)
-			if !ok {
-				panic("*paymentmodule.AppModule not found")
-			}
-			mm.SetConsensusVersion(2)
+			app.setPaymentConsensusV2()
 			return nil
 		})
+}
+
+func (app *App) setPaymentConsensusV2() {
+	mm, ok := app.mm.Modules[paymenttypes.ModuleName].(*paymentmodule.AppModule)
+	if !ok {
+		panic("*paymentmodule.AppModule not found")
+	}
+	mm.SetConsensusVersion(2)
 }
 
 func (app *App) registerPampasUpgradeHandler() {
@@ -105,7 +109,7 @@ func (app *App) registerPampasUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Pampas,
 		func() error {
 			app.Logger().Info("Init Pampas upgrade")
-
+			app.setPaymentConsensusV2()
 			// enable chain id for opbnb
 			app.CrossChainKeeper.SetDestOpChainID(sdk.ChainID(app.appConfig.CrossChain.DestOpChainId))
 			return nil
@@ -129,6 +133,7 @@ func (app *App) registerManchurianUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Manchurian,
 		func() error {
 			app.Logger().Info("Init Manchurian upgrade")
+			app.setPaymentConsensusV2()
 			return nil
 		})
 }
@@ -154,13 +159,18 @@ func (app *App) registerHulunbeierUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Hulunbeier,
 		func() error {
 			app.Logger().Info("Init Hulunbeier upgrade")
-			mm, ok := app.mm.Modules[virtualgrouptypes.ModuleName].(*virtualgroupmodule.AppModule)
-			if !ok {
-				panic("*virtualgroupmodule.AppModule not found")
-			}
-			mm.SetConsensusVersion(2)
+			app.setPaymentConsensusV2()
+			app.setVirtualGroupConsensusV2()
 			return nil
 		})
+}
+
+func (app *App) setVirtualGroupConsensusV2() {
+	mm, ok := app.mm.Modules[virtualgrouptypes.ModuleName].(*virtualgroupmodule.AppModule)
+	if !ok {
+		panic("*virtualgroupmodule.AppModule not found")
+	}
+	mm.SetConsensusVersion(2)
 }
 
 func (app *App) registerHulunbeierPatchUpgradeHandler() {
@@ -177,6 +187,8 @@ func (app *App) registerHulunbeierPatchUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.HulunbeierPatch,
 		func() error {
 			app.Logger().Info("Init Hulunbeier patch upgrade")
+			app.setPaymentConsensusV2()
+			app.setVirtualGroupConsensusV2()
 			return nil
 		})
 }
