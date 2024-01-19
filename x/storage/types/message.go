@@ -185,11 +185,7 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 }
 
 func (msg *MsgCreateBucket) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
-
+	var err error
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
 	} else {
@@ -246,11 +242,7 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 }
 
 func (msg *MsgDeleteBucket) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
-
+	var err error
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
 	} else {
@@ -318,10 +310,7 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateBucketInfo) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
@@ -406,10 +395,7 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 }
 
 func (msg *MsgCreateObject) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
@@ -476,10 +462,7 @@ func (msg *MsgCancelCreateObject) ValidateBasic() error {
 }
 
 func (msg *MsgCancelCreateObject) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
@@ -544,10 +527,7 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 }
 
 func (msg *MsgDeleteObject) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
@@ -623,10 +603,7 @@ func (msg *MsgSealObject) ValidateBasic() error {
 }
 
 func (msg *MsgSealObject) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
@@ -707,10 +684,7 @@ func (msg *MsgCopyObject) ValidateBasic() error {
 }
 
 func (msg *MsgCopyObject) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		if err = s3util.CheckValidBucketNameByCharacterLength(msg.SrcBucketName); err != nil {
@@ -789,10 +763,7 @@ func (msg *MsgRejectSealObject) ValidateBasic() error {
 }
 
 func (msg *MsgRejectSealObject) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
@@ -866,10 +837,7 @@ func (msg *MsgDiscontinueObject) ValidateBasic() error {
 }
 
 func (msg *MsgDiscontinueObject) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
@@ -931,10 +899,7 @@ func (msg *MsgDiscontinueBucket) ValidateBasic() error {
 }
 
 func (msg *MsgDiscontinueBucket) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
@@ -999,10 +964,7 @@ func (msg *MsgUpdateObjectInfo) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateObjectInfo) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		if err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName); err != nil {
@@ -1070,10 +1032,7 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 }
 
 func (msg *MsgCreateGroup) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
@@ -1130,10 +1089,7 @@ func (msg *MsgDeleteGroup) ValidateBasic() error {
 }
 
 func (msg *MsgDeleteGroup) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
@@ -1196,10 +1152,7 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 }
 
 func (msg *MsgLeaveGroup) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
@@ -1291,10 +1244,7 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateGroupMember) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
@@ -1362,10 +1312,7 @@ func (msg *MsgUpdateGroupExtra) ValidateBasic() error {
 }
 
 func (msg *MsgUpdateGroupExtra) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
@@ -1566,10 +1513,7 @@ func (msg *MsgMirrorBucket) ValidateBasic() error {
 }
 
 func (msg *MsgMirrorBucket) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.BucketName != "" {
@@ -1637,10 +1581,7 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 }
 
 func (msg *MsgMirrorObject) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.BucketName != "" {
@@ -1717,10 +1658,7 @@ func (msg *MsgMirrorGroup) ValidateBasic() error {
 }
 
 func (msg *MsgMirrorGroup) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.GroupName != "" {
@@ -1830,10 +1768,7 @@ func (msg *MsgRenewGroupMember) ValidateBasic() error {
 }
 
 func (msg *MsgRenewGroupMember) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	var err error
 
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidGroupNameByCharacterLength(msg.GroupName)
@@ -1901,11 +1836,6 @@ func (msg *MsgSetTag) ValidateBasic() error {
 }
 
 func (msg *MsgSetTag) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
-
 	if len(msg.Tags.GetTags()) > 0 {
 		for _, tag := range msg.Tags.GetTags() {
 			if ctx.IsUpgraded(upgradetypes.Ural) {

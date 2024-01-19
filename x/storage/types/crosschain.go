@@ -562,6 +562,10 @@ func (p CreateBucketSynPackage) ValidateBasic(ctx sdk.Context) error {
 		ChargedReadQuota: p.ChargedReadQuota,
 	}
 
+	if err := msg.ValidateBasic(); err != nil {
+		return err
+	}
+
 	return msg.ValidateRuntime(ctx)
 }
 
@@ -639,6 +643,10 @@ func (p CreateBucketSynPackageV2) ValidateBasic(ctx sdk.Context) error {
 			Sig:                        p.PrimarySpApprovalSignature,
 		},
 		ChargedReadQuota: p.ChargedReadQuota,
+	}
+
+	if err := msg.ValidateBasic(); err != nil {
+		return err
 	}
 
 	return msg.ValidateRuntime(ctx)
@@ -888,6 +896,11 @@ func (p CreateGroupSynPackage) ValidateBasic(ctx sdk.Context) error {
 		Creator:   p.Creator.String(),
 		GroupName: p.GroupName,
 	}
+
+	if err := msg.ValidateBasic(); err != nil {
+		return err
+	}
+
 	return msg.ValidateRuntime(ctx)
 }
 
