@@ -2230,7 +2230,7 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 		if !found {
 			return types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
 		}
-		if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+		if ctx.IsUpgraded(upgradetypes.Ural) {
 			// check permission
 			effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_UPDATE_BUCKET_INFO, nil)
 			if effect != permtypes.EFFECT_ALLOW {
@@ -2257,7 +2257,7 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 		if !found {
 			return types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
 		}
-		if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+		if ctx.IsUpgraded(upgradetypes.Ural) {
 			bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 			if !found {
 				return types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
@@ -2288,7 +2288,7 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 		if !found {
 			return types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
 		}
-		if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+		if ctx.IsUpgraded(upgradetypes.Ural) {
 			effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_INFO)
 			if effect != permtypes.EFFECT_ALLOW {
 				return types.ErrAccessDenied.Wrapf(
