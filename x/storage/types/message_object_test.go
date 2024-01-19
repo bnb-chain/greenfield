@@ -77,11 +77,16 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			upgradeChecker := func(sdk.Context, string) bool { return true }
-			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
-			err := tt.msg.ValidateRuntime(ctx)
+			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
+				if err != nil {
+					require.ErrorIs(t, err, tt.err)
+				} else {
+					upgradeChecker := func(sdk.Context, string) bool { return true }
+					ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
+					err = tt.msg.ValidateRuntime(ctx)
+					require.ErrorIs(t, err, tt.err)
+				}
 				return
 			}
 			require.NoError(t, err)
@@ -253,11 +258,16 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			upgradeChecker := func(sdk.Context, string) bool { return true }
-			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
-			err := tt.msg.ValidateRuntime(ctx)
+			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
+				if err != nil {
+					require.ErrorIs(t, err, tt.err)
+				} else {
+					upgradeChecker := func(sdk.Context, string) bool { return true }
+					ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
+					err = tt.msg.ValidateRuntime(ctx)
+					require.ErrorIs(t, err, tt.err)
+				}
 				return
 			}
 			require.NoError(t, err)
@@ -327,11 +337,16 @@ func TestMsgSealObject_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			upgradeChecker := func(sdk.Context, string) bool { return true }
-			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
-			err := tt.msg.ValidateRuntime(ctx)
+			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
+				if err != nil {
+					require.ErrorIs(t, err, tt.err)
+				} else {
+					upgradeChecker := func(sdk.Context, string) bool { return true }
+					ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
+					err = tt.msg.ValidateRuntime(ctx)
+					require.ErrorIs(t, err, tt.err)
+				}
 				return
 			}
 			require.NoError(t, err)
@@ -383,11 +398,16 @@ func TestMsgRejectSealObject_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			upgradeChecker := func(sdk.Context, string) bool { return true }
-			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
-			err := tt.msg.ValidateRuntime(ctx)
+			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
+				if err != nil {
+					require.ErrorIs(t, err, tt.err)
+				} else {
+					upgradeChecker := func(sdk.Context, string) bool { return true }
+					ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
+					err = tt.msg.ValidateRuntime(ctx)
+					require.ErrorIs(t, err, tt.err)
+				}
 				return
 			}
 			require.NoError(t, err)
@@ -453,11 +473,16 @@ func TestMsgUpdateObjectInfo_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			upgradeChecker := func(sdk.Context, string) bool { return true }
-			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
-			err := tt.msg.ValidateRuntime(ctx)
+			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
+				if err != nil {
+					require.ErrorIs(t, err, tt.err)
+				} else {
+					upgradeChecker := func(sdk.Context, string) bool { return true }
+					ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
+					err = tt.msg.ValidateRuntime(ctx)
+					require.ErrorIs(t, err, tt.err)
+				}
 				return
 			}
 			require.NoError(t, err)
@@ -568,11 +593,16 @@ func TestMsgDiscontinueObject_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			upgradeChecker := func(sdk.Context, string) bool { return true }
-			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
-			err := tt.msg.ValidateRuntime(ctx)
+			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				require.ErrorIs(t, err, tt.err)
+				if err != nil {
+					require.ErrorIs(t, err, tt.err)
+				} else {
+					upgradeChecker := func(sdk.Context, string) bool { return true }
+					ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
+					err = tt.msg.ValidateRuntime(ctx)
+					require.ErrorIs(t, err, tt.err)
+				}
 				return
 			}
 			require.NoError(t, err)
