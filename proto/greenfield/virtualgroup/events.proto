@@ -175,7 +175,7 @@ message EventCompleteStorageProviderExit {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  //  forced_exit whether the exit is a forced exit
+  // forced_exit whether the exit is a forced exit
   bool forced_exit = 5;
 }
 

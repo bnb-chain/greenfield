@@ -1329,7 +1329,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 func filterSettleGVGEventFromTx(txRes *sdk.TxResponse) virtualgroupmoduletypes.EventSettleGlobalVirtualGroup {
 	idStr, amountStr := "", ""
 	for _, event := range txRes.Logs[0].Events {
-		if event.Type == "greenfield.challenge.EventSettleGlobalVirtualGroup" {
+		if event.Type == "greenfield.virtualgroup.EventSettleGlobalVirtualGroup" {
 			for _, attr := range event.Attributes {
 				if attr.Key == "id" {
 					idStr = strings.Trim(attr.Value, `"`)
@@ -1350,7 +1350,7 @@ func filterSettleGVGEventFromTx(txRes *sdk.TxResponse) virtualgroupmoduletypes.E
 func filterSettleGVGFamilyEventFromTx(txRes *sdk.TxResponse) virtualgroupmoduletypes.EventSettleGlobalVirtualGroupFamily {
 	idStr, spIdStr, amountStr := "", "", ""
 	for _, event := range txRes.Logs[0].Events {
-		if event.Type == "greenfield.challenge.EventSettleGlobalVirtualGroupFamily" {
+		if event.Type == "greenfield.virtualgroup.EventSettleGlobalVirtualGroupFamily" {
 			for _, attr := range event.Attributes {
 				if attr.Key == "id" {
 					idStr = strings.Trim(attr.Value, `"`)

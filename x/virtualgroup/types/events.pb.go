@@ -893,7 +893,7 @@ type EventCompleteStorageProviderExit struct {
 	StorageProviderAddress string `protobuf:"bytes,3,opt,name=storage_provider_address,json=storageProviderAddress,proto3" json:"storage_provider_address,omitempty"`
 	// total_deposit defines the number of tokens deposited by this storage provider for staking.
 	TotalDeposit github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=total_deposit,json=totalDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_deposit"`
-	//  forced_exit whether the exit is a forced exit
+	// forced_exit whether the exit is a forced exit
 	ForcedExit bool `protobuf:"varint,5,opt,name=forced_exit,json=forcedExit,proto3" json:"forced_exit,omitempty"`
 }
 
