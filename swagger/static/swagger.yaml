@@ -5008,6 +5008,7 @@ paths:
                               - ACTION_DELETE_GROUP
                               - ACTION_UPDATE_OBJECT_INFO
                               - ACTION_UPDATE_GROUP_EXTRA
+                              - ACTION_UPDATE_GROUP_INFO
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -5202,6 +5203,7 @@ paths:
                               - ACTION_DELETE_GROUP
                               - ACTION_UPDATE_OBJECT_INFO
                               - ACTION_UPDATE_GROUP_EXTRA
+                              - ACTION_UPDATE_GROUP_INFO
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -5400,6 +5402,7 @@ paths:
                               - ACTION_DELETE_GROUP
                               - ACTION_UPDATE_OBJECT_INFO
                               - ACTION_UPDATE_GROUP_EXTRA
+                              - ACTION_UPDATE_GROUP_INFO
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -5612,6 +5615,7 @@ paths:
             - ACTION_DELETE_GROUP
             - ACTION_UPDATE_OBJECT_INFO
             - ACTION_UPDATE_GROUP_EXTRA
+            - ACTION_UPDATE_GROUP_INFO
             - ACTION_TYPE_ALL
         - name: object_name
           in: query
@@ -34230,6 +34234,7 @@ definitions:
       - ACTION_DELETE_GROUP
       - ACTION_UPDATE_OBJECT_INFO
       - ACTION_UPDATE_GROUP_EXTRA
+      - ACTION_UPDATE_GROUP_INFO
       - ACTION_TYPE_ALL
     default: ACTION_UNSPECIFIED
     title: >-
@@ -34342,6 +34347,7 @@ definitions:
                   - ACTION_DELETE_GROUP
                   - ACTION_UPDATE_OBJECT_INFO
                   - ACTION_UPDATE_GROUP_EXTRA
+                  - ACTION_UPDATE_GROUP_INFO
                   - ACTION_TYPE_ALL
                 default: ACTION_UNSPECIFIED
                 title: >-
@@ -34464,6 +34470,7 @@ definitions:
             - ACTION_DELETE_GROUP
             - ACTION_UPDATE_OBJECT_INFO
             - ACTION_UPDATE_GROUP_EXTRA
+            - ACTION_UPDATE_GROUP_INFO
             - ACTION_TYPE_ALL
           default: ACTION_UNSPECIFIED
           title: >-
@@ -36207,6 +36214,7 @@ definitions:
                       - ACTION_DELETE_GROUP
                       - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_UPDATE_GROUP_EXTRA
+                      - ACTION_UPDATE_GROUP_INFO
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -36359,6 +36367,7 @@ definitions:
                       - ACTION_DELETE_GROUP
                       - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_UPDATE_GROUP_EXTRA
+                      - ACTION_UPDATE_GROUP_INFO
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -36511,6 +36520,7 @@ definitions:
                       - ACTION_DELETE_GROUP
                       - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_UPDATE_GROUP_EXTRA
+                      - ACTION_UPDATE_GROUP_INFO
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
