@@ -68,11 +68,7 @@ func (msg *MsgMigrateBucket) ValidateBasic() error {
 }
 
 func (msg *MsgMigrateBucket) ValidateRuntime(ctx sdk.Context) error {
-	err := msg.ValidateBasic()
-	if err != nil {
-		return err
-	}
-
+	var err error
 	if ctx.IsUpgraded(upgradetypes.Ural) {
 		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
 	} else {
