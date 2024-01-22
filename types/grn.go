@@ -157,7 +157,7 @@ func (r *GRN) ParseFromString(res string, wildcards bool) error {
 			return gnfderrors.ErrInvalidGRN.Wrapf("Not allowed '/' in bucket resource name")
 		}
 		if !wildcards {
-			err = s3util.CheckValidBucketName(r.name)
+			err = s3util.CheckValidBucketNameByCharacterLength(r.name)
 			if err != nil {
 				return gnfderrors.ErrInvalidGRN.Wrapf("invalid bucketName: %s, err: %s", r.name, err)
 			}
@@ -179,7 +179,7 @@ func (r *GRN) ParseFromString(res string, wildcards bool) error {
 			return gnfderrors.ErrInvalidGRN.Wrapf("invalid group owner account, err : %s", err)
 		}
 		if !wildcards {
-			err = s3util.CheckValidGroupName(name)
+			err = s3util.CheckValidGroupNameByCharacterLength(name)
 			if err != nil {
 				return gnfderrors.ErrInvalidGRN.Wrapf("invalid group name, err : %s", err)
 			}
@@ -200,11 +200,11 @@ func (r *GRN) parseBucketAndObjectName(name string) (string, string, error) {
 	if !found {
 		return "", "", gnfderrors.ErrInvalidGRN.Wrapf("object name not found, grn: %s", name)
 	}
-	err := s3util.CheckValidBucketName(bucketName)
+	err := s3util.CheckValidBucketNameByCharacterLength(bucketName)
 	if err != nil {
 		return "", "", gnfderrors.ErrInvalidGRN.Wrapf("invalid bucketName, err: %s", err)
 	}
-	err = s3util.CheckValidObjectName(objectName)
+	err = s3util.CheckValidObjectNameByCharacterLength(objectName)
 	if err != nil {
 		return "", "", gnfderrors.ErrInvalidGRN.Wrapf("invalid objectName, err: %s", err)
 	}

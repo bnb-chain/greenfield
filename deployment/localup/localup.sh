@@ -176,6 +176,7 @@ function generate_genesis() {
         echo -e '[[upgrade]]\nname = "Manchurian"\nheight = 20\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
         echo -e '[[upgrade]]\nname = "Hulunbeier"\nheight = 21\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
         echo -e '[[upgrade]]\nname = "HulunbeierPatch"\nheight = 21\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
+        echo -e '[[upgrade]]\nname = "Ural"\nheight = 22\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
     done
 
     # enable swagger API for validator0

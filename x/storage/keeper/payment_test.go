@@ -45,11 +45,12 @@ type TestSuite struct {
 func (s *TestSuite) SetupTest() {
 	encCfg := moduletestutil.MakeTestEncodingConfig(challenge.AppModuleBasic{})
 	key := storetypes.NewKVStoreKey(types.StoreKey)
+	upgradeChecker := func(sdk.Context, string) bool { return true }
 	testCtx := testutil.DefaultContextWithDB(s.T(), key, storetypes.NewTransientStoreKey("transient_test"))
 	header := testCtx.Ctx.BlockHeader()
 	header.Time = time.Now()
 	testCtx = testutil.TestContext{
-		Ctx: sdk.NewContext(testCtx.CMS, header, false, nil, testCtx.Ctx.Logger()),
+		Ctx: sdk.NewContext(testCtx.CMS, header, false, upgradeChecker, testCtx.Ctx.Logger()),
 		DB:  testCtx.DB,
 		CMS: testCtx.CMS,
 	}
