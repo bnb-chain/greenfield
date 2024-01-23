@@ -548,7 +548,7 @@ func (p CreateBucketSynPackage) MustSerialize() []byte {
 	return encodedBytes
 }
 
-func (p CreateBucketSynPackage) ValidateBasic() error {
+func (p CreateBucketSynPackage) ValidateBasic(ctx sdk.Context) error {
 	msg := MsgCreateBucket{
 		Creator:          p.Creator.String(),
 		BucketName:       p.BucketName,
@@ -562,7 +562,11 @@ func (p CreateBucketSynPackage) ValidateBasic() error {
 		ChargedReadQuota: p.ChargedReadQuota,
 	}
 
-	return msg.ValidateBasic()
+	if err := msg.ValidateBasic(); err != nil {
+		return err
+	}
+
+	return msg.ValidateRuntime(ctx)
 }
 
 func (p CreateBucketSynPackage) GetApprovalBytes() []byte {
@@ -608,7 +612,7 @@ func DeserializeCreateBucketSynPackage(serializedPackage []byte) (interface{}, e
 }
 
 func (p CreateBucketSynPackageV2) MustSerialize() []byte {
-	encodedBytes, err := createBucketSynPackageStructArgs.Pack(&CreateBucketSynPackageV2Struct{
+	encodedBytes, err := createBucketSynPackageV2StructArgs.Pack(&CreateBucketSynPackageV2Struct{
 		Creator:                        common.BytesToAddress(p.Creator),
 		BucketName:                     p.BucketName,
 		Visibility:                     p.Visibility,
@@ -626,7 +630,7 @@ func (p CreateBucketSynPackageV2) MustSerialize() []byte {
 	return encodedBytes
 }
 
-func (p CreateBucketSynPackageV2) ValidateBasic() error {
+func (p CreateBucketSynPackageV2) ValidateBasic(ctx sdk.Context) error {
 	msg := MsgCreateBucket{
 		Creator:          p.Creator.String(),
 		BucketName:       p.BucketName,
@@ -641,7 +645,11 @@ func (p CreateBucketSynPackageV2) ValidateBasic() error {
 		ChargedReadQuota: p.ChargedReadQuota,
 	}
 
-	return msg.ValidateBasic()
+	if err := msg.ValidateBasic(); err != nil {
+		return err
+	}
+
+	return msg.ValidateRuntime(ctx)
 }
 
 func (p CreateBucketSynPackageV2) GetApprovalBytes() []byte {
@@ -883,12 +891,17 @@ var (
 	}
 )
 
-func (p CreateGroupSynPackage) ValidateBasic() error {
+func (p CreateGroupSynPackage) ValidateBasic(ctx sdk.Context) error {
 	msg := MsgCreateGroup{
 		Creator:   p.Creator.String(),
 		GroupName: p.GroupName,
 	}
-	return msg.ValidateBasic()
+
+	if err := msg.ValidateBasic(); err != nil {
+		return err
+	}
+
+	return msg.ValidateRuntime(ctx)
 }
 
 func (p CreateGroupSynPackage) MustSerialize() []byte {

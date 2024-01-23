@@ -28,7 +28,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerManchurianUpgradeHandler()
 	app.registerHulunbeierUpgradeHandler()
 	app.registerHulunbeierPatchUpgradeHandler()
-
+	app.registerUralUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -177,6 +177,22 @@ func (app *App) registerHulunbeierPatchUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.HulunbeierPatch,
 		func() error {
 			app.Logger().Info("Init Hulunbeier patch upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerUralUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Ural,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Ural,
+		func() error {
+			app.Logger().Info("Init Ural upgrade")
 			return nil
 		})
 }

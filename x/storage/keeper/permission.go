@@ -138,8 +138,6 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 	policy, found := k.permKeeper.GetPolicyForAccount(ctx, resourceID, resourceType, operator)
 	if found {
 		effect, newPolicy := policy.Eval(action, ctx.BlockTime(), opts)
-		k.Logger(ctx).Info(fmt.Sprintf("CreateObject LimitSize update: %s, effect: %s, ctx.TxBytes : %d",
-			newPolicy.String(), effect, ctx.TxSize()))
 		if effect != permtypes.EFFECT_UNSPECIFIED {
 			if effect == permtypes.EFFECT_ALLOW && action == permtypes.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
 				_, err := k.permKeeper.PutPolicy(ctx, newPolicy)

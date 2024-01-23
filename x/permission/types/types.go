@@ -66,6 +66,7 @@ var (
 		ACTION_UPDATE_GROUP_MEMBER: true,
 		ACTION_UPDATE_GROUP_EXTRA:  true,
 		ACTION_DELETE_GROUP:        true,
+		ACTION_UPDATE_GROUP_INFO:   true,
 
 		ACTION_TYPE_ALL: true,
 	}
