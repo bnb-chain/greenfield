@@ -1590,15 +1590,15 @@ func (msg *MsgSetTag) ValidateBasic() error {
 	}
 
 	if len(msg.Tags.GetTags()) > MaxTagCount {
-		return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
+		return gnfderrors.ErrInvalidParameter.Wrapf("Tags count cannot exceed %d", MaxTagCount)
 	}
 	if len(msg.Tags.GetTags()) > 0 {
 		for _, tag := range msg.Tags.GetTags() {
 			if len(tag.GetKey()) > MaxTagKeyLength {
-				return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
+				return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length cannot exceed %d", MaxTagKeyLength)
 			}
 			if len(tag.GetValue()) > MaxTagValueLength {
-				return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
+				return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length cannot exceed %d", MaxTagValueLength)
 			}
 		}
 	}

@@ -24,10 +24,10 @@ func CheckValidBucketName(bucketName string) (err error) {
 		return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name cannot be empty")
 	}
 	if len(bucketName) < 3 {
-		return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name cannot be shorter than 3 characters")
+		return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name cannot be shorter than 3 bytes")
 	}
 	if len(bucketName) > 63 {
-		return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name cannot be longer than 63 characters")
+		return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name cannot be longer than 63 bytes")
 	}
 	if ipAddress.MatchString(bucketName) {
 		return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name cannot be an ip address")
@@ -60,7 +60,7 @@ func CheckValidObjectName(objectName string) error {
 		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name cannot be empty")
 	}
 	if len(objectName) > 1024 {
-		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name cannot be longer than 1024 characters")
+		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name cannot be longer than 1024 bytes")
 	}
 
 	// check bad path component
@@ -86,10 +86,10 @@ func CheckValidGroupName(groupName string) error {
 		return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name cannot be empty")
 	}
 	if len(groupName) < 3 {
-		return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name cannot be shorter than 3 characters")
+		return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name cannot be shorter than 3 bytes")
 	}
 	if len(groupName) > 63 {
-		return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name cannot be longer than 63 characters")
+		return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name cannot be longer than 63 bytes")
 	}
 	if !utf8.ValidString(groupName) {
 		return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name with non UTF-8 strings is not supported")
