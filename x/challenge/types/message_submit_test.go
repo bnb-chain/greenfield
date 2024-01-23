@@ -3,8 +3,6 @@ package types
 import (
 	"testing"
 
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 
@@ -67,14 +65,7 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
-				if err != nil {
-					require.ErrorIs(t, err, tt.err)
-				} else {
-					upgradeChecker := func(sdk.Context, string) bool { return true }
-					ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
-					err = tt.msg.ValidateRuntime(ctx)
-					require.ErrorIs(t, err, tt.err)
-				}
+				require.ErrorIs(t, err, tt.err)
 				return
 			}
 			require.NoError(t, err)
