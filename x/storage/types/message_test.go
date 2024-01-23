@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
@@ -88,9 +87,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			upgradeChecker := func(sdk.Context, string) bool { return true }
-			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
-			err := tt.msg.ValidateRuntime(ctx)
+			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
@@ -123,9 +120,7 @@ func TestMsgDeleteBucket_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			upgradeChecker := func(sdk.Context, string) bool { return true }
-			ctx := sdk.NewContext(nil, tmproto.Header{}, false, upgradeChecker, nil)
-			err := tt.msg.ValidateRuntime(ctx)
+			err := tt.msg.ValidateBasic()
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
