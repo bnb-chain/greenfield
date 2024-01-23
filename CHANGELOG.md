@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.4.0
+This release introduces the Ural upgrade to the testnet.
+
+Features:
+* [#560](https://github.com/bnb-chain/greenfield/pull/560) feat: change logic of resource name length check
+* [#563](https://github.com/bnb-chain/greenfield/pull/563) feat: set tag by accounts with permission
+
 ## v1.3.0
 This release introduces the Hulunbeier upgrade to the testnet.
 
