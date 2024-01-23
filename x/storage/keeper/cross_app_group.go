@@ -217,7 +217,7 @@ func (app *GroupApp) handleCreateGroupFailAckPackage(ctx sdk.Context, appCtx *sd
 }
 
 func (app *GroupApp) handleCreateGroupSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, createGroupPackage *types.CreateGroupSynPackage) sdk.ExecuteResult {
-	err := createGroupPackage.ValidateBasic(ctx)
+	err := createGroupPackage.ValidateBasic()
 	if err != nil {
 		return sdk.ExecuteResult{
 			Payload: types.CreateGroupAckPackage{

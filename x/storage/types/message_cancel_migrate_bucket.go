@@ -3,7 +3,6 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/bnb-chain/greenfield/types/s3util"
 )
@@ -46,19 +45,9 @@ func (msg *MsgCancelMigrateBucket) ValidateBasic() error {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid creator address (%s)", err)
 	}
 
-	return nil
-}
-
-func (msg *MsgCancelMigrateBucket) ValidateRuntime(ctx sdk.Context) error {
-	var err error
-	if ctx.IsUpgraded(upgradetypes.Ural) {
-		err = s3util.CheckValidBucketNameByCharacterLength(msg.BucketName)
-	} else {
-		err = s3util.CheckValidBucketName(msg.BucketName)
-	}
+	err = s3util.CheckValidBucketName(msg.BucketName)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

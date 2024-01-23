@@ -29,12 +29,12 @@ func CmdSubmit() *cobra.Command {
 			}
 
 			argBucketName := strings.TrimSpace(args[1])
-			if err := s3util.CheckValidBucketNameByCharacterLength(argBucketName); err != nil {
+			if err := s3util.CheckValidBucketName(argBucketName); err != nil {
 				return fmt.Errorf("bucket-name %s not a valid bucket name, please input a valid bucket-name", argBucketName)
 			}
 
 			argObjectName := strings.TrimSpace(args[2])
-			if err := s3util.CheckValidObjectNameByCharacterLength(argObjectName); err != nil {
+			if err := s3util.CheckValidObjectName(argObjectName); err != nil {
 				return fmt.Errorf("object-name %s not a valid object name, please input a valid object-name", argObjectName)
 			}
 

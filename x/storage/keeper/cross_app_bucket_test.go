@@ -58,17 +58,12 @@ func (s *TestSuite) TestSynCreateBucket() {
 	storageKeeper.EXPECT().Logger(gomock.Any()).Return(s.ctx.Logger()).AnyTimes()
 
 	app := keeper.NewBucketApp(storageKeeper)
-	createSynPackage := types.CreateBucketSynPackageV2{
-		Creator:                        sample.RandAccAddress(),
-		BucketName:                     "bucketname",
-		Visibility:                     0,
-		PaymentAddress:                 sample.RandAccAddress(),
-		PrimarySpAddress:               sample.RandAccAddress(),
-		PrimarySpApprovalExpiredHeight: 0,
-		GlobalVirtualGroupFamilyId:     0,
-		PrimarySpApprovalSignature:     nil,
-		ChargedReadQuota:               0,
-		ExtraData:                      []byte("extra data"),
+	createSynPackage := types.CreateBucketSynPackage{
+		Creator:          sample.RandAccAddress(),
+		BucketName:       "bucketname",
+		ExtraData:        []byte("extra data"),
+		PaymentAddress:   sample.RandAccAddress(),
+		PrimarySpAddress: sample.RandAccAddress(),
 	}
 	serializedSynPackage := createSynPackage.MustSerialize()
 	serializedSynPackage = append([]byte{types.OperationCreateBucket}, serializedSynPackage...)
@@ -233,24 +228,19 @@ func (s *TestSuite) TestFailAckCreateBucket() {
 	storageKeeper.EXPECT().Logger(gomock.Any()).Return(s.ctx.Logger()).AnyTimes()
 
 	app := keeper.NewBucketApp(storageKeeper)
-	createSynPackage := types.CreateBucketSynPackageV2{
-		Creator:                        sample.RandAccAddress(),
-		BucketName:                     "bucketname",
-		Visibility:                     0,
-		PaymentAddress:                 sample.RandAccAddress(),
-		PrimarySpAddress:               sample.RandAccAddress(),
-		PrimarySpApprovalExpiredHeight: 0,
-		GlobalVirtualGroupFamilyId:     0,
-		PrimarySpApprovalSignature:     nil,
-		ChargedReadQuota:               0,
-		ExtraData:                      []byte("extra data"),
+	createSynPackage := types.CreateBucketSynPackage{
+		Creator:          sample.RandAccAddress(),
+		BucketName:       "bucketname",
+		ExtraData:        []byte("extra data"),
+		PaymentAddress:   sample.RandAccAddress(),
+		PrimarySpAddress: sample.RandAccAddress(),
 	}
 	serializedSynPackage := createSynPackage.MustSerialize()
 	serializedSynPackage = append([]byte{types.OperationCreateBucket}, serializedSynPackage...)
 
 	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
 
-	// case 1: normal case
+	// case 1:  normal case
 	res := app.ExecuteFailAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().NoError(res.Err)
 }
