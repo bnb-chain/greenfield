@@ -890,11 +890,6 @@ func (k Keeper) DeleteObject(
 		return k.CancelCreateObject(ctx, operator, bucketName, objectName, types.CancelCreateObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED &&
-		objectInfo.ObjectStatus != types.OBJECT_STATUS_DISCONTINUED {
-		return types.ErrObjectNotSealed
-	}
-
 	// check permission
 	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_DELETE_OBJECT)
 	if effect != permtypes.EFFECT_ALLOW {

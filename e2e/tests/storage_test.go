@@ -2402,6 +2402,8 @@ func (s *StorageTestSuite) TestDeleteCreateObject_InCreatedStatus() {
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Creator, "")
 	// CancelCreateObject
 	msgDeleteCreateObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
-	s.Require().NoError(err)
 	s.SendTxBlock(user, msgDeleteCreateObject)
+
+	_, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().EqualError(err, "rpc error: code = Unknown desc = No such object: unknown request")
 }
