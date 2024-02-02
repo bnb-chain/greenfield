@@ -886,8 +886,10 @@ func (k Keeper) DeleteObject(
 		return types.ErrSourceTypeMismatch
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED &&
-		objectInfo.ObjectStatus != types.OBJECT_STATUS_DISCONTINUED {
+	if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
+		if ctx.IsUpgraded(upgradetypes.Pawnee) {
+			return k.CancelCreateObject(ctx, operator, bucketName, objectName, types.CancelCreateObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
+		}
 		return types.ErrObjectNotSealed
 	}
 
