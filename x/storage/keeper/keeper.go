@@ -887,7 +887,10 @@ func (k Keeper) DeleteObject(
 	}
 
 	if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
-		return k.CancelCreateObject(ctx, operator, bucketName, objectName, types.CancelCreateObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
+		if ctx.IsUpgraded(upgradetypes.Pawnee) {
+			return k.CancelCreateObject(ctx, operator, bucketName, objectName, types.CancelCreateObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
+		}
+		return types.ErrObjectNotSealed
 	}
 
 	// check permission
