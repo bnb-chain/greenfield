@@ -882,7 +882,6 @@ func (k Keeper) SealObject(
 		Status:               objectInfo.ObjectStatus,
 		GlobalVirtualGroupId: opts.GlobalVirtualGroupId,
 		LocalVirtualGroupId:  objectInfo.LocalVirtualGroupId,
-		ForUpdate:            isUpdate,
 	}); err != nil {
 		return err
 	}
@@ -967,10 +966,6 @@ func (k Keeper) DeleteObject(
 		}
 		return types.ErrObjectNotSealed
 	}
-	// user should cancel the update first to delete an object.
-	if objectInfo.IsUpdating {
-		return types.ErrObjectIsUpdating
-	}
 	// check permission
 	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_DELETE_OBJECT)
 	if effect != permtypes.EFFECT_ALLOW {
@@ -978,7 +973,13 @@ func (k Keeper) DeleteObject(
 			"The operator(%s) has no DeleteObject permission of the bucket(%s), object(%s)",
 			operator.String(), bucketName, objectName)
 	}
-
+	if objectInfo.IsUpdating {
+		shadowObjectInfo := k.MustGetShadowObjectInfo(ctx, bucketInfo.BucketName, objectInfo.ObjectName)
+		err := k.UnlockShadowObjectFeeAndDeleteShadowObjectInfo(ctx, bucketInfo, shadowObjectInfo, objectInfo.ObjectName)
+		if err != nil {
+			return err
+		}
+	}
 	_ = k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
@@ -1220,7 +1221,6 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		// only this field need to revert
 		objectInfo.IsUpdating = false
 		obz := k.cdc.MustMarshal(objectInfo)
-		store.Set(types.GetObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
 		store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 	} else {
 		err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
@@ -2442,9 +2442,6 @@ func (k Keeper) UpdateObjectContent(
 	if objectInfo.IsUpdating {
 		return types.ErrObjectIsUpdating.Wrapf("The object is already being updated")
 	}
-	if objectInfo.SourceType != opts.SourceType {
-		return types.ErrSourceTypeMismatch
-	}
 	// check permission
 	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_UPDATE_OBJECT_CONTENT)
 	if effect != permtypes.EFFECT_ALLOW {
@@ -2569,7 +2566,6 @@ func (k Keeper) CancelUpdateObjectContent(
 
 	objectInfo.IsUpdating = false
 	obz := k.cdc.MustMarshal(objectInfo)
-	store.Set(types.GetObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	return ctx.EventManager().EmitTypedEvents(&types.EventCancelUpdateObjectContent{

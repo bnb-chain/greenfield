@@ -178,8 +178,6 @@ message EventSealObject {
   uint32 global_virtual_group_id = 7;
   // local_virtual_group_id defines the unique id of lvg which the object stored
   uint32 local_virtual_group_id = 8;
-  // for_update indicates whether sealing on a updating object
-  bool for_update = 9;
 }
 
 // EventCopyObject is emitted on MsgCopyObject

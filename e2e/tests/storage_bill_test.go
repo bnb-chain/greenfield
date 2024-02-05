@@ -2567,4 +2567,14 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateObject() {
 	userStreamAccountAfterSealObjectTx := streamRecordsAfterSealObjectTx.User
 	s.Require().Equal(sdkmath.ZeroInt(), userStreamAccountAfterSealObjectTx.LockBalance)
 	s.Require().Equal(userStreamAccountAfterUpdateObjTx.NetflowRate.Sub(orginChargeRate.Neg()).Add(newChargeRate.Neg()), userStreamAccountAfterSealObjectTx.NetflowRate)
+
+	// User deletes the object
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
+	s.SendTxBlock(user, msgDeleteObject)
+
+	// get stream records after UpdateObjectContent Tx
+	streamRecordsAfterDeleteObjectTx := s.getStreamRecords(streamAddresses)
+	s.T().Logf("streamRecordsAfterDeleteObjectTx %s", core.YamlString(streamRecordsAfterDeleteObjectTx))
+	userstreamRecordsAfterDeleteObjectTx := streamRecordsAfterDeleteObjectTx.User
+	s.Require().Equal(sdk.ZeroInt(), userstreamRecordsAfterDeleteObjectTx.LockBalance)
 }

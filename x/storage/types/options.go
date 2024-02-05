@@ -88,7 +88,6 @@ type DeletePolicyOptions struct {
 }
 
 type UpdateObjectOptions struct {
-	SourceType  SourceType
 	ContentType string
 	Checksums   [][]byte
 }

@@ -721,7 +721,6 @@ func (k msgServer) UpdateObjectContent(goCtx context.Context, msg *storagetypes.
 	err := k.Keeper.UpdateObjectContent(ctx, operatorAcc, msg.BucketName, msg.ObjectName, msg.PayloadSize, storagetypes.UpdateObjectOptions{
 		Checksums:   msg.ExpectChecksums,
 		ContentType: msg.ContentType,
-		SourceType:  types.SOURCE_TYPE_ORIGIN,
 	})
 	if err != nil {
 		return nil, err
