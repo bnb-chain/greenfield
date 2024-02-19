@@ -7,6 +7,7 @@ import (
 	"math"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -287,7 +288,7 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 		StorageProvider:            user.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 	}
-	s.SendTxBlock(user, &msgSettle)
+	txResp1 := s.SendTxBlock(user, &msgSettle)
 
 	primaryBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
 		Denom: s.Config.Denom, Address: primarySp.FundingKey.GetAddr().String(),
@@ -297,13 +298,18 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 	s.T().Logf("primaryBalance: %s, after: %s", primaryBalance.String(), primaryBalanceAfter.String())
 	s.Require().True(primaryBalanceAfter.Balance.Amount.GT(primaryBalance.Balance.Amount))
 
+	settleGVGFamilyEvent := filterSettleGVGFamilyEventFromTx(txResp1)
+	s.Require().True(settleGVGFamilyEvent.Id == gvgFamilyId)
+	s.Require().True(settleGVGFamilyEvent.SpId == gvgFamily.PrimarySpId)
+	s.Require().True(settleGVGFamilyEvent.Amount.Equal(primaryBalanceAfter.Balance.Amount.Sub(primaryBalance.Balance.Amount)))
+
 	// settle gvg
 	msgSettle = virtualgroupmoduletypes.MsgSettle{
 		StorageProvider:            user.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: 0,
 		GlobalVirtualGroupIds:      []uint32{gvgId},
 	}
-	s.SendTxBlock(user, &msgSettle)
+	txResp2 := s.SendTxBlock(user, &msgSettle)
 
 	secondaryBalancesAfter := make([]sdkmath.Int, 0, len(secondaryBalances))
 	for _, addr := range secondarySpAddrs {
@@ -314,9 +320,12 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 		secondaryBalancesAfter = append(secondaryBalancesAfter, tempResp.Balance.Amount)
 	}
 
+	settleGVGEvent := filterSettleGVGEventFromTx(txResp2)
+	s.Require().True(settleGVGEvent.Id == gvgId)
 	for i := range secondaryBalances {
 		s.T().Logf("secondaryBalance: %s, after: %s", secondaryBalances[i].String(), secondaryBalancesAfter[i].String())
 		s.Require().True(secondaryBalancesAfter[i].GT(secondaryBalances[i]))
+		s.Require().True(settleGVGEvent.Amount.Equal(secondaryBalancesAfter[i].Sub(secondaryBalances[i])))
 	}
 }
 
@@ -1315,4 +1324,50 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 	)
 	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spy.Info.Id})
 	s.Require().Error(err)
+}
+
+func filterSettleGVGEventFromTx(txRes *sdk.TxResponse) virtualgroupmoduletypes.EventSettleGlobalVirtualGroup {
+	idStr, amountStr := "", ""
+	for _, event := range txRes.Logs[0].Events {
+		if event.Type == "greenfield.virtualgroup.EventSettleGlobalVirtualGroup" {
+			for _, attr := range event.Attributes {
+				if attr.Key == "id" {
+					idStr = strings.Trim(attr.Value, `"`)
+				} else if attr.Key == "amount" {
+					amountStr = strings.Trim(attr.Value, `"`)
+				}
+			}
+		}
+	}
+	id, _ := strconv.ParseInt(idStr, 10, 32)
+	amount := sdkmath.NewUintFromString(amountStr)
+	return virtualgroupmoduletypes.EventSettleGlobalVirtualGroup{
+		Id:     uint32(id),
+		Amount: sdkmath.NewInt(int64(amount.Uint64())),
+	}
+}
+
+func filterSettleGVGFamilyEventFromTx(txRes *sdk.TxResponse) virtualgroupmoduletypes.EventSettleGlobalVirtualGroupFamily {
+	idStr, spIdStr, amountStr := "", "", ""
+	for _, event := range txRes.Logs[0].Events {
+		if event.Type == "greenfield.virtualgroup.EventSettleGlobalVirtualGroupFamily" {
+			for _, attr := range event.Attributes {
+				if attr.Key == "id" {
+					idStr = strings.Trim(attr.Value, `"`)
+				} else if attr.Key == "sp_id" {
+					spIdStr = strings.Trim(attr.Value, `"`)
+				} else if attr.Key == "amount" {
+					amountStr = strings.Trim(attr.Value, `"`)
+				}
+			}
+		}
+	}
+	id, _ := strconv.ParseInt(idStr, 10, 32)
+	spId, _ := strconv.ParseInt(spIdStr, 10, 32)
+	amount := sdkmath.NewUintFromString(amountStr)
+	return virtualgroupmoduletypes.EventSettleGlobalVirtualGroupFamily{
+		Id:     uint32(id),
+		SpId:   uint32(spId),
+		Amount: sdkmath.NewInt(int64(amount.Uint64())),
+	}
 }

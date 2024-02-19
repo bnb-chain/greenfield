@@ -24,6 +24,16 @@ func (k Keeper) SettleAndDistributeGVGFamily(ctx sdk.Context, sp *sptypes.Storag
 		return fmt.Errorf("fail to send coins: %s %s", paymentAddress, sp.FundingAddress)
 	}
 
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSettleGlobalVirtualGroupFamily{
+		Id:               family.Id,
+		SpId:             sp.Id,
+		SpFundingAddress: sp.FundingAddress,
+		Amount:           totalBalance,
+	})
+	if err != nil {
+		ctx.Logger().Error("fail to send event for settlement", "vfg", family.Id, "err", err)
+	}
+
 	return nil
 }
 
@@ -38,6 +48,8 @@ func (k Keeper) SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtual
 	if !amount.IsPositive() {
 		return nil
 	}
+
+	fundingAddresses := make([]string, 0)
 	for _, spID := range gvg.SecondarySpIds {
 		sp, found := k.spKeeper.GetStorageProvider(ctx, spID)
 		if !found {
@@ -47,6 +59,19 @@ func (k Keeper) SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtual
 		if err != nil {
 			return fmt.Errorf("fail to send coins: %s %s", paymentAddress, sp.FundingAddress)
 		}
+
+		fundingAddresses = append(fundingAddresses, sp.FundingAddress)
 	}
+
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSettleGlobalVirtualGroup{
+		Id:                 gvg.Id,
+		SpIds:              gvg.SecondarySpIds,
+		SpFundingAddresses: fundingAddresses,
+		Amount:             amount,
+	})
+	if err != nil {
+		ctx.Logger().Error("fail to send event for settlement", "gvg", gvg.Id, "err", err)
+	}
+
 	return nil
 }
