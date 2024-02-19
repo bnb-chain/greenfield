@@ -620,7 +620,7 @@ message EventCancelUpdateObjectContent {
   string bucket_name = 2;
   // object_name define the name of the object
   string object_name = 3;
-  // object_name define the id of the object
+  // object_id define the id of the object
   string object_id = 4 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",

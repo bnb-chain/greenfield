@@ -2608,7 +2608,7 @@ type EventCancelUpdateObjectContent struct {
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name define the name of the object
 	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
-	// object_name define the id of the object
+	// object_id define the id of the object
 	ObjectId Uint `protobuf:"bytes,4,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
 }
 

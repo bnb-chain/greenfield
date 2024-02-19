@@ -651,7 +651,7 @@ message MsgSetTagResponse {}
 message MsgUpdateObjectContent {
   option (cosmos.msg.v1.signer) = "operator";
 
-  // operator defines the account address of object updater
+  // operator defines the account address of the operator, either the object owner or the updater with granted permission.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name defines the name of the bucket where the object is stored.
   string bucket_name = 2;
@@ -670,7 +670,7 @@ message MsgUpdateObjectContentResponse {}
 message MsgCancelUpdateObjectContent {
   option (cosmos.msg.v1.signer) = "operator";
 
-  // operator defines the account address of the operator, either the object owner or the updater
+  // operator defines the account address of the operator, either the object owner or the updater with granted permission.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name defines the name of the bucket
   string bucket_name = 2;
