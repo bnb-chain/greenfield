@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
+	"encoding/hex"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
@@ -126,8 +127,15 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *vgtypes.
 		if err != nil {
 			return types.ErrInvalidBlsPubKey.Wrapf("BLS public key converts failed: %v", err)
 		}
+		ctx.Logger().Info("VerifyGVGSecondarySPsBlsSignature", "sp_id", spId,
+			"spBlsPubKey", hex.EncodeToString(spBlsPubKey.Marshal()),
+		)
 		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
 	}
+	ctx.Logger().Info("VerifyGVGSecondarySPsBlsSignature",
+		"signHash", hex.EncodeToString(signHash[:]),
+		"bls_agg_signature", hex.EncodeToString(signature[:]),
+	)
 	return gnfdtypes.VerifyBlsAggSignature(secondarySpBlsPubKeys, signHash, signature)
 }
 

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
 	"time"
 
 	errorsmod "cosmossdk.io/errors"
@@ -711,6 +712,7 @@ func (k msgServer) SetTag(goCtx context.Context, msg *types.MsgSetTag) (*types.M
 
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {
 	// verify secondary sp signature
+	ctx.Logger().Info("verifyGVGSignatures", "gvg_mapping", gvgMappings)
 	for _, newLvg2gvg := range gvgMappings {
 		dstGVG, found := k.virtualGroupKeeper.GetGVG(ctx, newLvg2gvg.DstGlobalVirtualGroupId)
 		if !found {
@@ -718,6 +720,11 @@ func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *
 		}
 		// validate the aggregated bls signature
 		migrationBucketSignDocBlsSignHash := storagetypes.NewSecondarySpMigrationBucketSignDoc(ctx.ChainID(), bucketID, dstSP.Id, newLvg2gvg.SrcGlobalVirtualGroupId, dstGVG.Id).GetBlsSignHash()
+		ctx.Logger().Info("verifyGVGSignatures", "src_gvg_id", newLvg2gvg.SrcGlobalVirtualGroupId, "dest_gvg_id", newLvg2gvg.DstGlobalVirtualGroupId,
+			"bucketID", bucketID,
+			"migrationBucketSignDocBlsSignHash", hex.EncodeToString(migrationBucketSignDocBlsSignHash[:]),
+			"agg_bls_sig", hex.EncodeToString(newLvg2gvg.SecondarySpBlsSignature[:]),
+		)
 		err := k.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDocBlsSignHash, newLvg2gvg.SecondarySpBlsSignature)
 		if err != nil {
 			return err
