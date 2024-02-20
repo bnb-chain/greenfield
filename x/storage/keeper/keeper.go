@@ -738,7 +738,9 @@ func (k Keeper) GetShadowObjectInfo(ctx sdk.Context, bucketName, objectName stri
 		return nil, false
 	}
 
-	return k.GetShadowObjectInfoById(ctx, k.objectSeq.DecodeSequence(bz))
+	var objectInfo types.ShadowObjectInfo
+	k.cdc.MustUnmarshal(bz, &objectInfo)
+	return &objectInfo, true
 }
 
 func (k Keeper) MustGetShadowObjectInfo(ctx sdk.Context, bucketName, objectName string) *types.ShadowObjectInfo {
@@ -747,19 +749,6 @@ func (k Keeper) MustGetShadowObjectInfo(ctx sdk.Context, bucketName, objectName 
 		panic("Shadow Object Info not found")
 	}
 	return shadowObjectInfo
-}
-
-func (k Keeper) GetShadowObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*types.ShadowObjectInfo, bool) {
-	store := ctx.KVStore(k.storeKey)
-
-	bz := store.Get(types.GetShadowObjectByIDKey(objectId))
-	if bz == nil {
-		return nil, false
-	}
-
-	var objectInfo types.ShadowObjectInfo
-	k.cdc.MustUnmarshal(bz, &objectInfo)
-	return &objectInfo, true
 }
 
 type SealObjectOptions struct {
@@ -819,7 +808,6 @@ func (k Keeper) SealObject(
 		objectInfo.IsUpdating = false
 
 		store.Delete(types.GetShadowObjectKey(bucketInfo.BucketName, objectName))
-		store.Delete(types.GetShadowObjectByIDKey(shadowObjectInfo.Id))
 	} else if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectAlreadySealed
 	}
@@ -980,7 +968,6 @@ func (k Keeper) DeleteObject(
 			return err
 		}
 	}
-	_ = k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
 	err := k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
@@ -2498,9 +2485,7 @@ func (k Keeper) UpdateObjectContent(
 			UpdatedAt:   ctx.BlockTime().Unix(),
 			Version:     nextVersion,
 		}
-		store.Set(types.GetShadowObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
-		store.Set(types.GetShadowObjectByIDKey(shadowObjectInfo.Id), k.cdc.MustMarshal(shadowObjectInfo))
-
+		store.Set(types.GetShadowObjectKey(bucketName, objectName), k.cdc.MustMarshal(shadowObjectInfo))
 		err = k.LockShadowObjectStoreFee(ctx, bucketInfo, shadowObjectInfo, objectName)
 		if err != nil {
 			return err
@@ -2533,7 +2518,6 @@ func (k Keeper) UnlockShadowObjectFeeAndDeleteShadowObjectInfo(ctx sdk.Context, 
 	}
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetShadowObjectKey(bucketInfo.BucketName, objectName))
-	store.Delete(types.GetShadowObjectByIDKey(shadowObjectInfo.Id))
 	return
 }
 

@@ -44,8 +44,6 @@ var (
 	ObjectByIDPrefix = []byte{0x22}
 	GroupByIDPrefix  = []byte{0x23}
 
-	ShadowObjectByIDPrefix = []byte{0x24}
-
 	BucketSequencePrefix = []byte{0x31}
 	ObjectSequencePrefix = []byte{0x32}
 	GroupSequencePrefix  = []byte{0x33}
@@ -110,12 +108,6 @@ func GetBucketByIDKey(bucketId math.Uint) []byte {
 func GetObjectByIDKey(objectId math.Uint) []byte {
 	var seq sequence.Sequence[math.Uint]
 	return append(ObjectByIDPrefix, seq.EncodeSequence(objectId)...)
-}
-
-// GetShadowObjectByIDKey return the shadowObjectId store key
-func GetShadowObjectByIDKey(objectId math.Uint) []byte {
-	var seq sequence.Sequence[math.Uint]
-	return append(ShadowObjectByIDPrefix, seq.EncodeSequence(objectId)...)
 }
 
 // GetGroupByIDKey return the groupId store key

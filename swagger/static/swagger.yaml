@@ -3675,7 +3675,10 @@ paths:
                 properties:
                   operator:
                     type: string
-                    title: operator define the account address of object updater
+                    description: >-
+                      operator defines the account address of the operator,
+                      either the object owner or the updater with granted
+                      permission.
                   id:
                     type: string
                     title: id defines the object id
@@ -35703,7 +35706,9 @@ definitions:
         properties:
           operator:
             type: string
-            title: operator define the account address of object updater
+            description: >-
+              operator defines the account address of the operator, either the
+              object owner or the updater with granted permission.
           id:
             type: string
             title: id defines the object id
@@ -36886,7 +36891,9 @@ definitions:
     properties:
       operator:
         type: string
-        title: operator define the account address of object updater
+        description: >-
+          operator defines the account address of the operator, either the
+          object owner or the updater with granted permission.
       id:
         type: string
         title: id defines the object id

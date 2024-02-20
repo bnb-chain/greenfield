@@ -1064,7 +1064,7 @@ func (m *ResourceTags_Tag) GetValue() string {
 }
 
 type ShadowObjectInfo struct {
-	// operator define the account address of object updater
+	// operator defines the account address of the operator, either the object owner or the updater with granted permission.
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// id defines the object id
 	Id Uint `protobuf:"bytes,2,opt,name=id,proto3,customtype=Uint" json:"id"`

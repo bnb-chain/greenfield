@@ -3190,7 +3190,7 @@ func (m *MsgSetTagResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgSetTagResponse proto.InternalMessageInfo
 
 type MsgUpdateObjectContent struct {
-	// operator defines the account address of object updater
+	// operator defines the account address of the operator, either the object owner or the updater with granted permission.
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name defines the name of the bucket where the object is stored.
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
@@ -3316,7 +3316,7 @@ func (m *MsgUpdateObjectContentResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgUpdateObjectContentResponse proto.InternalMessageInfo
 
 type MsgCancelUpdateObjectContent struct {
-	// operator defines the account address of the operator, either the object owner or the updater
+	// operator defines the account address of the operator, either the object owner or the updater with granted permission.
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name defines the name of the bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
