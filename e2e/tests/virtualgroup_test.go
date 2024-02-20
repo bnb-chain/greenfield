@@ -44,10 +44,13 @@ func TestVirtualGroupTestSuite(t *testing.T) {
 	suite.Run(t, new(VirtualGroupTestSuite))
 }
 
-func (s *VirtualGroupTestSuite) getSecondarySPIDs(primarySPID uint32) []uint32 {
+func (s *VirtualGroupTestSuite) getSecondarySPIDs(primarySPID uint32, excludeSecondarySP *uint32) []uint32 {
 	var secondarySPIDs []uint32
 	for _, ssp := range s.StorageProviders {
 		if ssp.Info.Id != primarySPID {
+			if excludeSecondarySP != nil && ssp.Info.Id == *excludeSecondarySP {
+				continue
+			}
 			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
 		}
 		if len(secondarySPIDs) == 6 {
@@ -110,10 +113,15 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 
 	srcGVGs := s.queryGlobalVirtualGroupsByFamily(gvg.FamilyId)
 
-	secondarySPIDs := s.getSecondarySPIDs(primarySP.Info.Id)
+	secondarySPIDs := s.getSecondarySPIDs(primarySP.Info.Id, nil)
 	s.BaseSuite.CreateGlobalVirtualGroup(primarySP, gvg.FamilyId, secondarySPIDs, 1)
 
 	gvgs = s.queryGlobalVirtualGroupsByFamily(gvg.FamilyId)
+
+	if len(srcGVGs) == len(gvgs) {
+		secondarySPIDs = s.getSecondarySPIDs(primarySP.Info.Id, &secondarySPIDs[0])
+		s.BaseSuite.CreateGlobalVirtualGroup(primarySP, gvg.FamilyId, secondarySPIDs, 1)
+	}
 
 	oldGVGIDs := make(map[uint32]bool)
 	for _, gvg := range srcGVGs {
@@ -213,7 +221,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	s.SendTxBlockWithExpectErrorString(&msgCreateGVG, primarySP.OperatorKey, virtualgroupmoduletypes.ErrDuplicateSecondarySP.Error())
 
 	// test create a duplicated GVG in a family
-	secondarySPIDs = s.getSecondarySPIDs(primarySP.Info.Id)
+	secondarySPIDs = s.getSecondarySPIDs(primarySP.Info.Id, nil)
 	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(primarySP, 0, secondarySPIDs, 1)
 	gvgResp, err := s.Client.VirtualGroupQueryClient.GlobalVirtualGroup(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupRequest{
 		GlobalVirtualGroupId: gvgID,
@@ -713,7 +721,7 @@ func (s *VirtualGroupTestSuite) TestEmptyGlobalVirtualGroupFamily() {
 	primarySP := s.BaseSuite.PickStorageProvider()
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	secondarySPIDs := s.getSecondarySPIDs(primarySP.Info.Id)
+	secondarySPIDs := s.getSecondarySPIDs(primarySP.Info.Id, nil)
 
 	// The Sp creates a family which has 1 GVG.
 	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(primarySP, 0, secondarySPIDs, 1)
