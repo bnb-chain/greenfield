@@ -27,16 +27,18 @@ const (
 	TypeMsgMirrorBucket     = "mirror_bucket"
 
 	// For object
-	TypeMsgCopyObject         = "copy_object"
-	TypeMsgCreateObject       = "create_object"
-	TypeMsgDeleteObject       = "delete_object"
-	TypeMsgSealObject         = "seal_object"
-	TypeMsgRejectSealObject   = "reject_seal_object"
-	TypeMsgCancelCreateObject = "cancel_create_object"
-	TypeMsgMirrorObject       = "mirror_object"
-	TypeMsgDiscontinueObject  = "discontinue_object"
-	TypeMsgDiscontinueBucket  = "discontinue_bucket"
-	TypeMsgUpdateObjectInfo   = "update_object_info"
+	TypeMsgCopyObject                = "copy_object"
+	TypeMsgCreateObject              = "create_object"
+	TypeMsgDeleteObject              = "delete_object"
+	TypeMsgSealObject                = "seal_object"
+	TypeMsgRejectSealObject          = "reject_seal_object"
+	TypeMsgCancelCreateObject        = "cancel_create_object"
+	TypeMsgMirrorObject              = "mirror_object"
+	TypeMsgDiscontinueObject         = "discontinue_object"
+	TypeMsgDiscontinueBucket         = "discontinue_bucket"
+	TypeMsgUpdateObjectInfo          = "update_object_info"
+	TypeMsgUpdateObjectContent       = "update_object_content"
+	TypeMsgCancelUpdateObjectContent = "cancel_update_object_content"
 
 	// For group
 	TypeMsgCreateGroup       = "create_group"
@@ -1603,5 +1605,118 @@ func (msg *MsgSetTag) ValidateBasic() error {
 		}
 	}
 
+	return nil
+}
+
+func NewMsgUpdateObjectContent(
+	operator sdk.AccAddress, bucketName, objectName string, payloadSize uint64,
+	expectChecksums [][]byte) *MsgUpdateObjectContent {
+	return &MsgUpdateObjectContent{
+		Operator:        operator.String(),
+		BucketName:      bucketName,
+		ObjectName:      objectName,
+		PayloadSize:     payloadSize,
+		ExpectChecksums: expectChecksums,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgUpdateObjectContent) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgUpdateObjectContent) Type() string {
+	return TypeMsgUpdateObjectContent
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgUpdateObjectContent) GetSigners() []sdk.AccAddress {
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{operator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgUpdateObjectContent) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgUpdateObjectContent) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
+	}
+
+	err = s3util.CheckValidExpectChecksums(msg.ExpectChecksums)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func NewMsgCancelUpdateObjectContent(
+	operator sdk.AccAddress, bucketName, objectName string) *MsgCancelUpdateObjectContent {
+	return &MsgCancelUpdateObjectContent{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgCancelUpdateObjectContent) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgCancelUpdateObjectContent) Type() string {
+	return TypeMsgCancelUpdateObjectContent
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgCancelUpdateObjectContent) GetSigners() []sdk.AccAddress {
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{operator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgCancelUpdateObjectContent) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgCancelUpdateObjectContent) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
+	}
 	return nil
 }

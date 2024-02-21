@@ -137,3 +137,12 @@ func (b *InternalBucketInfo) DeleteLVG(lvgID uint32) {
 		}
 	}
 }
+
+// GetLatestUpdatedTime gets the latest timestamp the object's content is updated.
+// UpdatedAt is a new introduced field, it is default to be 0
+func (o *ObjectInfo) GetLatestUpdatedTime() int64 {
+	if o.UpdatedAt != 0 {
+		return o.UpdatedAt
+	}
+	return o.CreateAt
+}

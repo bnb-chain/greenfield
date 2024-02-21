@@ -87,6 +87,14 @@ message ObjectInfo {
   repeated bytes checksums = 14 [(gogoproto.moretags) = "traits:\"omit\""];
   // tags defines a list of tags the object has
   ResourceTags tags = 15;
+  // is_updating indicates whether a object is being updated.
+  bool is_updating = 16;
+  // updated_at define the block timestamp when the object is updated. Will not be visible until object is re-sealed.
+  int64 updated_at = 17;
+  // updated_by defined the account address of updater(if there is). Will not be visible until object is re-sealed.
+  string updated_by = 18 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // version define the version of object
+  int64 version = 19;
 }
 
 message GroupInfo {
@@ -186,4 +194,25 @@ message ResourceTags {
   }
   // tags defines a list of tags the resource has
   repeated Tag tags = 1 [(gogoproto.nullable) = false];
+}
+
+message ShadowObjectInfo {
+  // operator defines the account address of the operator, either the object owner or the updater with granted permission.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // id defines the object id
+  string id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // content_type define the content type of the payload data
+  string content_type = 3;
+  // payload_size is the total size of the object payload
+  uint64 payload_size = 4;
+  // checksums define the root hash of the pieces which stored in a SP.
+  repeated bytes checksums = 5 [(gogoproto.moretags) = "traits:\"omit\""];
+  // updated_at define the block timestamp when the object is updated
+  int64 updated_at = 6;
+  // version define the version of object
+  int64 version = 7;
 }

@@ -29,6 +29,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerHulunbeierUpgradeHandler()
 	app.registerHulunbeierPatchUpgradeHandler()
 	app.registerUralUpgradeHandler()
+	app.registerPawneeUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -193,6 +194,24 @@ func (app *App) registerUralUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Ural,
 		func() error {
 			app.Logger().Info("Init Ural upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerPawneeUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Pawnee,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgUpdateObjectContent{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgCancelUpdateObjectContent{}), 1.2e3))
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Pawnee,
+		func() error {
+			app.Logger().Info("Init Pawnee upgrade")
 			return nil
 		})
 }
