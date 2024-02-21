@@ -2492,9 +2492,6 @@ func (k Keeper) UpdateObjectContent(
 		}
 	}
 
-	bbz := k.cdc.MustMarshal(bucketInfo)
-	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
-
 	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
