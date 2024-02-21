@@ -8,7 +8,7 @@ Features:
 * [#563](https://github.com/bnb-chain/greenfield/pull/563) feat: set tag by accounts with permission
 
 ## v1.3.0
-This release introduces the Hulunbeier upgrade to the testnet.
+This release introduces the Hulunbeier upgrade to the Testnet and Mainnet.
 
 Features:
 * [#542](https://github.com/bnb-chain/greenfield/pull/542) feat: add crosschain permission app
