@@ -31,6 +31,9 @@ var (
 	ErrInvalidGlobalVirtualGroup    = errors.Register(ModuleName, 1123, "invalid global virtual group")
 	ErrRenewGroupMemberNotAllow     = errors.Register(ModuleName, 1124, "Renew group member not allow")
 	ErrInvalidGroupMemberExpiration = errors.Register(ModuleName, 1125, "invalid group member with expiration")
+	ErrUpdateObjectNotAllowed       = errors.Register(ModuleName, 1126, "Object is not allowed to update")
+	ErrObjectIsUpdating             = errors.Register(ModuleName, 1127, "Object is being updated")
+	ErrObjectIsNotUpdating          = errors.Register(ModuleName, 1128, "Object is not being updated")
 
 	ErrInvalidCrossChainPackage = errors.Register(ModuleName, 3000, "invalid cross chain package")
 	ErrAlreadyMirrored          = errors.Register(ModuleName, 3001, "resource is already mirrored")

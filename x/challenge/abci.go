@@ -103,9 +103,9 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// random segment/piece index
-		segmentSize, err := keeper.StorageKeeper.MaxSegmentSize(ctx, objectInfo.CreateAt)
+		segmentSize, err := keeper.StorageKeeper.MaxSegmentSize(ctx, objectInfo.GetLatestUpdatedTime())
 		if err != nil {
-			ctx.Logger().Error("fail to get segment size", "timestamp", objectInfo.CreateAt,
+			ctx.Logger().Error("fail to get segment size", "timestamp", objectInfo.GetLatestUpdatedTime(),
 				"err", err.Error())
 			continue
 		}

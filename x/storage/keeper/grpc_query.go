@@ -152,6 +152,23 @@ func (k Keeper) HeadObjectById(goCtx context.Context, req *types.QueryHeadObject
 	}, nil
 }
 
+func (k Keeper) HeadShadowObject(goCtx context.Context, req *types.QueryHeadShadowObjectRequest) (*types.QueryHeadShadowObjectResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	objectInfo, objectFound := k.GetShadowObjectInfo(ctx, req.BucketName, req.ObjectName)
+	if !objectFound {
+		return nil, types.ErrNoSuchObject
+	}
+
+	return &types.QueryHeadShadowObjectResponse{
+		ObjectInfo: objectInfo,
+	}, nil
+}
+
 func (k Keeper) ListBuckets(goCtx context.Context, req *types.QueryListBucketsRequest) (*types.QueryListBucketsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")

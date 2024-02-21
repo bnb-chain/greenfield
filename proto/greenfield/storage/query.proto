@@ -51,6 +51,11 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/head_object_by_id/{object_id}";
   }
 
+  // Queries a shadow object with specify name.
+  rpc HeadShadowObject(QueryHeadShadowObjectRequest) returns (QueryHeadShadowObjectResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_shadow_object/{bucket_name}/{object_name}";
+  }
+
   // Queries a object with EIP712 standard metadata info
   rpc HeadObjectNFT(QueryNFTRequest) returns (QueryObjectNFTResponse) {
     option (google.api.http).get = "/greenfield/storage/head_object_nft/{token_id}";
@@ -189,9 +194,18 @@ message QueryHeadObjectByIdRequest {
   string object_id = 1;
 }
 
+message QueryHeadShadowObjectRequest {
+  string bucket_name = 1;
+  string object_name = 2;
+}
+
 message QueryHeadObjectResponse {
   ObjectInfo object_info = 1;
   virtualgroup.GlobalVirtualGroup global_virtual_group = 2;
+}
+
+message QueryHeadShadowObjectResponse {
+  ShadowObjectInfo object_info = 1;
 }
 
 message QueryListBucketsRequest {

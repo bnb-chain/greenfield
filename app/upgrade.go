@@ -203,6 +203,8 @@ func (app *App) registerPawneeUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Pawnee,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgUpdateObjectContent{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgCancelUpdateObjectContent{}), 1.2e3))
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 

@@ -38,6 +38,8 @@ var (
 	QuotaPrefix              = []byte{0x14}
 	InternalBucketInfoPrefix = []byte{0x15}
 
+	ShadowObjectInfoPrefix = []byte{0x16}
+
 	BucketByIDPrefix = []byte{0x21}
 	ObjectByIDPrefix = []byte{0x22}
 	GroupByIDPrefix  = []byte{0x23}
@@ -76,6 +78,13 @@ func GetObjectKey(bucketName string, objectName string) []byte {
 
 func GetObjectKeyOnlyBucketPrefix(bucketName string) []byte {
 	return append(ObjectInfoPrefix, sdk.Keccak256([]byte(bucketName))...)
+}
+
+// GetShadowObjectKey return the shadow object name store key
+func GetShadowObjectKey(bucketName string, objectName string) []byte {
+	bucketNameHash := sdk.Keccak256([]byte(bucketName))
+	objectNameHash := sdk.Keccak256([]byte(objectName))
+	return append(ShadowObjectInfoPrefix, append(bucketNameHash, objectNameHash...)...)
 }
 
 // GetGroupKey return the group name store key
