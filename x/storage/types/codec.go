@@ -121,7 +121,12 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCancelUpdateObjectContent{},
 	)
-
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgDelegateCreateObject{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgUpdateDelegatedAgent{},
+	)
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 

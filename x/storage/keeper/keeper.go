@@ -669,6 +669,125 @@ func (k Keeper) CreateObject(
 	return objectInfo.Id, nil
 }
 
+func (k Keeper) DelegateCreateObject(
+	ctx sdk.Context, delegatee, creator sdk.AccAddress, bucketName, objectName string, payloadSize uint64,
+	opts types.CreateObjectOptions,
+) (sdkmath.Uint, error) {
+	store := ctx.KVStore(k.storeKey)
+
+	// check payload size
+	if payloadSize > k.MaxPayloadSize(ctx) {
+		return sdkmath.ZeroUint(), types.ErrTooLargeObject
+	}
+
+	// check bucket
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return sdkmath.ZeroUint(), types.ErrNoSuchBucket
+	}
+	err := bucketInfo.CheckBucketStatus()
+	if err != nil {
+		return sdkmath.ZeroUint(), err
+	}
+
+	// primary sp
+	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
+
+	allowed := false
+	_ = false
+	// check if the delegated agent is the primary SP.
+	for _, delegatedAgent := range bucketInfo.DelegatedAgentAddresses {
+		if delegatee.String() == delegatedAgent {
+			allowed = true
+			if delegatee.String() == sp.OperatorAddress {
+				_ = true
+			}
+		}
+	}
+	if !allowed {
+		return sdkmath.ZeroUint(), fmt.Errorf("the delegatee address is not allowed to create object")
+	}
+
+	// verify permission of creator
+	verifyOpts := &permtypes.VerifyOptions{
+		WantedSize: &payloadSize,
+	}
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, creator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
+	if effect != permtypes.EFFECT_ALLOW {
+		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The creator(%s) has no CreateObject permission of the bucket(%s)",
+			creator.String(), bucketName)
+	}
+	objectKey := types.GetObjectKey(bucketName, objectName)
+	if store.Has(objectKey) {
+		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
+	}
+	// check payload size, the empty object doesn't need sealed
+	var objectStatus types.ObjectStatus
+	if payloadSize == 0 {
+		// empty object does not interact with sp
+		objectStatus = types.OBJECT_STATUS_SEALED
+	} else {
+		objectStatus = types.OBJECT_STATUS_CREATED
+	}
+	// construct objectInfo
+	objectInfo := types.ObjectInfo{
+		Owner:          bucketInfo.Owner,
+		Creator:        creator.String(),
+		BucketName:     bucketName,
+		ObjectName:     objectName,
+		PayloadSize:    payloadSize,
+		Visibility:     opts.Visibility,
+		ContentType:    opts.ContentType,
+		Id:             k.GenNextObjectID(ctx),
+		CreateAt:       ctx.BlockTime().Unix(),
+		ObjectStatus:   objectStatus,
+		RedundancyType: opts.RedundancyType,
+		SourceType:     opts.SourceType,
+		Checksums:      opts.Checksums,
+	}
+	if objectInfo.PayloadSize == 0 {
+		_, err := k.SealEmptyObjectOnVirtualGroup(ctx, bucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		// Lock Fee
+		err = k.LockObjectStoreFee(ctx, bucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	}
+
+	bbz := k.cdc.MustMarshal(bucketInfo)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
+
+	obz := k.cdc.MustMarshal(&objectInfo)
+	store.Set(objectKey, k.objectSeq.EncodeSequence(objectInfo.Id))
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
+		Creator:             creator.String(),
+		Owner:               objectInfo.Owner,
+		BucketName:          bucketInfo.BucketName,
+		ObjectName:          objectInfo.ObjectName,
+		BucketId:            bucketInfo.Id,
+		ObjectId:            objectInfo.Id,
+		CreateAt:            objectInfo.CreateAt,
+		PayloadSize:         objectInfo.PayloadSize,
+		Visibility:          objectInfo.Visibility,
+		PrimarySpId:         sp.Id,
+		ContentType:         objectInfo.ContentType,
+		Status:              objectInfo.ObjectStatus,
+		RedundancyType:      objectInfo.RedundancyType,
+		SourceType:          objectInfo.SourceType,
+		Checksums:           objectInfo.Checksums,
+		LocalVirtualGroupId: objectInfo.LocalVirtualGroupId,
+	}); err != nil {
+		return objectInfo.Id, err
+	}
+	return objectInfo.Id, nil
+}
+
 // StoreObjectInfo stores object related keys to KVStore,
 // it's designed to be used in tests
 func (k Keeper) StoreObjectInfo(ctx sdk.Context, objectInfo *types.ObjectInfo) {

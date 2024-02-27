@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"math"
 	"reflect"
 	"strconv"
@@ -2406,4 +2408,154 @@ func (s *StorageTestSuite) TestDeleteCreateObject_InCreatedStatus() {
 
 	_, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
 	s.Require().EqualError(err, "rpc error: code = Unknown desc = No such object: unknown request")
+}
+
+func (s *StorageTestSuite) TestUpdateBucketDelegatedAgents() {
+	var err error
+	// CreateBucket
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateBucket)
+
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	ctx := context.Background()
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(0, len(queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses))
+
+	var agentToAdd []sdk.AccAddress
+	agentToAdd = append(agentToAdd, sp.OperatorKey.GetAddr())
+	agentAccount := sample.RandAccAddress()
+	agentToAdd = append(agentToAdd, agentAccount)
+
+	msgUpdateDelegatedAgent := storagetypes.NewMsgUpdateDelegatedAgent(
+		user.GetAddr(),
+		bucketName,
+		agentToAdd,
+		nil)
+	s.SendTxBlock(user, msgUpdateDelegatedAgent)
+
+	// HeadBucket
+	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(2, len(queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses))
+
+	var agentToRemove []sdk.AccAddress
+	agentToRemove = append(agentToRemove, sp.OperatorKey.GetAddr())
+	msgUpdateDelegatedAgent = storagetypes.NewMsgUpdateDelegatedAgent(
+		user.GetAddr(),
+		bucketName,
+		nil,
+		agentToRemove)
+	s.SendTxBlock(user, msgUpdateDelegatedAgent)
+
+	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(1, len(queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses))
+
+	agentToRemove = []sdk.AccAddress{agentAccount}
+	msgUpdateDelegatedAgent = storagetypes.NewMsgUpdateDelegatedAgent(
+		user.GetAddr(),
+		bucketName,
+		nil,
+		agentToRemove)
+	s.SendTxBlock(user, msgUpdateDelegatedAgent)
+
+	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(0, len(queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses))
+}
+
+func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
+	var err error
+	ctx := context.Background()
+
+	// CreateBucket
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+
+	bucketOwner := s.GenAndChargeAccounts(1, 1000000)[0]
+	user := s.GenAndChargeAccounts(1, 100)[0]
+
+	bucketName := storageutils.GenRandomBucketName()
+	objectName := storageutils.GenRandomObjectName()
+
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		bucketOwner.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+
+	var agentToAdd []sdk.AccAddress
+	agentToAdd = append(agentToAdd, sp.OperatorKey.GetAddr())
+	msgUpdateDelegatedAgent := storagetypes.NewMsgUpdateDelegatedAgent(
+		bucketOwner.GetAddr(),
+		bucketName,
+		agentToAdd,
+		nil)
+	s.SendTxBlock(bucketOwner, msgCreateBucket, msgUpdateDelegatedAgent)
+
+	// HeadBucket
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(sp.OperatorKey.GetAddr().String(), queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses[0])
+
+	// DelegateCreate for user2, who does not have permission
+	var buffer bytes.Buffer
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	contextType := "text/event-stream"
+	msgDelegateCreateObject := storagetypes.NewMsgDelegateCreateObject(
+		sp.OperatorKey.GetAddr(),
+		user.GetAddr(),
+		bucketName,
+		objectName,
+		uint64(payloadSize),
+		storagetypes.VISIBILITY_TYPE_PRIVATE,
+		nil,
+		contextType,
+		storagetypes.REDUNDANCY_EC_TYPE)
+	s.SendTxBlockWithExpectErrorString(msgDelegateCreateObject, sp.OperatorKey, "has no CreateObject permission of the bucket")
+
+	statement := &permissiontypes.Statement{
+		Actions: []permissiontypes.ActionType{permissiontypes.ACTION_CREATE_OBJECT},
+		Effect:  permissiontypes.EFFECT_ALLOW,
+	}
+	principal := permissiontypes.NewPrincipalWithAccount(user.GetAddr())
+	msgPutPolicy := storagetypes.NewMsgPutPolicy(bucketOwner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
+		principal, []*permissiontypes.Statement{statement}, nil)
+	s.SendTxBlock(bucketOwner, msgPutPolicy)
+
+	s.SendTxBlock(sp.OperatorKey, msgDelegateCreateObject)
+
+	headObjectReq := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	headObjectResp, err := s.Client.HeadObject(ctx, &headObjectReq)
+	s.Require().NoError(err)
+	s.Require().Equal(objectName, headObjectResp.ObjectInfo.ObjectName)
+	s.Require().Equal(user.GetAddr().String(), headObjectResp.ObjectInfo.Creator)
+	s.Require().Equal(bucketOwner.GetAddr().String(), headObjectResp.ObjectInfo.Owner)
+	s.Require().Equal(0, len(headObjectResp.ObjectInfo.Checksums))
+
 }

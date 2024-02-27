@@ -102,6 +102,33 @@ func (k msgServer) DiscontinueBucket(goCtx context.Context, msg *storagetypes.Ms
 	return &types.MsgDiscontinueBucketResponse{}, nil
 }
 
+func (k msgServer) UpdateDelegatedAgent(goCtx context.Context, msg *storagetypes.MsgUpdateDelegatedAgent) (*storagetypes.MsgUpdateDelegatedAgentResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	bucketInfo, found := k.GetBucketInfo(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+	if msg.Operator != bucketInfo.Owner {
+		return nil, types.ErrAccessDenied.Wrapf("Only the bucket owner(%s) can update delegated agents", bucketInfo.Owner)
+	}
+
+	agents := bucketInfo.DelegatedAgentAddresses
+	for _, agent := range msg.AgentsToAdd {
+		agents = append(agents, agent)
+	}
+
+	for _, agentToRemove := range msg.AgentsToRemove {
+		for i, agent := range agents {
+			if agentToRemove == agent {
+				agents = append(agents[:i], agents[i+1:]...)
+			}
+		}
+	}
+	bucketInfo.DelegatedAgentAddresses = agents
+	k.SetBucketInfo(ctx, bucketInfo)
+	return &types.MsgUpdateDelegatedAgentResponse{}, nil
+}
+
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -737,6 +764,32 @@ func (k msgServer) CancelUpdateObjectContent(goCtx context.Context, msg *storage
 		return nil, err
 	}
 	return &types.MsgCancelUpdateObjectContentResponse{}, nil
+}
+
+func (k msgServer) DelegateCreateObject(goCtx context.Context, msg *storagetypes.MsgDelegateCreateObject) (*storagetypes.MsgDelegateCreateObjectResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	delegatedAddr := sdk.MustAccAddressFromHex(msg.Operator)
+	creatorAddr := sdk.MustAccAddressFromHex(msg.Creator)
+	if msg.ExpectChecksums != nil {
+		if len(msg.ExpectChecksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix())) {
+			return nil, gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
+				1+k.Keeper.RedundantParityChunkNum(ctx)+k.Keeper.RedundantDataChunkNum(ctx),
+				len(msg.ExpectChecksums))
+		}
+	}
+	id, err := k.Keeper.DelegateCreateObject(ctx, delegatedAddr, creatorAddr, msg.BucketName, msg.ObjectName, msg.PayloadSize, storagetypes.CreateObjectOptions{
+		SourceType:     types.SOURCE_TYPE_ORIGIN,
+		Visibility:     msg.Visibility,
+		ContentType:    msg.ContentType,
+		RedundancyType: msg.RedundancyType,
+		Checksums:      msg.ExpectChecksums,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDelegateCreateObjectResponse{
+		ObjectId: id,
+	}, nil
 }
 
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {

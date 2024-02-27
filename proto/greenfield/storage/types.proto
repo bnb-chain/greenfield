@@ -39,6 +39,8 @@ message BucketInfo {
   BucketStatus bucket_status = 10;
   // tags defines a list of tags the bucket has
   ResourceTags tags = 11;
+  // delegated_agent_addresses
+  repeated string delegated_agent_addresses = 12 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message InternalBucketInfo {

@@ -21,10 +21,11 @@ import (
 
 const (
 	// For bucket
-	TypeMsgCreateBucket     = "create_bucket"
-	TypeMsgDeleteBucket     = "delete_bucket"
-	TypeMsgUpdateBucketInfo = "update_bucket_info"
-	TypeMsgMirrorBucket     = "mirror_bucket"
+	TypeMsgCreateBucket          = "create_bucket"
+	TypeMsgDeleteBucket          = "delete_bucket"
+	TypeMsgUpdateBucketInfo      = "update_bucket_info"
+	TypeMsgMirrorBucket          = "mirror_bucket"
+	TypeMsgUpdateDelegatedAgents = "update_delegated_agents"
 
 	// For object
 	TypeMsgCopyObject                = "copy_object"
@@ -39,6 +40,7 @@ const (
 	TypeMsgUpdateObjectInfo          = "update_object_info"
 	TypeMsgUpdateObjectContent       = "update_object_content"
 	TypeMsgCancelUpdateObjectContent = "cancel_update_object_content"
+	TypeMsgDelegateCreateObject      = "delegate_create_object"
 
 	// For group
 	TypeMsgCreateGroup       = "create_group"
@@ -57,10 +59,11 @@ const (
 
 	TypeMsgSetTag = "set_tag"
 
-	MaxGroupMemberLimitOnce = 20
-	MaxTagCount             = 4
-	MaxTagKeyLength         = 32
-	MaxTagValueLength       = 64
+	MaxGroupMemberLimitOnce          = 20
+	MaxTagCount                      = 4
+	MaxTagKeyLength                  = 32
+	MaxTagValueLength                = 64
+	MaxBucketDelegatedAgentLimitOnce = 5
 
 	// For discontinue
 	MaxDiscontinueReasonLen = 128
@@ -292,6 +295,83 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 		}
 	}
 
+	return nil
+}
+
+func NewMsgUpdateDelegatedAgent(
+	operator sdk.AccAddress, bucketName string, agentsToAdd,
+	agentsToRemove []sdk.AccAddress,
+) *MsgUpdateDelegatedAgent {
+	var agentsAddrToAdd []string
+	for _, agent := range agentsToAdd {
+		agentsAddrToAdd = append(agentsAddrToAdd, agent.String())
+	}
+	var agentsAddrToDelete []string
+	for _, agent := range agentsToRemove {
+		agentsAddrToDelete = append(agentsAddrToDelete, agent.String())
+	}
+	return &MsgUpdateDelegatedAgent{
+		Operator:       operator.String(),
+		BucketName:     bucketName,
+		AgentsToAdd:    agentsAddrToAdd,
+		AgentsToRemove: agentsAddrToDelete,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgUpdateDelegatedAgent) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgUpdateDelegatedAgent) Type() string {
+	return TypeMsgUpdateDelegatedAgents
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgUpdateDelegatedAgent) GetSigners() []sdk.AccAddress {
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{operator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgUpdateDelegatedAgent) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgUpdateDelegatedAgent) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+	if len(msg.AgentsToAdd) == 0 && len(msg.AgentsToRemove) == 0 {
+		return gnfderrors.ErrInvalidParameter.Wrapf("Need to provide agents to be added/removed")
+	}
+	if len(msg.AgentsToAdd)+len(msg.AgentsToRemove) > MaxBucketDelegatedAgentLimitOnce {
+		return gnfderrors.ErrInvalidParameter.Wrapf("Once update bucket delegated agents limit exceeded")
+	}
+	for _, agent := range msg.AgentsToAdd {
+		_, err = sdk.AccAddressFromHexUnsafe(agent)
+		if err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address (%s)", err)
+		}
+	}
+	for _, agent := range msg.AgentsToRemove {
+		_, err = sdk.AccAddressFromHexUnsafe(agent)
+		if err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address (%s)", err)
+		}
+	}
 	return nil
 }
 
@@ -1717,6 +1797,87 @@ func (msg *MsgCancelUpdateObjectContent) ValidateBasic() error {
 	err = s3util.CheckValidObjectName(msg.ObjectName)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+// NewMsgDelegateCreateObject creates a new MsgDelegateCreateObject instance.
+func NewMsgDelegateCreateObject(
+	operator, creator sdk.AccAddress,
+	bucketName, objectName string,
+	payloadSize uint64,
+	Visibility VisibilityType,
+	expectChecksums [][]byte,
+	contentType string,
+	redundancyType RedundancyType) *MsgDelegateCreateObject {
+
+	return &MsgDelegateCreateObject{
+		Operator:        operator.String(),
+		Creator:         creator.String(),
+		BucketName:      bucketName,
+		ObjectName:      objectName,
+		PayloadSize:     payloadSize,
+		Visibility:      Visibility,
+		ContentType:     contentType,
+		ExpectChecksums: expectChecksums,
+		RedundancyType:  redundancyType,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgDelegateCreateObject) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgDelegateCreateObject) Type() string {
+	return TypeMsgDelegateCreateObject
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgDelegateCreateObject) GetSigners() []sdk.AccAddress {
+	Operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{Operator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgDelegateCreateObject) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgDelegateCreateObject) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+	_, err = sdk.AccAddressFromHexUnsafe(msg.Creator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
+	}
+	if msg.ExpectChecksums != nil {
+		if err = s3util.CheckValidExpectChecksums(msg.ExpectChecksums); err != nil {
+			return err
+		}
+	}
+	err = s3util.CheckValidContentType(msg.ContentType)
+	if err != nil {
+		return err
+	}
+	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
+		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
 	}
 	return nil
 }
