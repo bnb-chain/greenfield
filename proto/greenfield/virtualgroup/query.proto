@@ -51,6 +51,16 @@ service Query {
   rpc GVGStatistics(QuerySPGVGStatisticsRequest) returns (QuerySPGVGStatisticsResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/sp_gvg_statistics";
   }
+
+  // QuerySpAvailableGlobalVirtualGroupFamilies filters a list of GlobalVirtualGroupFamilies IDs under a certain SP that are qualified to create a bucket on
+  rpc QuerySpAvailableGlobalVirtualGroupFamilies(QuerySPAvailableGlobalVirtualGroupFamiliesRequest) returns (QuerySPAvailableGlobalVirtualGroupFamiliesResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/sp_available_global_virtual_group_families";
+  }
+
+  // QuerySpOptimalGlobalVirtualGroupFamily filters the optimal GlobalVirtualGroupFamily under a certain SP that is qualified to create a bucket on
+  rpc QuerySpOptimalGlobalVirtualGroupFamily(QuerySpOptimalGlobalVirtualGroupFamilyRequest) returns (QuerySpOptimalGlobalVirtualGroupFamilyResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/sp_optimal_global_virtual_group_family";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -118,4 +128,20 @@ message QuerySPGVGStatisticsRequest {
 
 message QuerySPGVGStatisticsResponse {
   GVGStatisticsWithinSP gvg_stats = 1;
+}
+
+message QuerySPAvailableGlobalVirtualGroupFamiliesRequest {
+  uint32 sp_id = 1;
+}
+
+message QuerySPAvailableGlobalVirtualGroupFamiliesResponse {
+  repeated uint32 global_virtual_group_family_ids = 1;
+}
+
+message QuerySpOptimalGlobalVirtualGroupFamilyRequest {
+  uint32 sp_id = 1;
+}
+
+message QuerySpOptimalGlobalVirtualGroupFamilyResponse {
+  uint32 global_virtual_group_family_id = 1;
 }

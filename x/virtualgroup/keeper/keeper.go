@@ -167,6 +167,7 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 		k.paymentKeeper.IsEmptyNetFlow(ctx, sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)) &&
 		!ctx.IsUpgraded(upgradetypes.Manchurian) {
 		store.Delete(types.GetGVGFamilyKey(gvg.FamilyId))
+		k.DeleteGVGFamilyWithinSP(ctx, primarySp.Id, gvg.FamilyId)
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroupFamily{
 			Id:          gvgFamily.Id,
 			PrimarySpId: gvgFamily.PrimarySpId,
@@ -251,6 +252,9 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, prim
 			PrimarySpId:           primarySPID,
 			VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.GVGFamilyName, id).String(),
 		}
+		gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, primarySPID)
+		gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, familyID)
+		k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
 		return &gvgFamily, nil
 	} else {
 		bz := store.Get(types.GetGVGFamilyKey(familyID))
@@ -289,6 +293,8 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 
 	srcStat := k.MustGetGVGStatisticsWithinSP(ctx, primarySP.Id)
 	dstStat := k.GetOrCreateGVGStatisticsWithinSP(ctx, successorSP.Id)
+	srcVGFStat := k.MustGetGVGFamilyStatisticsWithinSP(ctx, primarySP.Id)
+	dstVGFStat := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, successorSP.Id)
 
 	var gvgs []*types.GlobalVirtualGroup
 	for _, gvgID := range family.GlobalVirtualGroupIds {
@@ -358,6 +364,9 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 	}
 	k.SetGVGStatisticsWithSP(ctx, srcStat)
 	k.SetGVGStatisticsWithSP(ctx, dstStat)
+	k.DeleteGVGFamilyWithinSP(ctx, srcVGFStat.StorageProviderId, family.Id)
+	dstVGFStat.GlobalVirtualGroupFamilyIds = append(dstVGFStat.GlobalVirtualGroupFamilyIds, family.Id)
+	k.SetGVGFamilyStatisticsWithinSP(ctx, dstVGFStat)
 
 	return nil
 }
@@ -479,6 +488,76 @@ func (k Keeper) StorageProviderExitable(ctx sdk.Context, spID uint32) error {
 		}
 	}
 	return nil
+}
+
+func (k Keeper) GetOrCreateGVGFamilyStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGFamilyStatisticsWithinSP {
+	store := ctx.KVStore(k.storeKey)
+
+	ret := &types.GVGFamilyStatisticsWithinSP{
+		StorageProviderId: spID,
+	}
+	bz := store.Get(types.GetGVGFamilyStatisticsWithinSPKey(spID))
+	if bz == nil {
+		return ret
+	}
+
+	k.cdc.MustUnmarshal(bz, ret)
+	return ret
+}
+
+func (k Keeper) DeleteGVGFamilyWithinSP(ctx sdk.Context, spID uint32, familyID uint32) {
+	gvgFamilyStatistics := k.MustGetGVGFamilyStatisticsWithinSP(ctx, spID)
+	index := -1
+	for i, id := range gvgFamilyStatistics.GlobalVirtualGroupFamilyIds {
+		if id == familyID {
+			index = i
+			break
+		}
+	}
+	if index != -1 {
+		gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds[:index], gvgFamilyStatistics.GlobalVirtualGroupFamilyIds[index+1:]...)
+		k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
+	}
+}
+
+func (k Keeper) GetGVGFamilyStatisticsWithinSP(ctx sdk.Context, spID uint32) (*types.GVGFamilyStatisticsWithinSP, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetGVGFamilyStatisticsWithinSPKey(spID))
+	if bz == nil {
+		return nil, false
+	}
+
+	var ret types.GVGFamilyStatisticsWithinSP
+	k.cdc.MustUnmarshal(bz, &ret)
+	return &ret, true
+}
+
+func (k Keeper) MustGetGVGFamilyStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGFamilyStatisticsWithinSP {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetGVGFamilyStatisticsWithinSPKey(spID))
+	if bz == nil {
+		panic("must get vgf within sp")
+	}
+
+	var ret types.GVGFamilyStatisticsWithinSP
+	k.cdc.MustUnmarshal(bz, &ret)
+	return &ret
+}
+
+func (k Keeper) SetGVGFamilyStatisticsWithinSP(ctx sdk.Context, vgfStatisticsWithinSP *types.GVGFamilyStatisticsWithinSP) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := k.cdc.MustMarshal(vgfStatisticsWithinSP)
+
+	store.Set(types.GetGVGFamilyStatisticsWithinSPKey(vgfStatisticsWithinSP.StorageProviderId), bz)
+}
+
+func (k Keeper) BatchSetGVGFamilyStatisticsWithinSP(ctx sdk.Context, vgfStatisticsWithinSP []*types.GVGFamilyStatisticsWithinSP) {
+	for _, g := range vgfStatisticsWithinSP {
+		k.SetGVGFamilyStatisticsWithinSP(ctx, g)
+	}
 }
 
 // GetStoreSizeOfFamily Rather than calculating the stored size of a Global Virtual Group Family (GVGF) in real-time,

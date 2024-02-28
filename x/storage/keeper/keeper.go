@@ -117,14 +117,6 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
 	}
 
-	// check primary sp approval
-	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
-	}
-	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, ownerAcc)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
-	}
 	gvgFamily, err := k.virtualGroupKeeper.GetAndCheckGVGFamilyAvailableForNewBucket(ctx, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
@@ -567,6 +559,12 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), err
 	}
 
+	// check object
+	_, found = k.GetObjectInfo(ctx, bucketName, objectName)
+	if found {
+		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
+	}
+
 	// primary sp
 	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 
@@ -585,12 +583,7 @@ func (k Keeper) CreateObject(
 		creator = operator
 	}
 
-	// check approval
-	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
-	}
-
-	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
+	err = k.VerifySP(ctx, sp, operator)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -1614,6 +1607,13 @@ func (k Keeper) VerifySPAndSignature(_ sdk.Context, sp *sptypes.StorageProvider,
 	err := gnfdtypes.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
 	if err != nil {
 		return errors.Wrapf(types.ErrInvalidApproval, "verify signature error: %s", err)
+	}
+	return nil
+}
+
+func (k Keeper) VerifySP(_ sdk.Context, sp *sptypes.StorageProvider, operator sdk.AccAddress) error {
+	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, operator) {
+		return sptypes.ErrStorageProviderNotInService
 	}
 	return nil
 }

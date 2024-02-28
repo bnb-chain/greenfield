@@ -99,7 +99,23 @@ func (s *TestSuite) TestCreateObject() {
 			})
 	})
 
-	// case 5: approval expired
+	// case 5: object exist
+	s.storageKeeper.StoreObjectInfo(s.ctx, &types.ObjectInfo{
+		Id:         sdk.NewUint(1),
+		BucketName: bucketInfo.BucketName,
+		ObjectName: objectName,
+	})
+	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
+		objectName, 100, types.CreateObjectOptions{
+			Visibility:     0,
+			ContentType:    "",
+			SourceType:     0,
+			RedundancyType: 0,
+			Checksums:      nil,
+		})
+	s.Require().ErrorContains(err, "Object already exists")
+
+	// case 6: valid case
 	s.virtualGroupKeeper.EXPECT().GetGVGFamily(gomock.Any(), gomock.Any()).Return(&types2.GlobalVirtualGroupFamily{
 		Id:                    0,
 		PrimarySpId:           0,
@@ -107,7 +123,7 @@ func (s *TestSuite) TestCreateObject() {
 		VirtualPaymentAddress: "",
 	}, true).AnyTimes()
 
-	spAddress, signBytes, sig := sample.RandSignBytes()
+	spAddress, _, _ := sample.RandSignBytes()
 	s.spKeeper.EXPECT().MustGetStorageProvider(gomock.Any(), gomock.Any()).Return(&types3.StorageProvider{
 		Id:              0,
 		OperatorAddress: spAddress.String(),
@@ -122,60 +138,6 @@ func (s *TestSuite) TestCreateObject() {
 		BlsKey:          nil,
 	}).AnyTimes()
 	s.ctx = s.ctx.WithBlockHeight(100)
-	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, types.CreateObjectOptions{
-			Visibility:     0,
-			ContentType:    "",
-			SourceType:     0,
-			RedundancyType: 0,
-			Checksums:      nil,
-			PrimarySpApproval: &common.Approval{
-				ExpiredHeight: uint64(s.ctx.BlockHeight() - 1),
-				Sig:           sig,
-			},
-			ApprovalMsgBytes: signBytes,
-		})
-
-	s.Require().ErrorContains(err, "The approval of sp is expired")
-
-	// case 6: invalid approval sig
-	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, types.CreateObjectOptions{
-			Visibility:     0,
-			ContentType:    "",
-			SourceType:     0,
-			RedundancyType: 0,
-			Checksums:      nil,
-			PrimarySpApproval: &common.Approval{
-				ExpiredHeight: uint64(s.ctx.BlockHeight() + 1),
-				Sig:           []byte("invalid sig"),
-			},
-			ApprovalMsgBytes: signBytes,
-		})
-	s.Require().ErrorContains(err, "verify signature error")
-
-	// case 7: object exist
-	s.storageKeeper.StoreObjectInfo(s.ctx, &types.ObjectInfo{
-		Id:         sdk.NewUint(1),
-		BucketName: bucketInfo.BucketName,
-		ObjectName: objectName,
-	})
-	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, types.CreateObjectOptions{
-			Visibility:     0,
-			ContentType:    "",
-			SourceType:     0,
-			RedundancyType: 0,
-			Checksums:      nil,
-			PrimarySpApproval: &common.Approval{
-				ExpiredHeight: uint64(s.ctx.BlockHeight() + 1),
-				Sig:           sig,
-			},
-			ApprovalMsgBytes: signBytes,
-		})
-	s.Require().ErrorContains(err, "Object already exists")
-
-	// case 8: valid case
 	s.storageKeeper.DeleteObjectInfo(s.ctx, &types.ObjectInfo{
 		Id:         sdk.NewUint(1),
 		BucketName: bucketInfo.BucketName,
@@ -211,9 +173,7 @@ func (s *TestSuite) TestCreateObject() {
 			Checksums:      nil,
 			PrimarySpApproval: &common.Approval{
 				ExpiredHeight: uint64(s.ctx.BlockHeight() + 1),
-				Sig:           sig,
 			},
-			ApprovalMsgBytes: signBytes,
 		})
 
 	s.Require().NoError(err)
