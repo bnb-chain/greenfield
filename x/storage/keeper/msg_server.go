@@ -768,21 +768,16 @@ func (k msgServer) CancelUpdateObjectContent(goCtx context.Context, msg *storage
 
 func (k msgServer) DelegateCreateObject(goCtx context.Context, msg *storagetypes.MsgDelegateCreateObject) (*storagetypes.MsgDelegateCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	delegatedAddr := sdk.MustAccAddressFromHex(msg.Operator)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
 	creatorAddr := sdk.MustAccAddressFromHex(msg.Creator)
-	if msg.ExpectChecksums != nil {
-		if len(msg.ExpectChecksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix())) {
-			return nil, gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
-				1+k.Keeper.RedundantParityChunkNum(ctx)+k.Keeper.RedundantDataChunkNum(ctx),
-				len(msg.ExpectChecksums))
-		}
-	}
-	id, err := k.Keeper.DelegateCreateObject(ctx, delegatedAddr, creatorAddr, msg.BucketName, msg.ObjectName, msg.PayloadSize, storagetypes.CreateObjectOptions{
+	id, err := k.Keeper.CreateObject(ctx, operatorAddr, msg.BucketName, msg.ObjectName, msg.PayloadSize, storagetypes.CreateObjectOptions{
 		SourceType:     types.SOURCE_TYPE_ORIGIN,
 		Visibility:     msg.Visibility,
 		ContentType:    msg.ContentType,
 		RedundancyType: msg.RedundancyType,
 		Checksums:      msg.ExpectChecksums,
+		Delegated:      true,
+		Creator:        creatorAddr,
 	})
 	if err != nil {
 		return nil, err
@@ -790,6 +785,38 @@ func (k msgServer) DelegateCreateObject(goCtx context.Context, msg *storagetypes
 	return &types.MsgDelegateCreateObjectResponse{
 		ObjectId: id,
 	}, nil
+}
+
+func (k msgServer) DelegateUpdateObjectContent(goCtx context.Context, msg *storagetypes.MsgDelegateUpdateObjectContent) (*storagetypes.MsgDelegateUpdateObjectContentResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
+	updaterAddr := sdk.MustAccAddressFromHex(msg.Updater)
+	err := k.Keeper.UpdateObjectContent(ctx, operatorAddr, msg.BucketName, msg.ObjectName, msg.PayloadSize, storagetypes.UpdateObjectOptions{
+		ContentType: msg.ContentType,
+		Checksums:   msg.ExpectChecksums,
+		Delegated:   true,
+		Updater:     updaterAddr,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDelegateUpdateObjectContentResponse{}, nil
+}
+
+func (k msgServer) SealObjectV2(goCtx context.Context, msg *storagetypes.MsgSealObjectV2) (*storagetypes.MsgSealObjectV2Response, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	spSealAcc := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.Keeper.SealObject(ctx, spSealAcc, msg.BucketName, msg.ObjectName, SealObjectOptions{
+		GlobalVirtualGroupId:     msg.GlobalVirtualGroupId,
+		SecondarySpBlsSignatures: msg.SecondarySpBlsAggSignatures,
+		Checksums:                msg.ExpectChecksums,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgSealObjectV2Response{}, nil
 }
 
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {

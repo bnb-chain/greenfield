@@ -2537,12 +2537,16 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 	s.SendTxBlockWithExpectErrorString(msgDelegateCreateObject, sp.OperatorKey, "has no CreateObject permission of the bucket")
 
 	statement := &permissiontypes.Statement{
-		Actions: []permissiontypes.ActionType{permissiontypes.ACTION_CREATE_OBJECT},
-		Effect:  permissiontypes.EFFECT_ALLOW,
+		Actions:   []permissiontypes.ActionType{permissiontypes.ACTION_CREATE_OBJECT, permissiontypes.ACTION_UPDATE_OBJECT_CONTENT},
+		Effect:    permissiontypes.EFFECT_ALLOW,
+		Resources: []string{fmt.Sprintf("grn:o::%s/*", bucketName)},
 	}
+
 	principal := permissiontypes.NewPrincipalWithAccount(user.GetAddr())
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(bucketOwner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*permissiontypes.Statement{statement}, nil)
+	fmt.Println(types2.NewBucketGRN(bucketName).String())
+
 	s.SendTxBlock(bucketOwner, msgPutPolicy)
 
 	s.SendTxBlock(sp.OperatorKey, msgDelegateCreateObject)
@@ -2558,4 +2562,63 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 	s.Require().Equal(bucketOwner.GetAddr().String(), headObjectResp.ObjectInfo.Owner)
 	s.Require().Equal(0, len(headObjectResp.ObjectInfo.Checksums))
 
+	// SP seal object, and update the object checksum
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+
+	gvgId := gvg.Id
+	msgSealObject := storagetypes.NewMsgSealObjectV2(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil, expectChecksum)
+	secondarySigs := make([][]byte, 0)
+	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, headObjectResp.ObjectInfo.Id, storagetypes.GenerateHash(expectChecksum[:])).GetBlsSignHash()
+	// every secondary sp signs the checksums
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
+		s.Require().NoError(err)
+		secondarySigs = append(secondarySigs, sig)
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
+		s.Require().NoError(err)
+		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
+	}
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, blsSignHash, secondarySigs)
+	s.Require().NoError(err)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+	s.T().Logf("msg %s", msgSealObject.String())
+	s.SendTxBlock(sp.SealKey, msgSealObject)
+
+	headObjectResp, err = s.Client.HeadObject(ctx, &headObjectReq)
+	s.Require().NoError(err)
+	s.Require().Equal(objectName, headObjectResp.ObjectInfo.ObjectName)
+	s.Require().Equal(user.GetAddr().String(), headObjectResp.ObjectInfo.Creator)
+	s.Require().Equal(bucketOwner.GetAddr().String(), headObjectResp.ObjectInfo.Owner)
+	s.Require().Equal(expectChecksum, headObjectResp.ObjectInfo.Checksums)
+
+	// delegate update
+	var newBuffer bytes.Buffer
+	for i := 0; i < 2048; i++ {
+		newBuffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	newPayloadSize := uint64(newBuffer.Len())
+	newChecksum := sdk.Keccak256(newBuffer.Bytes())
+	newExpectChecksum := [][]byte{newChecksum, newChecksum, newChecksum, newChecksum, newChecksum, newChecksum, newChecksum}
+
+	msgUpdateObject := storagetypes.NewMsgDelegateUpdateObjectContent(sp.OperatorKey.GetAddr(),
+		user.GetAddr(), bucketName, objectName, newPayloadSize, nil)
+	s.SendTxBlock(sp.OperatorKey, msgUpdateObject)
+	s.T().Logf("msgUpdateObject %s", msgUpdateObject.String())
+
+	// every secondary sp signs the checksums
+	newSecondarySigs := make([][]byte, 0)
+	newBlsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, headObjectResp.ObjectInfo.Id, storagetypes.GenerateHash(newExpectChecksum[:])).GetBlsSignHash()
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], newBlsSignHash)
+		s.Require().NoError(err)
+		newSecondarySigs = append(newSecondarySigs, sig)
+	}
+	aggBlsSig, err = core.BlsAggregateAndVerify(secondarySPBlsPubKeys, newBlsSignHash, newSecondarySigs)
+	s.Require().NoError(err)
+	msgSealObject = storagetypes.NewMsgSealObjectV2(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil, newExpectChecksum)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+	s.T().Logf("msgSealObject %s", msgSealObject.String())
+	s.SendTxBlock(sp.SealKey, msgSealObject)
 }

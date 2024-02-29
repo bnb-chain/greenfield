@@ -28,19 +28,22 @@ const (
 	TypeMsgUpdateDelegatedAgents = "update_delegated_agents"
 
 	// For object
-	TypeMsgCopyObject                = "copy_object"
-	TypeMsgCreateObject              = "create_object"
-	TypeMsgDeleteObject              = "delete_object"
-	TypeMsgSealObject                = "seal_object"
-	TypeMsgRejectSealObject          = "reject_seal_object"
-	TypeMsgCancelCreateObject        = "cancel_create_object"
-	TypeMsgMirrorObject              = "mirror_object"
-	TypeMsgDiscontinueObject         = "discontinue_object"
-	TypeMsgDiscontinueBucket         = "discontinue_bucket"
-	TypeMsgUpdateObjectInfo          = "update_object_info"
-	TypeMsgUpdateObjectContent       = "update_object_content"
-	TypeMsgCancelUpdateObjectContent = "cancel_update_object_content"
-	TypeMsgDelegateCreateObject      = "delegate_create_object"
+	TypeMsgCopyObject   = "copy_object"
+	TypeMsgCreateObject = "create_object"
+	TypeMsgDeleteObject = "delete_object"
+	TypeMsgSealObject   = "seal_object"
+	TypeMsgSealObjectV2 = "seal_object_v2"
+
+	TypeMsgRejectSealObject            = "reject_seal_object"
+	TypeMsgCancelCreateObject          = "cancel_create_object"
+	TypeMsgMirrorObject                = "mirror_object"
+	TypeMsgDiscontinueObject           = "discontinue_object"
+	TypeMsgDiscontinueBucket           = "discontinue_bucket"
+	TypeMsgUpdateObjectInfo            = "update_object_info"
+	TypeMsgUpdateObjectContent         = "update_object_content"
+	TypeMsgCancelUpdateObjectContent   = "cancel_update_object_content"
+	TypeMsgDelegateCreateObject        = "delegate_create_object"
+	TypeMsgDelegateUpdateObjectContent = "delegate_update_object_content"
 
 	// For group
 	TypeMsgCreateGroup       = "create_group"
@@ -622,6 +625,76 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		)
 	}
 
+	return nil
+}
+
+func NewMsgSealObjectV2(
+	operator sdk.AccAddress, bucketName, objectName string, globalVirtualGroupID uint32,
+	secondarySpBlsSignatures []byte, checksums [][]byte,
+) *MsgSealObjectV2 {
+	return &MsgSealObjectV2{
+		Operator:                    operator.String(),
+		BucketName:                  bucketName,
+		ObjectName:                  objectName,
+		GlobalVirtualGroupId:        globalVirtualGroupID,
+		SecondarySpBlsAggSignatures: secondarySpBlsSignatures,
+		ExpectChecksums:             checksums,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgSealObjectV2) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgSealObjectV2) Type() string {
+	return TypeMsgSealObjectV2
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgSealObjectV2) GetSigners() []sdk.AccAddress {
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{operator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgSealObjectV2) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgSealObjectV2) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
+	}
+
+	if len(msg.GetSecondarySpBlsAggSignatures()) != sdk.BLSSignatureLength {
+		return errors.Wrap(gnfderrors.ErrInvalidBlsSignature,
+			fmt.Sprintf("length of signature should be %d", sdk.BLSSignatureLength),
+		)
+	}
+
+	if msg.ExpectChecksums != nil {
+		if err = s3util.CheckValidExpectChecksums(msg.ExpectChecksums); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -1735,17 +1808,14 @@ func (msg *MsgUpdateObjectContent) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
-
 	err = s3util.CheckValidObjectName(msg.ObjectName)
 	if err != nil {
 		return err
 	}
-
 	err = s3util.CheckValidExpectChecksums(msg.ExpectChecksums)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -1878,6 +1948,70 @@ func (msg *MsgDelegateCreateObject) ValidateBasic() error {
 	}
 	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
 		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
+	}
+	return nil
+}
+
+func NewMsgDelegateUpdateObjectContent(
+	operator, updater sdk.AccAddress, bucketName, objectName string, payloadSize uint64,
+	expectChecksums [][]byte) *MsgDelegateUpdateObjectContent {
+	return &MsgDelegateUpdateObjectContent{
+		Operator:        operator.String(),
+		Updater:         updater.String(),
+		BucketName:      bucketName,
+		ObjectName:      objectName,
+		PayloadSize:     payloadSize,
+		ExpectChecksums: expectChecksums,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgDelegateUpdateObjectContent) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgDelegateUpdateObjectContent) Type() string {
+	return TypeMsgDelegateUpdateObjectContent
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgDelegateUpdateObjectContent) GetSigners() []sdk.AccAddress {
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{operator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgDelegateUpdateObjectContent) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgDelegateUpdateObjectContent) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	_, err = sdk.AccAddressFromHexUnsafe(msg.Updater)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid updater address (%s)", err)
+	}
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
+	}
+	if msg.ExpectChecksums != nil {
+		if err = s3util.CheckValidExpectChecksums(msg.ExpectChecksums); err != nil {
+			return err
+		}
 	}
 	return nil
 }

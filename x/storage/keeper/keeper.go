@@ -569,158 +569,63 @@ func (k Keeper) CreateObject(
 
 	// primary sp
 	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
-
-	// verify permission
-	verifyOpts := &permtypes.VerifyOptions{
-		WantedSize: &payloadSize,
-	}
-	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
-	if effect != permtypes.EFFECT_ALLOW {
-		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator(%s) has no CreateObject permission of the bucket(%s)",
-			operator.String(), bucketName)
-	}
-
-	var creator sdk.AccAddress
-	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
-		creator = operator
-	}
-
-	// check approval
-	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
-	}
-
-	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
-	}
-
-	objectKey := types.GetObjectKey(bucketName, objectName)
-	if store.Has(objectKey) {
-		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
-	}
-
-	// check payload size, the empty object doesn't need sealed
-	var objectStatus types.ObjectStatus
-	if payloadSize == 0 {
-		// empty object does not interact with sp
-		objectStatus = types.OBJECT_STATUS_SEALED
-	} else {
-		objectStatus = types.OBJECT_STATUS_CREATED
-	}
-
-	// construct objectInfo
-	objectInfo := types.ObjectInfo{
-		Owner:          bucketInfo.Owner,
-		Creator:        creator.String(),
-		BucketName:     bucketName,
-		ObjectName:     objectName,
-		PayloadSize:    payloadSize,
-		Visibility:     opts.Visibility,
-		ContentType:    opts.ContentType,
-		Id:             k.GenNextObjectID(ctx),
-		CreateAt:       ctx.BlockTime().Unix(),
-		ObjectStatus:   objectStatus,
-		RedundancyType: opts.RedundancyType,
-		SourceType:     opts.SourceType,
-		Checksums:      opts.Checksums,
-	}
-
-	if objectInfo.PayloadSize == 0 {
-		_, err := k.SealEmptyObjectOnVirtualGroup(ctx, bucketInfo, &objectInfo)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
-	} else {
-		// Lock Fee
-		err = k.LockObjectStoreFee(ctx, bucketInfo, &objectInfo)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
-	}
-
-	bbz := k.cdc.MustMarshal(bucketInfo)
-	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
-
-	obz := k.cdc.MustMarshal(&objectInfo)
-	store.Set(objectKey, k.objectSeq.EncodeSequence(objectInfo.Id))
-	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
-
-	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		Creator:             operator.String(),
-		Owner:               objectInfo.Owner,
-		BucketName:          bucketInfo.BucketName,
-		ObjectName:          objectInfo.ObjectName,
-		BucketId:            bucketInfo.Id,
-		ObjectId:            objectInfo.Id,
-		CreateAt:            objectInfo.CreateAt,
-		PayloadSize:         objectInfo.PayloadSize,
-		Visibility:          objectInfo.Visibility,
-		PrimarySpId:         sp.Id,
-		ContentType:         objectInfo.ContentType,
-		Status:              objectInfo.ObjectStatus,
-		RedundancyType:      objectInfo.RedundancyType,
-		SourceType:          objectInfo.SourceType,
-		Checksums:           objectInfo.Checksums,
-		LocalVirtualGroupId: objectInfo.LocalVirtualGroupId,
-	}); err != nil {
-		return objectInfo.Id, err
-	}
-	return objectInfo.Id, nil
-}
-
-func (k Keeper) DelegateCreateObject(
-	ctx sdk.Context, delegatee, creator sdk.AccAddress, bucketName, objectName string, payloadSize uint64,
-	opts types.CreateObjectOptions,
-) (sdkmath.Uint, error) {
-	store := ctx.KVStore(k.storeKey)
-
-	// check payload size
-	if payloadSize > k.MaxPayloadSize(ctx) {
-		return sdkmath.ZeroUint(), types.ErrTooLargeObject
-	}
-
-	// check bucket
-	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
-	if !found {
-		return sdkmath.ZeroUint(), types.ErrNoSuchBucket
-	}
-	err := bucketInfo.CheckBucketStatus()
-	if err != nil {
-		return sdkmath.ZeroUint(), err
-	}
-
-	// primary sp
-	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
-
-	allowed := false
-	_ = false
-	// check if the delegated agent is the primary SP.
-	for _, delegatedAgent := range bucketInfo.DelegatedAgentAddresses {
-		if delegatee.String() == delegatedAgent {
-			allowed = true
-			if delegatee.String() == sp.OperatorAddress {
-				_ = true
+	creator := operator
+	if opts.Delegated {
+		creator = opts.Creator
+		if operator.String() != sp.OperatorAddress {
+			// 3rd party must provide checksums
+			if opts.Checksums == nil {
+				return sdkmath.ZeroUint(), types.ErrObjectChecksumsMissing
+			} else {
+				if len(opts.Checksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix())) {
+					return sdkmath.ZeroUint(), gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
+						1+k.RedundantParityChunkNum(ctx)+k.RedundantDataChunkNum(ctx),
+						len(opts.Checksums))
+				}
 			}
 		}
-	}
-	if !allowed {
-		return sdkmath.ZeroUint(), fmt.Errorf("the delegatee address is not allowed to create object")
+		allowed := false
+		for _, delegatedAgent := range bucketInfo.DelegatedAgentAddresses {
+			if operator.String() == delegatedAgent {
+				allowed = true
+			}
+		}
+		if !allowed {
+			return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrap("the delegatee address is not allowed to create object")
+		}
 	}
 
-	// verify permission of creator
+	// verify permission
 	verifyOpts := &permtypes.VerifyOptions{
 		WantedSize: &payloadSize,
 	}
 	effect := k.VerifyBucketPermission(ctx, bucketInfo, creator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
 	if effect != permtypes.EFFECT_ALLOW {
 		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The creator(%s) has no CreateObject permission of the bucket(%s)",
-			creator.String(), bucketName)
+			operator.String(), bucketName)
 	}
+
+	// set objectInfo creator to empty if same as owner
+	objectInfoCreator := creator
+	if objectInfoCreator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
+		objectInfoCreator = sdk.AccAddress{}
+	}
+
+	//// check approval
+	//if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
+	//	return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+	//}
+	//
+	//err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
+	//if err != nil {
+	//	return sdkmath.ZeroUint(), err
+	//}
+
 	objectKey := types.GetObjectKey(bucketName, objectName)
 	if store.Has(objectKey) {
 		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
 	}
+
 	// check payload size, the empty object doesn't need sealed
 	var objectStatus types.ObjectStatus
 	if payloadSize == 0 {
@@ -729,10 +634,11 @@ func (k Keeper) DelegateCreateObject(
 	} else {
 		objectStatus = types.OBJECT_STATUS_CREATED
 	}
+
 	// construct objectInfo
 	objectInfo := types.ObjectInfo{
 		Owner:          bucketInfo.Owner,
-		Creator:        creator.String(),
+		Creator:        objectInfoCreator.String(),
 		BucketName:     bucketName,
 		ObjectName:     objectName,
 		PayloadSize:    payloadSize,
@@ -745,6 +651,7 @@ func (k Keeper) DelegateCreateObject(
 		SourceType:     opts.SourceType,
 		Checksums:      opts.Checksums,
 	}
+
 	if objectInfo.PayloadSize == 0 {
 		_, err := k.SealEmptyObjectOnVirtualGroup(ctx, bucketInfo, &objectInfo)
 		if err != nil {
@@ -873,6 +780,7 @@ func (k Keeper) MustGetShadowObjectInfo(ctx sdk.Context, bucketName, objectName 
 type SealObjectOptions struct {
 	GlobalVirtualGroupId     uint32
 	SecondarySpBlsSignatures []byte
+	Checksums                [][]byte
 }
 
 func (k Keeper) SealObject(
@@ -899,6 +807,13 @@ func (k Keeper) SealObject(
 	if !found {
 		return types.ErrNoSuchObject
 	}
+
+	if objectInfo.Checksums == nil {
+		if opts.Checksums == nil {
+			return types.ErrObjectChecksumsMissing
+		}
+		objectInfo.Checksums = opts.Checksums
+	}
 	store := ctx.KVStore(k.storeKey)
 
 	prevPayloadSize := objectInfo.PayloadSize
@@ -920,6 +835,12 @@ func (k Keeper) SealObject(
 		shadowObjectInfo := k.MustGetShadowObjectInfo(ctx, bucketName, objectName)
 		objectInfo.UpdatedAt = shadowObjectInfo.UpdatedAt // the updated_at in objetInfo will not be visible until the object is sealed.
 		objectInfo.Version = shadowObjectInfo.Version
+		if shadowObjectInfo.Checksums == nil {
+			if opts.Checksums == nil {
+				return types.ErrObjectChecksumsMissing
+			}
+			shadowObjectInfo.Checksums = opts.Checksums
+		}
 		objectInfo.Checksums = shadowObjectInfo.Checksums
 		objectInfo.PayloadSize = shadowObjectInfo.PayloadSize
 		objectInfo.UpdatedBy = shadowObjectInfo.Operator
@@ -989,6 +910,7 @@ func (k Keeper) SealObject(
 		Status:               objectInfo.ObjectStatus,
 		GlobalVirtualGroupId: opts.GlobalVirtualGroupId,
 		LocalVirtualGroupId:  objectInfo.LocalVirtualGroupId,
+		Checksums:            objectInfo.Checksums,
 	}); err != nil {
 		return err
 	}
@@ -2549,27 +2471,52 @@ func (k Keeper) UpdateObjectContent(
 		return types.ErrObjectIsUpdating.Wrapf("The object is already being updated")
 	}
 	// check permission
-	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_UPDATE_OBJECT_CONTENT)
+	var updater sdk.AccAddress
+	if opts.Delegated {
+		updater = opts.Updater
+	} else {
+		updater = operator
+	}
+	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, updater, permtypes.ACTION_UPDATE_OBJECT_CONTENT)
 	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
-			"The operator(%s) has no updateObjectContent permission of the bucket(%s), object(%s)",
-			operator.String(), bucketName, objectName)
+			"The updater(%s) has no updateObjectContent permission of the bucket(%s), object(%s)",
+			updater.String(), bucketName, objectName)
 	}
-
 	// check payload size
 	if payloadSize > k.MaxPayloadSize(ctx) {
 		return types.ErrTooLargeObject
 	}
-
 	// primary sp
 	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 	// a sp is not in service, neither in maintenance
 	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, operator) {
 		return errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
 	}
-
+	if opts.Delegated {
+		if operator.String() != sp.OperatorAddress {
+			// 3rd party must provide checksums
+			if opts.Checksums == nil {
+				return types.ErrObjectChecksumsMissing
+			} else {
+				if len(opts.Checksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix())) {
+					return gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
+						1+k.RedundantParityChunkNum(ctx)+k.RedundantDataChunkNum(ctx),
+						len(opts.Checksums))
+				}
+			}
+		}
+		allowed := false
+		for _, delegatedAgent := range bucketInfo.DelegatedAgentAddresses {
+			if operator.String() == delegatedAgent {
+				allowed = true
+			}
+		}
+		if !allowed {
+			return types.ErrAccessDenied.Wrap("the delegatee's address is not allowed to create object")
+		}
+	}
 	nextVersion := objectInfo.Version + 1
-
 	if payloadSize == 0 {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 		err := k.UnChargeObjectStoreFee(ctx, bucketInfo, k.MustGetInternalBucketInfo(ctx, bucketInfo.Id), objectInfo)
@@ -2581,12 +2528,11 @@ func (k Keeper) UpdateObjectContent(
 		if err != nil {
 			return err
 		}
-
 		objectInfo.UpdatedAt = ctx.BlockTime().Unix()
 		objectInfo.Version = nextVersion
 		objectInfo.PayloadSize = 0
 		objectInfo.Checksums = opts.Checksums
-		objectInfo.UpdatedBy = operator.String()
+		objectInfo.UpdatedBy = updater.String()
 		objectInfo.ContentType = opts.ContentType
 
 		_, err = k.SealEmptyObjectOnVirtualGroup(ctx, bucketInfo, objectInfo)
@@ -2596,7 +2542,7 @@ func (k Keeper) UpdateObjectContent(
 	} else {
 		objectInfo.IsUpdating = true
 		shadowObjectInfo := &types.ShadowObjectInfo{
-			Operator:    operator.String(),
+			Operator:    updater.String(),
 			Id:          objectInfo.Id,
 			PayloadSize: payloadSize,
 			Checksums:   opts.Checksums,
@@ -2614,9 +2560,8 @@ func (k Keeper) UpdateObjectContent(
 	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
-
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventUpdateObjectContent{
-		Operator:    operator.String(),
+		Operator:    updater.String(),
 		ObjectId:    objectInfo.Id,
 		PayloadSize: payloadSize,
 		Checksums:   opts.Checksums,
