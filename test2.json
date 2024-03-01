@@ -1,0 +1,127 @@
+package keeper
+
+import (
+"encoding/hex"
+
+sdk "github.com/cosmos/cosmos-sdk/types"
+
+"github.com/bnb-chain/greenfield/x/storage/types"
+)
+
+var _ sdk.CrossChainApplication = &GroupApp{}
+
+type GroupApp struct {
+storageKeeper Keeper
+}
+
+func (app *GroupApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
+pack, err := types.DeserializeCrossChainPackage(payload, types.ObjectChannelId, sdk.AckCrossChainPackageType)
+if err != nil {
+app.storageKeeper.Logger(ctx).Error("deserialize object cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
+panic("deserialize object cross chain package error")
+}
+
+switch p := pack.(type) {
+case *types.MirrorObjectAckPackage:
+return app.handleMirrorObjectAckPackage(ctx, appCtx, p)
+default:
+panic("unknown cross chain ack package type")
+}
+}
+
+func (app *GroupApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
+pack, err := types.DeserializeCrossChainPackage(payload, types.BucketChannelId, sdk.FailAckCrossChainPackageType)
+if err != nil {
+app.storageKeeper.Logger(ctx).Error("deserialize object cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
+panic("deserialize object cross chain package error")
+}
+
+switch p := pack.(type) {
+case *types.MirrorObjectSynPackage:
+return app.handleMirrorObjectFailAckPackage(ctx, appCtx, p)
+default:
+panic("unknown cross chain ack package type")
+}
+}
+
+func (app *GroupApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
+pack, err := types.DeserializeCrossChainPackage(payload, types.BucketChannelId, sdk.SynCrossChainPackageType)
+if err != nil {
+app.storageKeeper.Logger(ctx).Error("deserialize object cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
+panic("deserialize object cross chain package error")
+}
+
+switch p := pack.(type) {
+case *types.MirrorObjectSynPackage:
+return app.handleMirrorObjectSynPackage(ctx, appCtx, p)
+default:
+return sdk.ExecuteResult{
+Err: types.ErrInvalidCrossChainPackage,
+}
+}
+}
+
+func (app *GroupApp) handleMirrorObjectAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, ackPackage *types.MirrorObjectAckPackage) sdk.ExecuteResult {
+app.storageKeeper.Logger(ctx).Error("received mirror object ack package ")
+
+objectInfo, found := app.storageKeeper.GetObjectByKey(ctx, ackPackage.ObjectKey)
+if !found {
+app.storageKeeper.Logger(ctx).Error("object does not exist", "object key", hex.EncodeToString(ackPackage.ObjectKey))
+return sdk.ExecuteResult{
+Err: types.ErrNoSuchObject,
+}
+}
+
+// update object
+if ackPackage.Status == types.StatusSuccess {
+objectInfo.SourceType = types.SOURCE_TYPE_BSC_CROSS_CHAIN
+
+app.storageKeeper.SetObject(ctx, objectInfo)
+}
+
+app.storageKeeper.DeleteObjectMirrorStatus(ctx, objectInfo.Id)
+
+if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorObjectResult{
+Status:     uint32(ackPackage.Status),
+BucketName: objectInfo.BucketName,
+ObjectName: objectInfo.ObjectName,
+Id:         objectInfo.Id,
+}); err != nil {
+return sdk.ExecuteResult{
+Err: err,
+}
+}
+
+return sdk.ExecuteResult{}
+}
+
+func (app *GroupApp) handleMirrorObjectFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, mirrorObjectPackage *types.MirrorObjectSynPackage) sdk.ExecuteResult {
+app.storageKeeper.Logger(ctx).Error("received mirror object fail ack package ")
+
+objectInfo, found := app.storageKeeper.GetObjectByKey(ctx, mirrorObjectPackage.ObjectKey)
+if !found {
+app.storageKeeper.Logger(ctx).Error("object does not exist", "object key", hex.EncodeToString(mirrorObjectPackage.ObjectKey))
+return sdk.ExecuteResult{
+Err: types.ErrNoSuchObject,
+}
+}
+
+app.storageKeeper.DeleteObjectMirrorStatus(ctx, objectInfo.Id)
+
+if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorObjectResult{
+Status:     uint32(types.StatusFail),
+BucketName: objectInfo.BucketName,
+ObjectName: objectInfo.ObjectName,
+Id:         objectInfo.Id,
+}); err != nil {
+return sdk.ExecuteResult{
+Err: err,
+}
+}
+
+return sdk.ExecuteResult{}
+}
+
+func (app *GroupApp) handleMirrorObjectSynPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, synPackage *types.MirrorObjectSynPackage) sdk.ExecuteResult {
+return sdk.ExecuteResult{}
+}

@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -23,6 +24,14 @@ func (k Keeper) ChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.Bu
 	if err != nil {
 		return fmt.Errorf("charge bucket read fee failed, get bucket bill failed: %s %s", bucketInfo.BucketName, err.Error())
 	}
+
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		err := k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, bill)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
 	if err != nil {
 		ctx.Logger().Error("charge initial read fee failed", "bucket", bucketInfo.BucketName, "err", err.Error())
@@ -35,6 +44,13 @@ func (k Keeper) UnChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.
 	internalBucketInfo *storagetypes.InternalBucketInfo) error {
 	if internalBucketInfo.TotalChargeSize > 0 {
 		return fmt.Errorf("unexpected total store charge size: %s, %d", bucketInfo.BucketName, internalBucketInfo.TotalChargeSize)
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		// if the bucket's flow rate limit is set to zero, no need to uncharge, since the bucket is already uncharged
+		if k.isBucketFlowRateLimitSetToZero(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), bucketInfo.BucketName) {
+			return nil
+		}
 	}
 
 	bill, err := k.GetBucketReadBill(ctx, bucketInfo, internalBucketInfo)
@@ -117,7 +133,7 @@ func (k Keeper) LockShadowObjectStoreFee(ctx sdk.Context, bucketInfo *storagetyp
 
 func (k Keeper) lockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, timestamp int64, payloadSize uint64, objectName string) error {
 	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
-	amount, err := k.GetObjectLockFee(ctx, timestamp, payloadSize)
+	amount, rate, err := k.GetObjectLockFee(ctx, timestamp, payloadSize)
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %s %s %w", bucketInfo.BucketName, objectName, err)
 	}
@@ -127,6 +143,25 @@ func (k Keeper) lockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.Buc
 			FeePreviewType: types.FEE_PREVIEW_TYPE_PRELOCKED_FEE,
 			Amount:         amount,
 		})
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+		internalBucketInfo.PriceTime = timestamp
+		nextBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
+		if err != nil {
+			return fmt.Errorf("get bucket bill failed: %s %s %w", bucketInfo.BucketName, objectName, err)
+		}
+
+		// the reason to add the rate here is the bill calculated may be empty if the lvg is not set,
+		// for example, the first object in the bucket, so we need to add the object rate to the next bill rate which may be 0
+		nextBillRate := getTotalOutFlowRate(nextBill.Flows)
+		nextBillRate = nextBillRate.Add(rate)
+
+		err = k.isBucketFlowRateUnderLimitWithRate(ctx, paymentAddr, sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, nextBillRate)
+		if err != nil {
+			return err
+		}
 	}
 
 	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).WithLockBalanceChange(amount)
@@ -142,7 +177,7 @@ func (k Keeper) lockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.Buc
 
 // UnlockObjectStoreFee unlock store fee if the object is deleted in INIT state
 func (k Keeper) UnlockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	lockedBalance, err := k.GetObjectLockFee(ctx, objectInfo.GetLatestUpdatedTime(), objectInfo.PayloadSize)
+	lockedBalance, _, err := k.GetObjectLockFee(ctx, objectInfo.GetLatestUpdatedTime(), objectInfo.PayloadSize)
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %s %s %w", bucketInfo.BucketName, objectInfo.ObjectName, err)
 	}
@@ -157,7 +192,7 @@ func (k Keeper) UnlockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.B
 
 // UnlockShadowObjectStoreFee unlock store fee if the object is deleted in INIT state
 func (k Keeper) UnlockShadowObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ShadowObjectInfo) error {
-	lockedBalance, err := k.GetObjectLockFee(ctx, objectInfo.GetUpdatedAt(), objectInfo.PayloadSize)
+	lockedBalance, _, err := k.GetObjectLockFee(ctx, objectInfo.GetUpdatedAt(), objectInfo.PayloadSize)
 	if err != nil {
 		return fmt.Errorf("get shadow object store fee rate failed, objectID: %s %w", objectInfo.Id.String(), err)
 	}
@@ -298,6 +333,8 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	if err != nil {
 		return fmt.Errorf("charge via bucket change failed, get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
 	}
+	isPreviousBucketSuspended := k.isBucketFlowRateLimitSetToZero(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), bucketInfo.BucketName)
+
 	// change bucket internal info
 	if err = changeFunc(bucketInfo, internalBucketInfo); err != nil {
 		return errors.Wrapf(err, "change bucket internal info failed: %s", bucketInfo.BucketName)
@@ -309,12 +346,35 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 		return fmt.Errorf("get new bucket bill failed: %s %w", bucketInfo.BucketName, err)
 	}
 
-	// charge according to bill change
-	err = k.ApplyBillChanges(ctx, prevBill, newBill)
-	if err != nil {
-		ctx.Logger().Error("charge via bucket change failed", "bucket", bucketInfo.BucketName, "err", err.Error())
-		return err
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		// check the bucket's new flow rate limit
+		err := k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, newBill)
+		if err != nil {
+			return err
+		}
+
+		if isPreviousBucketSuspended {
+			err = k.ApplyBillChanges(ctx, nil, &newBill)
+			if err != nil {
+				ctx.Logger().Error("charge via bucket change failed", "bucket", bucketInfo.BucketName, "err", err.Error())
+				return err
+			}
+		} else {
+			err = k.ApplyBillChanges(ctx, &prevBill, &newBill)
+			if err != nil {
+				ctx.Logger().Error("charge via bucket change failed", "bucket", bucketInfo.BucketName, "err", err.Error())
+				return err
+			}
+		}
+	} else {
+		// charge according to bill change
+		err = k.ApplyBillChanges(ctx, &prevBill, &newBill)
+		if err != nil {
+			ctx.Logger().Error("charge via bucket change failed", "bucket", bucketInfo.BucketName, "err", err.Error())
+			return err
+		}
 	}
+
 	return nil
 }
 
@@ -366,6 +426,19 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 
 	userFlows.Flows = append(userFlows.Flows, getNegFlows(preOutFlows)...)
 	userFlows.Flows = append(userFlows.Flows, newOutFlows...)
+
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		currentBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
+		if err != nil {
+			return nil, fmt.Errorf("get bucket bill failed: %s %w", bucketInfo.BucketName, err)
+		}
+
+		err = k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, currentBill)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
 	if err != nil {
 		ctx.Logger().Error("charge object store fee failed", "bucket", bucketInfo.BucketName,
@@ -467,6 +540,14 @@ func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes
 
 func (k Keeper) UnChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) error {
+
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		// if the bucket's flow rate limit is set to zero, no need to uncharge, since the bucket is already uncharged
+		if k.isBucketFlowRateLimitSetToZero(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), bucketInfo.BucketName) {
+			return nil
+		}
+	}
+
 	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
 		return fmt.Errorf("get bucket bill failed: %s %s", bucketInfo.BucketName, err.Error())
@@ -486,6 +567,15 @@ func (k Keeper) ChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetyp
 	if err != nil {
 		return fmt.Errorf("get bucket bill failed: %s %s", bucketInfo.BucketName, err.Error())
 	}
+
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		// todo: if the bucket's flow rate is under limit before, but the price is changed, the bucket may be over limit now, should we allow it or not?
+		err := k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, bill)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
 	if err != nil {
 		return fmt.Errorf("apply user flows list failed: %s %w", bucketInfo.BucketName, err)
@@ -493,9 +583,20 @@ func (k Keeper) ChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetyp
 	return nil
 }
 
-func (k Keeper) ApplyBillChanges(ctx sdk.Context, prevFlows, currentFlows types.UserFlows) error {
-	prevFlows.Flows = getNegFlows(prevFlows.Flows)
-	err := k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{prevFlows, currentFlows})
+func (k Keeper) ApplyBillChanges(ctx sdk.Context, prevFlows, currentFlows *types.UserFlows) error {
+	if prevFlows != nil {
+		prevFlows.Flows = getNegFlows(prevFlows.Flows)
+	}
+
+	var flowList []types.UserFlows
+	if prevFlows != nil {
+		flowList = append(flowList, *prevFlows)
+	}
+	if currentFlows != nil {
+		flowList = append(flowList, *currentFlows)
+	}
+
+	err := k.paymentKeeper.ApplyUserFlowsList(ctx, flowList)
 	if err != nil {
 		return fmt.Errorf("apply user flows list failed: %w", err)
 	}
@@ -510,14 +611,14 @@ func getNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 	return negFlows
 }
 
-func (k Keeper) GetObjectLockFee(ctx sdk.Context, priceTime int64, payloadSize uint64) (amount sdkmath.Int, err error) {
+func (k Keeper) GetObjectLockFee(ctx sdk.Context, priceTime int64, payloadSize uint64) (amount, rate sdkmath.Int, err error) {
 	price, err := k.spKeeper.GetGlobalSpStorePriceByTime(ctx, priceTime)
 	if err != nil {
-		return amount, fmt.Errorf("get store price failed: %d %w", priceTime, err)
+		return amount, rate, fmt.Errorf("get store price failed: %d %w", priceTime, err)
 	}
 	chargeSize, err := k.GetObjectChargeSize(ctx, payloadSize, priceTime)
 	if err != nil {
-		return amount, fmt.Errorf("get charge size failed: %d %w", priceTime, err)
+		return amount, rate, fmt.Errorf("get charge size failed: %d %w", priceTime, err)
 	}
 
 	primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
@@ -528,13 +629,13 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, priceTime int64, payloadSize u
 
 	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, priceTime)
 	if err != nil {
-		return amount, fmt.Errorf("get versioned reserve time error: %w", err)
+		return amount, rate, fmt.Errorf("get versioned reserve time error: %w", err)
 	}
 	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryRate.Add(secondaryRate)).TruncateInt()
 
-	rate := primaryRate.Add(secondaryRate).Add(validatorTaxRate) // should also lock for validator tax pool
+	rate = primaryRate.Add(secondaryRate).Add(validatorTaxRate) // should also lock for validator tax pool
 	amount = rate.Mul(sdkmath.NewIntFromUint64(versionedParams.ReserveTime))
-	return amount, nil
+	return amount, rate, nil
 }
 
 func (k Keeper) GetObjectChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) (size uint64, err error) {

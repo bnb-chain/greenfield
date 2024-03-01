@@ -67,6 +67,8 @@ service Msg {
 
   // Since: Manchurian upgrade
   rpc SetTag(MsgSetTag) returns (MsgSetTagResponse);
+
+  rpc SetBucketFlowRateLimit(MsgSetBucketFlowRateLimit) returns (MsgSetBucketFlowRateLimitResponse);
 }
 
 message MsgCreateBucket {
@@ -772,3 +774,24 @@ message MsgToggleSPAsDelegatedAgent {
 }
 
 message MsgToggleSPAsDelegatedAgentResponse {}
+
+message MsgSetBucketFlowRateLimit {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator defines the account address of the operator, either the object owner or the updater with granted permission.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name defines the name of the bucket
+  string bucket_name = 2;
+  // bucket_owner defines the account address of the bucket owner
+  string bucket_owner = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // payment_address defines an account address specified by bucket owner to pay the read fee.
+  string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // flow_rate_limit defines the flow rate limit of the bucket
+  string flow_rate_limit = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgSetBucketFlowRateLimitResponse {}

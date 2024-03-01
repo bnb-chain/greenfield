@@ -337,7 +337,7 @@ func (k Keeper) QueryLockFee(c context.Context, req *types.QueryLockFeeRequest) 
 		return nil, sptypes.ErrStorageProviderNotFound
 	}
 
-	amount, err := k.GetObjectLockFee(ctx, createAt, req.PayloadSize)
+	amount, _, err := k.GetObjectLockFee(ctx, createAt, req.PayloadSize)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

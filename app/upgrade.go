@@ -206,6 +206,7 @@ func (app *App) registerPawneeUpgradeHandler() {
 			app.Logger().Info("upgrade to ", plan.Name)
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgUpdateObjectContent{}), 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgCancelUpdateObjectContent{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgSetBucketFlowRateLimit{}), 1.2e3))
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 

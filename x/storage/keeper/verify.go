@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 )
@@ -14,8 +15,12 @@ func (k Keeper) VerifyPaymentAccount(ctx sdk.Context, paymentAddress string, own
 		return nil, err
 	}
 
-	if !k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAcc, ownerAcc) {
-		return nil, paymenttypes.ErrNotPaymentAccountOwner
+	// don't check if the payment account is owned by the owner account
+	if !ctx.IsUpgraded(upgradetypes.Pawnee) {
+		if !k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAcc, ownerAcc) {
+			return nil, paymenttypes.ErrNotPaymentAccountOwner
+		}
 	}
+
 	return paymentAcc, nil
 }

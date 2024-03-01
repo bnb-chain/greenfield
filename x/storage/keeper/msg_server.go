@@ -823,3 +823,27 @@ func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *
 	}
 	return nil
 }
+
+func (k msgServer) SetBucketFlowRateLimit(goCtx context.Context, msg *types.MsgSetBucketFlowRateLimit) (*types.MsgSetBucketFlowRateLimitResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
+	bucketOwnerAddr := sdk.MustAccAddressFromHex(msg.BucketOwner)
+	paymentAccountAddr := sdk.MustAccAddressFromHex(msg.PaymentAddress)
+
+	err := k.Keeper.SetBucketFlowRateLimit(ctx, operatorAddr, bucketOwnerAddr, paymentAccountAddr, msg.BucketName, msg.FlowRateLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventSetBucketFlowRateLimit{
+		Operator:       operatorAddr.String(),
+		BucketName:     msg.BucketName,
+		PaymentAddress: paymentAccountAddr.String(),
+		FlowRateLimit:  msg.FlowRateLimit,
+	}); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgSetBucketFlowRateLimitResponse{}, nil
+}
