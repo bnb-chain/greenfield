@@ -172,7 +172,7 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Object() {
 	fmt.Printf("queryHeadBucketResponse.BucketInfo.PaymentAccount: %s\n", queryHeadBucketResponse.BucketInfo.PaymentAddress)
 
 	// SetBucketRateLimit
-	msgSetBucketRateLimit := storagetypes.NewMsgSetBucketFlowRateLimit(paymentAcc.GetAddr(), s.User.GetAddr(), paymentAcc.GetAddr(), bucketName, sdkmath.NewInt(100000000000))
+	msgSetBucketRateLimit := storagetypes.NewMsgSetBucketFlowRateLimit(paymentAcc.GetAddr(), s.User.GetAddr(), paymentAcc.GetAddr(), bucketName, sdkmath.NewInt(100000000000000))
 	s.SendTxBlock(paymentAcc, msgSetBucketRateLimit)
 
 	// CreateObject
@@ -204,7 +204,7 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Object() {
 	s.SendTxBlockWithExpectErrorString(msgCreateObject, user, "greater than the flow rate limit")
 
 	// SetBucketRateLimit
-	msgSetBucketRateLimit = storagetypes.NewMsgSetBucketFlowRateLimit(paymentAcc.GetAddr(), s.User.GetAddr(), paymentAcc.GetAddr(), bucketName, sdkmath.NewInt(100000000000))
+	msgSetBucketRateLimit = storagetypes.NewMsgSetBucketFlowRateLimit(paymentAcc.GetAddr(), s.User.GetAddr(), paymentAcc.GetAddr(), bucketName, sdkmath.NewInt(100000000000000))
 	s.SendTxBlock(paymentAcc, msgSetBucketRateLimit)
 
 	objectName = storageutils.GenRandomObjectName()
