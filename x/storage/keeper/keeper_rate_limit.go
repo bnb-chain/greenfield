@@ -128,7 +128,7 @@ func (k Keeper) setNonZeroBucketFlowRateLimit(ctx sdk.Context, bucketInfo *types
 		}
 		totalOutFlowRate := getTotalOutFlowRate(bill.Flows)
 		if totalOutFlowRate.GT(rateLimit) {
-			return fmt.Errorf("the total out flow rate of the bucket is greater than the new rate limit")
+			return fmt.Errorf("the total out flow rate(%s) of the bucket is greater than the new rate limit(%s)", totalOutFlowRate.String(), rateLimit.String())
 		}
 
 		return k.chargeBucketReadStoreFee(ctx, bucketInfo, internalBucketInfo)
@@ -141,7 +141,7 @@ func (k Keeper) setNonZeroBucketFlowRateLimit(ctx sdk.Context, bucketInfo *types
 	}
 	totalOutFlowRate := getTotalOutFlowRate(bill.Flows)
 	if totalOutFlowRate.GT(rateLimit) {
-		return fmt.Errorf("the total out flow rate of the bucket is greater than the new rate limit")
+		return fmt.Errorf("the total out flow rate(%s) of the bucket is greater than the new rate limit(%s)", totalOutFlowRate.String(), rateLimit.String())
 	}
 
 	return nil

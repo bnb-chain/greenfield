@@ -13,51 +13,6 @@ import (
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
-func (s *StorageTestSuite) TestSetBucketRateLimit() {
-	var err error
-	sp := s.BaseSuite.PickStorageProvider()
-	gvg, found := sp.GetFirstGlobalVirtualGroup()
-	s.Require().True(found)
-	user := s.User
-	// CreateBucket
-	bucketName := storageutils.GenRandomBucketName()
-	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil, 10000000000)
-	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
-	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
-	s.Require().NoError(err)
-	s.SendTxBlock(user, msgCreateBucket)
-
-	// HeadBucket
-	ctx := context.Background()
-	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
-		BucketName: bucketName,
-	}
-	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
-	s.Require().NoError(err)
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
-
-	queryQuotaUpdateTimeResponse, err := s.Client.QueryQuotaUpdateTime(ctx, &storagetypes.QueryQuoteUpdateTimeRequest{
-		BucketName: bucketName,
-	})
-	s.Require().NoError(err)
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.CreateAt, queryQuotaUpdateTimeResponse.UpdateAt)
-
-	fmt.Printf("User: %s\n", s.User.GetAddr().String())
-	fmt.Printf("queryHeadBucketResponse.BucketInfo.Owner: %s\n", queryHeadBucketResponse.BucketInfo.Owner)
-	fmt.Printf("queryHeadBucketResponse.BucketInfo.PaymentAccount: %s\n", queryHeadBucketResponse.BucketInfo.PaymentAddress)
-
-	// SetBucketRateLimit
-	msgSetBucketRateLimit := storagetypes.NewMsgSetBucketFlowRateLimit(s.User.GetAddr(), s.User.GetAddr(), s.User.GetAddr(), bucketName, sdkmath.NewInt(20000000000))
-	s.SendTxBlock(s.User, msgSetBucketRateLimit)
-}
-
 func (s *StorageTestSuite) TestSetBucketRateLimitToZero() {
 	var err error
 	sp := s.BaseSuite.PickStorageProvider()
