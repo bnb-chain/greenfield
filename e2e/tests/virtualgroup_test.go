@@ -82,6 +82,26 @@ func (s *VirtualGroupTestSuite) queryGlobalVirtualGroupsByFamily(familyID uint32
 	return resp.GlobalVirtualGroups
 }
 
+func (s *VirtualGroupTestSuite) querySpAvailableGlobalVirtualGroupFamilies(spId uint32) []uint32 {
+	resp, err := s.Client.QuerySpAvailableGlobalVirtualGroupFamilies(
+		context.Background(),
+		&virtualgroupmoduletypes.QuerySPAvailableGlobalVirtualGroupFamiliesRequest{
+			SpId: spId,
+		})
+	s.Require().NoError(err)
+	return resp.GlobalVirtualGroupFamilyIds
+}
+
+func (s *VirtualGroupTestSuite) querySpOptimalGlobalVirtualGroupFamily(spId uint32) uint32 {
+	resp, err := s.Client.QuerySpOptimalGlobalVirtualGroupFamily(
+		context.Background(),
+		&virtualgroupmoduletypes.QuerySpOptimalGlobalVirtualGroupFamilyRequest{
+			SpId: spId,
+		})
+	s.Require().NoError(err)
+	return resp.GlobalVirtualGroupFamilyId
+}
+
 func (s *VirtualGroupTestSuite) queryAvailableGlobalVirtualGroupFamilies(familyIds []uint32) []uint32 {
 	resp, err := s.Client.AvailableGlobalVirtualGroupFamilies(
 		context.Background(),
@@ -111,6 +131,11 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 
 	availableGvgFamilyIds := s.queryAvailableGlobalVirtualGroupFamilies([]uint32{gvg.FamilyId})
 	s.Require().Equal(availableGvgFamilyIds[0], gvg.FamilyId)
+	spAvailableGvgFamilyIds := s.querySpAvailableGlobalVirtualGroupFamilies(primarySP.Info.Id)
+	s.Require().Equal(spAvailableGvgFamilyIds[0], gvg.FamilyId)
+
+	spOptimalGvgFamilyId := s.querySpOptimalGlobalVirtualGroupFamily(primarySP.Info.Id)
+	s.Require().Equal(spOptimalGvgFamilyId, gvg.FamilyId)
 
 	srcGVGs := s.queryGlobalVirtualGroupsByFamily(gvg.FamilyId)
 
