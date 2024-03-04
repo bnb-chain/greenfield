@@ -54,7 +54,7 @@ func (s *StorageTestSuite) TestSetBucketRateLimit() {
 	fmt.Printf("queryHeadBucketResponse.BucketInfo.PaymentAccount: %s\n", queryHeadBucketResponse.BucketInfo.PaymentAddress)
 
 	// SetBucketRateLimit
-	msgSetBucketRateLimit := storagetypes.NewMsgSetBucketFlowRateLimit(s.User.GetAddr(), s.User.GetAddr(), s.User.GetAddr(), bucketName, sdkmath.NewInt(1))
+	msgSetBucketRateLimit := storagetypes.NewMsgSetBucketFlowRateLimit(s.User.GetAddr(), s.User.GetAddr(), s.User.GetAddr(), bucketName, sdkmath.NewInt(20000000000))
 	s.SendTxBlock(s.User, msgSetBucketRateLimit)
 }
 
