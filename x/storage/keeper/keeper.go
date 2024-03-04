@@ -572,26 +572,11 @@ func (k Keeper) CreateObject(
 	creator := operator
 	if opts.Delegated {
 		creator = opts.Creator
+		if bucketInfo.SpAsDelegatedAgentDisabled {
+			return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrap("the SP is not allowed to create object for delegator, disabled by the bucket owner previously")
+		}
 		if operator.String() != sp.OperatorAddress {
-			// 3rd party must provide checksums
-			if opts.Checksums == nil {
-				return sdkmath.ZeroUint(), types.ErrObjectChecksumsMissing
-			} else {
-				if len(opts.Checksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix())) {
-					return sdkmath.ZeroUint(), gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
-						1+k.RedundantParityChunkNum(ctx)+k.RedundantDataChunkNum(ctx),
-						len(opts.Checksums))
-				}
-			}
-		}
-		allowed := false
-		for _, delegatedAgent := range bucketInfo.DelegatedAgentAddresses {
-			if operator.String() == delegatedAgent {
-				allowed = true
-			}
-		}
-		if !allowed {
-			return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrap("the delegatee address is not allowed to create object")
+			return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrap("only the primary SP is allowed to create object for delegator")
 		}
 	}
 
@@ -2494,26 +2479,11 @@ func (k Keeper) UpdateObjectContent(
 		return errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
 	}
 	if opts.Delegated {
+		if bucketInfo.SpAsDelegatedAgentDisabled {
+			return types.ErrAccessDenied.Wrap("the SP is not allowed to create object for delegator, disabled by the bucket owner previously")
+		}
 		if operator.String() != sp.OperatorAddress {
-			// 3rd party must provide checksums
-			if opts.Checksums == nil {
-				return types.ErrObjectChecksumsMissing
-			} else {
-				if len(opts.Checksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix())) {
-					return gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
-						1+k.RedundantParityChunkNum(ctx)+k.RedundantDataChunkNum(ctx),
-						len(opts.Checksums))
-				}
-			}
-		}
-		allowed := false
-		for _, delegatedAgent := range bucketInfo.DelegatedAgentAddresses {
-			if operator.String() == delegatedAgent {
-				allowed = true
-			}
-		}
-		if !allowed {
-			return types.ErrAccessDenied.Wrap("the delegatee's address is not allowed to create object")
+			return types.ErrAccessDenied.Wrap("only the primary SP is allowed to create object for delegator")
 		}
 	}
 	nextVersion := objectInfo.Version + 1

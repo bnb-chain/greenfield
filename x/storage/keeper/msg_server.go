@@ -102,31 +102,23 @@ func (k msgServer) DiscontinueBucket(goCtx context.Context, msg *storagetypes.Ms
 	return &types.MsgDiscontinueBucketResponse{}, nil
 }
 
-func (k msgServer) UpdateDelegatedAgent(goCtx context.Context, msg *storagetypes.MsgUpdateDelegatedAgent) (*storagetypes.MsgUpdateDelegatedAgentResponse, error) {
+func (k msgServer) ToggleSPAsDelegatedAgent(goCtx context.Context, msg *storagetypes.MsgToggleSPAsDelegatedAgent) (*storagetypes.MsgToggleSPAsDelegatedAgentResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	bucketInfo, found := k.GetBucketInfo(ctx, msg.BucketName)
 	if !found {
 		return nil, types.ErrNoSuchBucket
 	}
 	if msg.Operator != bucketInfo.Owner {
-		return nil, types.ErrAccessDenied.Wrapf("Only the bucket owner(%s) can update delegated agents", bucketInfo.Owner)
+		return nil, types.ErrAccessDenied.Wrapf("Only the bucket owner(%s) can toggle", bucketInfo.Owner)
 	}
-
-	agents := bucketInfo.DelegatedAgentAddresses
-	for _, agent := range msg.AgentsToAdd {
-		agents = append(agents, agent)
+	if bucketInfo.SpAsDelegatedAgentDisabled {
+		bucketInfo.SpAsDelegatedAgentDisabled = false
+	} else {
+		bucketInfo.SpAsDelegatedAgentDisabled = true
 	}
-
-	for _, agentToRemove := range msg.AgentsToRemove {
-		for i, agent := range agents {
-			if agentToRemove == agent {
-				agents = append(agents[:i], agents[i+1:]...)
-			}
-		}
-	}
-	bucketInfo.DelegatedAgentAddresses = agents
 	k.SetBucketInfo(ctx, bucketInfo)
-	return &types.MsgUpdateDelegatedAgentResponse{}, nil
+	return &types.MsgToggleSPAsDelegatedAgentResponse{}, nil
+
 }
 
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {

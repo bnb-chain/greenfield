@@ -23,7 +23,7 @@ service Msg {
   rpc UpdateBucketInfo(MsgUpdateBucketInfo) returns (MsgUpdateBucketInfoResponse);
   rpc MirrorBucket(MsgMirrorBucket) returns (MsgMirrorBucketResponse);
   rpc DiscontinueBucket(MsgDiscontinueBucket) returns (MsgDiscontinueBucketResponse);
-  rpc UpdateDelegatedAgent(MsgUpdateDelegatedAgent) returns (MsgUpdateDelegatedAgentResponse);
+  rpc ToggleSPAsDelegatedAgent(MsgToggleSPAsDelegatedAgent) returns (MsgToggleSPAsDelegatedAgentResponse);
 
   // basic operation of object
   rpc CreateObject(MsgCreateObject) returns (MsgCreateObjectResponse);
@@ -711,7 +711,6 @@ message MsgCancelUpdateObjectContent {
 
 message MsgCancelUpdateObjectContentResponse {}
 
-
 message MsgDelegateCreateObject {
   option (cosmos.msg.v1.signer) = "operator";
   // operator defines the account address of the operator, it is the delegated agent that allows to creat object under bucket.
@@ -748,7 +747,7 @@ message MsgDelegateUpdateObjectContent {
   // operator defines the account address of the operator, it is the delegated agent that allows to creat object under bucket.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // updater defines the account address of the object updater.
-  string updater  = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string updater = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name defines the name of the bucket where the object is stored.
   string bucket_name = 3;
   // object_name defines the name of object
@@ -763,17 +762,13 @@ message MsgDelegateUpdateObjectContent {
 
 message MsgDelegateUpdateObjectContentResponse {}
 
-message MsgUpdateDelegatedAgent {
+message MsgToggleSPAsDelegatedAgent {
   option (cosmos.msg.v1.signer) = "operator";
 
-  // operator defines the account address of the operator, only the bucket owner can update the delegated agent.
+  // operator defines the account address of the operator, only the bucket owner can send the tx.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name defines the name of the bucket.
   string bucket_name = 2;
-  // agents_to_add defines the delegated agent addresses to be added
-  repeated string agents_to_add = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // agents_to_remove defines the delegated agent addresses to be removed
-  repeated string agents_to_remove = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-message MsgUpdateDelegatedAgentResponse {}
+message MsgToggleSPAsDelegatedAgentResponse {}

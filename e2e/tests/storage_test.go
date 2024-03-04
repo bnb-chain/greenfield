@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"math"
 	"reflect"
@@ -2410,7 +2409,7 @@ func (s *StorageTestSuite) TestDeleteCreateObject_InCreatedStatus() {
 	s.Require().EqualError(err, "rpc error: code = Unknown desc = No such object: unknown request")
 }
 
-func (s *StorageTestSuite) TestUpdateBucketDelegatedAgents() {
+func (s *StorageTestSuite) TestToggleBucketSpAsDelegatedAgents() {
 	var err error
 	// CreateBucket
 	sp := s.BaseSuite.PickStorageProvider()
@@ -2432,49 +2431,17 @@ func (s *StorageTestSuite) TestUpdateBucketDelegatedAgents() {
 	ctx := context.Background()
 	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
 	s.Require().NoError(err)
-	s.Require().Equal(0, len(queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses))
+	s.Require().Equal(false, queryHeadBucketResponse.BucketInfo.SpAsDelegatedAgentDisabled)
 
-	var agentToAdd []sdk.AccAddress
-	agentToAdd = append(agentToAdd, sp.OperatorKey.GetAddr())
-	agentAccount := sample.RandAccAddress()
-	agentToAdd = append(agentToAdd, agentAccount)
-
-	msgUpdateDelegatedAgent := storagetypes.NewMsgUpdateDelegatedAgent(
+	MsgToggleSPAsDelegatedAgent := storagetypes.NewMsgToggleSPAsDelegatedAgent(
 		user.GetAddr(),
-		bucketName,
-		agentToAdd,
-		nil)
-	s.SendTxBlock(user, msgUpdateDelegatedAgent)
+		bucketName)
+	s.SendTxBlock(user, MsgToggleSPAsDelegatedAgent)
 
 	// HeadBucket
 	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
 	s.Require().NoError(err)
-	s.Require().Equal(2, len(queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses))
-
-	var agentToRemove []sdk.AccAddress
-	agentToRemove = append(agentToRemove, sp.OperatorKey.GetAddr())
-	msgUpdateDelegatedAgent = storagetypes.NewMsgUpdateDelegatedAgent(
-		user.GetAddr(),
-		bucketName,
-		nil,
-		agentToRemove)
-	s.SendTxBlock(user, msgUpdateDelegatedAgent)
-
-	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
-	s.Require().NoError(err)
-	s.Require().Equal(1, len(queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses))
-
-	agentToRemove = []sdk.AccAddress{agentAccount}
-	msgUpdateDelegatedAgent = storagetypes.NewMsgUpdateDelegatedAgent(
-		user.GetAddr(),
-		bucketName,
-		nil,
-		agentToRemove)
-	s.SendTxBlock(user, msgUpdateDelegatedAgent)
-
-	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
-	s.Require().NoError(err)
-	s.Require().Equal(0, len(queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses))
+	s.Require().Equal(true, queryHeadBucketResponse.BucketInfo.SpAsDelegatedAgentDisabled)
 }
 
 func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
@@ -2499,14 +2466,7 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 
-	var agentToAdd []sdk.AccAddress
-	agentToAdd = append(agentToAdd, sp.OperatorKey.GetAddr())
-	msgUpdateDelegatedAgent := storagetypes.NewMsgUpdateDelegatedAgent(
-		bucketOwner.GetAddr(),
-		bucketName,
-		agentToAdd,
-		nil)
-	s.SendTxBlock(bucketOwner, msgCreateBucket, msgUpdateDelegatedAgent)
+	s.SendTxBlock(bucketOwner, msgCreateBucket)
 
 	// HeadBucket
 	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
@@ -2514,7 +2474,7 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 	}
 	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
 	s.Require().NoError(err)
-	s.Require().Equal(sp.OperatorKey.GetAddr().String(), queryHeadBucketResponse.BucketInfo.DelegatedAgentAddresses[0])
+	s.Require().Equal(false, queryHeadBucketResponse.BucketInfo.SpAsDelegatedAgentDisabled)
 
 	// DelegateCreate for user2, who does not have permission
 	var buffer bytes.Buffer

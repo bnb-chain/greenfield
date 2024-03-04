@@ -21,11 +21,11 @@ import (
 
 const (
 	// For bucket
-	TypeMsgCreateBucket          = "create_bucket"
-	TypeMsgDeleteBucket          = "delete_bucket"
-	TypeMsgUpdateBucketInfo      = "update_bucket_info"
-	TypeMsgMirrorBucket          = "mirror_bucket"
-	TypeMsgUpdateDelegatedAgents = "update_delegated_agents"
+	TypeMsgCreateBucket             = "create_bucket"
+	TypeMsgDeleteBucket             = "delete_bucket"
+	TypeMsgUpdateBucketInfo         = "update_bucket_info"
+	TypeMsgMirrorBucket             = "mirror_bucket"
+	TypeMsgToggleSPAsDelegatedAgent = "toggle_sp_as_delegated_agent"
 
 	// For object
 	TypeMsgCopyObject   = "copy_object"
@@ -301,38 +301,27 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateDelegatedAgent(
-	operator sdk.AccAddress, bucketName string, agentsToAdd,
-	agentsToRemove []sdk.AccAddress,
-) *MsgUpdateDelegatedAgent {
-	var agentsAddrToAdd []string
-	for _, agent := range agentsToAdd {
-		agentsAddrToAdd = append(agentsAddrToAdd, agent.String())
-	}
-	var agentsAddrToDelete []string
-	for _, agent := range agentsToRemove {
-		agentsAddrToDelete = append(agentsAddrToDelete, agent.String())
-	}
-	return &MsgUpdateDelegatedAgent{
-		Operator:       operator.String(),
-		BucketName:     bucketName,
-		AgentsToAdd:    agentsAddrToAdd,
-		AgentsToRemove: agentsAddrToDelete,
+func NewMsgToggleSPAsDelegatedAgent(
+	operator sdk.AccAddress, bucketName string,
+) *MsgToggleSPAsDelegatedAgent {
+	return &MsgToggleSPAsDelegatedAgent{
+		Operator:   operator.String(),
+		BucketName: bucketName,
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg *MsgUpdateDelegatedAgent) Route() string {
+func (msg *MsgToggleSPAsDelegatedAgent) Route() string {
 	return RouterKey
 }
 
 // Type implements the sdk.Msg interface.
-func (msg *MsgUpdateDelegatedAgent) Type() string {
-	return TypeMsgUpdateDelegatedAgents
+func (msg *MsgToggleSPAsDelegatedAgent) Type() string {
+	return TypeMsgToggleSPAsDelegatedAgent
 }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg *MsgUpdateDelegatedAgent) GetSigners() []sdk.AccAddress {
+func (msg *MsgToggleSPAsDelegatedAgent) GetSigners() []sdk.AccAddress {
 	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
@@ -341,13 +330,13 @@ func (msg *MsgUpdateDelegatedAgent) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes returns the message bytes to sign over.
-func (msg *MsgUpdateDelegatedAgent) GetSignBytes() []byte {
+func (msg *MsgToggleSPAsDelegatedAgent) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg *MsgUpdateDelegatedAgent) ValidateBasic() error {
+func (msg *MsgToggleSPAsDelegatedAgent) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
@@ -356,24 +345,6 @@ func (msg *MsgUpdateDelegatedAgent) ValidateBasic() error {
 	err = s3util.CheckValidBucketName(msg.BucketName)
 	if err != nil {
 		return err
-	}
-	if len(msg.AgentsToAdd) == 0 && len(msg.AgentsToRemove) == 0 {
-		return gnfderrors.ErrInvalidParameter.Wrapf("Need to provide agents to be added/removed")
-	}
-	if len(msg.AgentsToAdd)+len(msg.AgentsToRemove) > MaxBucketDelegatedAgentLimitOnce {
-		return gnfderrors.ErrInvalidParameter.Wrapf("Once update bucket delegated agents limit exceeded")
-	}
-	for _, agent := range msg.AgentsToAdd {
-		_, err = sdk.AccAddressFromHexUnsafe(agent)
-		if err != nil {
-			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address (%s)", err)
-		}
-	}
-	for _, agent := range msg.AgentsToRemove {
-		_, err = sdk.AccAddressFromHexUnsafe(agent)
-		if err != nil {
-			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid address (%s)", err)
-		}
 	}
 	return nil
 }
