@@ -23,7 +23,7 @@ func (s *StorageTestSuite) TestSetBucketRateLimit() {
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil, 10000000)
+		nil, math.MaxUint, nil, 10000000000)
 	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)

@@ -203,7 +203,7 @@ func (k Keeper) isBucketFlowRateUnderLimit(ctx sdk.Context, paymentAccount, buck
 	if totalFlowRate.LTE(rateLimit.FlowRateLimit) {
 		return nil
 	}
-	return fmt.Errorf("the total flow rate of the bucket %s is greater than the flow rate limit", bucketName)
+	return fmt.Errorf("the total flow rate of the bucket(%s) %s is greater than the flow rate limit(%s)", totalFlowRate.String(), bucketName, rateLimit.String())
 }
 
 func (k Keeper) isBucketFlowRateUnderLimitWithRate(ctx sdk.Context, paymentAccount, bucketOwner sdk.AccAddress, bucketName string, rate sdkmath.Int) error {
