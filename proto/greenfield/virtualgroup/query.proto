@@ -7,6 +7,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "greenfield/virtualgroup/params.proto";
 import "greenfield/virtualgroup/types.proto";
+import "greenfield/virtualgroup/common.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
 
@@ -140,6 +141,7 @@ message QuerySPAvailableGlobalVirtualGroupFamiliesResponse {
 
 message QuerySpOptimalGlobalVirtualGroupFamilyRequest {
   uint32 sp_id = 1;
+  PickVGFStrategy pick_vgf_strategy = 2;
 }
 
 message QuerySpOptimalGlobalVirtualGroupFamilyResponse {

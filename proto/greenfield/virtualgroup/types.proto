@@ -74,8 +74,8 @@ message GVGStatisticsWithinSP {
 }
 
 message GVGFamilyStatisticsWithinSP {
-  // storage_provider_id defines the id of the sp which the statistics associated to
-  uint32 storage_provider_id = 1;
+  // sp_id defines the id of the sp which the statistics associated to
+  uint32 sp_id = 1;
   // global_virtual_group_family_ids is a list of identifiers of the global virtual group family associated with the SP.
   repeated uint32 global_virtual_group_family_ids = 2;
 }

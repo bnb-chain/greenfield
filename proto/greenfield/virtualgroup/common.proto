@@ -1,0 +1,14 @@
+syntax = "proto3";
+package greenfield.virtualgroup;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
+
+
+// PickVGFStrategy represents the method for selecting the best global virtual group family based on the strategy
+enum PickVGFStrategy {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  StrategyMaximizeFreeStoreSize = 0;
+}

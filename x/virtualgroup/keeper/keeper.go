@@ -364,7 +364,7 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 	}
 	k.SetGVGStatisticsWithSP(ctx, srcStat)
 	k.SetGVGStatisticsWithSP(ctx, dstStat)
-	k.DeleteGVGFamilyWithinSP(ctx, srcVGFStat.StorageProviderId, family.Id)
+	k.DeleteGVGFamilyWithinSP(ctx, srcVGFStat.SpId, family.Id)
 	dstVGFStat.GlobalVirtualGroupFamilyIds = append(dstVGFStat.GlobalVirtualGroupFamilyIds, family.Id)
 	k.SetGVGFamilyStatisticsWithinSP(ctx, dstVGFStat)
 
@@ -494,7 +494,7 @@ func (k Keeper) GetOrCreateGVGFamilyStatisticsWithinSP(ctx sdk.Context, spID uin
 	store := ctx.KVStore(k.storeKey)
 
 	ret := &types.GVGFamilyStatisticsWithinSP{
-		StorageProviderId: spID,
+		SpId: spID,
 	}
 	bz := store.Get(types.GetGVGFamilyStatisticsWithinSPKey(spID))
 	if bz == nil {
@@ -507,16 +507,12 @@ func (k Keeper) GetOrCreateGVGFamilyStatisticsWithinSP(ctx sdk.Context, spID uin
 
 func (k Keeper) DeleteGVGFamilyWithinSP(ctx sdk.Context, spID uint32, familyID uint32) {
 	gvgFamilyStatistics := k.MustGetGVGFamilyStatisticsWithinSP(ctx, spID)
-	index := -1
 	for i, id := range gvgFamilyStatistics.GlobalVirtualGroupFamilyIds {
 		if id == familyID {
-			index = i
+			gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds[:i], gvgFamilyStatistics.GlobalVirtualGroupFamilyIds[i+1:]...)
+			k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
 			break
 		}
-	}
-	if index != -1 {
-		gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds[:index], gvgFamilyStatistics.GlobalVirtualGroupFamilyIds[index+1:]...)
-		k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
 	}
 }
 
@@ -551,7 +547,7 @@ func (k Keeper) SetGVGFamilyStatisticsWithinSP(ctx sdk.Context, vgfStatisticsWit
 
 	bz := k.cdc.MustMarshal(vgfStatisticsWithinSP)
 
-	store.Set(types.GetGVGFamilyStatisticsWithinSPKey(vgfStatisticsWithinSP.StorageProviderId), bz)
+	store.Set(types.GetGVGFamilyStatisticsWithinSPKey(vgfStatisticsWithinSP.SpId), bz)
 }
 
 func (k Keeper) BatchSetGVGFamilyStatisticsWithinSP(ctx sdk.Context, vgfStatisticsWithinSP []*types.GVGFamilyStatisticsWithinSP) {

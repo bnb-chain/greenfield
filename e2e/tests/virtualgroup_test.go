@@ -92,11 +92,12 @@ func (s *VirtualGroupTestSuite) querySpAvailableGlobalVirtualGroupFamilies(spId 
 	return resp.GlobalVirtualGroupFamilyIds
 }
 
-func (s *VirtualGroupTestSuite) querySpOptimalGlobalVirtualGroupFamily(spId uint32) uint32 {
+func (s *VirtualGroupTestSuite) querySpOptimalGlobalVirtualGroupFamily(spId uint32, strategy virtualgroupmoduletypes.PickVGFStrategy) uint32 {
 	resp, err := s.Client.QuerySpOptimalGlobalVirtualGroupFamily(
 		context.Background(),
 		&virtualgroupmoduletypes.QuerySpOptimalGlobalVirtualGroupFamilyRequest{
-			SpId: spId,
+			SpId:            spId,
+			PickVgfStrategy: strategy,
 		})
 	s.Require().NoError(err)
 	return resp.GlobalVirtualGroupFamilyId
@@ -134,7 +135,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	spAvailableGvgFamilyIds := s.querySpAvailableGlobalVirtualGroupFamilies(primarySP.Info.Id)
 	s.Require().Equal(spAvailableGvgFamilyIds[0], gvg.FamilyId)
 
-	spOptimalGvgFamilyId := s.querySpOptimalGlobalVirtualGroupFamily(primarySP.Info.Id)
+	spOptimalGvgFamilyId := s.querySpOptimalGlobalVirtualGroupFamily(primarySP.Info.Id, virtualgroupmoduletypes.StrategyMaximizeFreeStoreSize)
 	s.Require().Equal(spOptimalGvgFamilyId, gvg.FamilyId)
 
 	srcGVGs := s.queryGlobalVirtualGroupsByFamily(gvg.FamilyId)

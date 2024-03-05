@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"cosmossdk.io/math"
+	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/mock/gomock"
 
@@ -10,7 +11,6 @@ import (
 	types4 "github.com/bnb-chain/greenfield/x/payment/types"
 	types3 "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
-	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (s *TestSuite) TestCreateObject() {
@@ -105,24 +105,12 @@ func (s *TestSuite) TestCreateObject() {
 		BucketName: bucketInfo.BucketName,
 		ObjectName: objectName,
 	})
-	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, types.CreateObjectOptions{
-			Visibility:     0,
-			ContentType:    "",
-			SourceType:     0,
-			RedundancyType: 0,
-			Checksums:      nil,
-		})
-	s.Require().ErrorContains(err, "Object already exists")
-
-	// case 6: valid case
 	s.virtualGroupKeeper.EXPECT().GetGVGFamily(gomock.Any(), gomock.Any()).Return(&types2.GlobalVirtualGroupFamily{
 		Id:                    0,
 		PrimarySpId:           0,
 		GlobalVirtualGroupIds: nil,
 		VirtualPaymentAddress: "",
 	}, true).AnyTimes()
-
 	spAddress, _, _ := sample.RandSignBytes()
 	s.spKeeper.EXPECT().MustGetStorageProvider(gomock.Any(), gomock.Any()).Return(&types3.StorageProvider{
 		Id:              0,
@@ -138,6 +126,17 @@ func (s *TestSuite) TestCreateObject() {
 		BlsKey:          nil,
 	}).AnyTimes()
 	s.ctx = s.ctx.WithBlockHeight(100)
+	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
+		objectName, 100, types.CreateObjectOptions{
+			Visibility:     0,
+			ContentType:    "",
+			SourceType:     0,
+			RedundancyType: 0,
+			Checksums:      nil,
+		})
+	s.Require().ErrorContains(err, "Object already exists")
+
+	// case 6: valid case
 	s.storageKeeper.DeleteObjectInfo(s.ctx, &types.ObjectInfo{
 		Id:         sdk.NewUint(1),
 		BucketName: bucketInfo.BucketName,
