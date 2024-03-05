@@ -62,11 +62,10 @@ const (
 
 	TypeMsgSetTag = "set_tag"
 
-	MaxGroupMemberLimitOnce          = 20
-	MaxTagCount                      = 4
-	MaxTagKeyLength                  = 32
-	MaxTagValueLength                = 64
-	MaxBucketDelegatedAgentLimitOnce = 5
+	MaxGroupMemberLimitOnce = 20
+	MaxTagCount             = 4
+	MaxTagKeyLength         = 32
+	MaxTagValueLength       = 64
 
 	// For discontinue
 	MaxDiscontinueReasonLen = 128

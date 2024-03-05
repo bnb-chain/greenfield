@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"math"
 	"reflect"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
 
 	sdkmath "cosmossdk.io/math"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
