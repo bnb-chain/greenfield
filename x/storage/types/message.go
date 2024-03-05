@@ -1661,6 +1661,11 @@ func (msg *MsgUpdateObjectContent) ValidateBasic() error {
 		return err
 	}
 
+	err = s3util.CheckValidContentType(msg.ContentType)
+	if err != nil {
+		return err
+	}
+
 	err = s3util.CheckValidExpectChecksums(msg.ExpectChecksums)
 	if err != nil {
 		return err

@@ -904,10 +904,20 @@ func (k Keeper) CancelCreateObject(
 	if objectInfo.Creator != "" {
 		creator = sdk.MustAccAddressFromHex(objectInfo.Creator)
 	}
-	if !operator.Equals(owner) && !operator.Equals(creator) {
-		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/creator to do cancel create object")
-	}
 
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		// check permission, does not include checking the creator
+		effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_DELETE_OBJECT)
+		if effect != permtypes.EFFECT_ALLOW && !operator.Equals(creator) {
+			return types.ErrAccessDenied.Wrapf(
+				"The operator(%s) has no DeleteObject permission of the bucket(%s), object(%s)",
+				operator.String(), bucketName, objectName)
+		}
+	} else {
+		if !operator.Equals(owner) && !operator.Equals(creator) {
+			return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/creator to do cancel create object")
+		}
+	}
 	err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
