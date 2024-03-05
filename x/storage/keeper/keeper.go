@@ -577,12 +577,6 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), err
 	}
 
-	// check object
-	//_, found = k.GetObjectInfo(ctx, bucketName, objectName)
-	//if found {
-	//	return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
-	//}
-
 	// primary sp
 	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 
