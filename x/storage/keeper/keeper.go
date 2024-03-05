@@ -6,14 +6,6 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/gogoproto/proto"
-
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	types2 "github.com/bnb-chain/greenfield/types"
@@ -26,6 +18,13 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -115,6 +114,25 @@ func (k Keeper) CreateBucket(
 	// a sp is not in service, neither in maintenance
 	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, ownerAcc) {
 		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
+	}
+
+	// check primary sp approval
+	// TODO: Select the correct hard fork version to update vgf
+	if ctx.IsUpgraded(upgradetypes.Pawnee) && opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
+		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+	}
+
+	// TODO: Select the correct hard fork version to update vgf
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, ownerAcc)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		err = k.VerifySP(ctx, sp, ownerAcc)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	gvgFamily, err := k.virtualGroupKeeper.GetAndCheckGVGFamilyAvailableForNewBucket(ctx, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
@@ -583,9 +601,22 @@ func (k Keeper) CreateObject(
 		creator = operator
 	}
 
-	err = k.VerifySP(ctx, sp, operator)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
+	// TODO: Select the correct hard fork version to update vgf
+	if ctx.IsUpgraded(upgradetypes.Pawnee) && opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
+		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+	}
+
+	// TODO: Select the correct hard fork version to update vgf
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		err = k.VerifySP(ctx, sp, operator)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	objectKey := types.GetObjectKey(bucketName, objectName)

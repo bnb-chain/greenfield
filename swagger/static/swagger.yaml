@@ -6486,6 +6486,13 @@ paths:
           required: false
           type: integer
           format: int64
+        - name: pick_vgf_strategy
+          in: query
+          required: false
+          type: string
+          enum:
+            - StrategyMaximizeFreeStoreSize
+          default: StrategyMaximizeFreeStoreSize
       tags:
         - Query
   /greenfield/virtualgroup/swap_in_info:
@@ -37230,6 +37237,14 @@ definitions:
         type: string
         description: the the number of sp allowed to exit concurrently.
     description: Params defines the parameters for the module.
+  greenfield.virtualgroup.PickVGFStrategy:
+    type: string
+    enum:
+      - StrategyMaximizeFreeStoreSize
+    default: StrategyMaximizeFreeStoreSize
+    title: >-
+      PickVGFStrategy represents the method for selecting the best global
+      virtual group family based on the strategy
   greenfield.virtualgroup.QueryGlobalVirtualGroupByFamilyIDResponse:
     type: object
     properties:

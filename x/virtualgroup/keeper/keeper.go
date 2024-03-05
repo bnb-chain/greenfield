@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -167,7 +168,6 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 		k.paymentKeeper.IsEmptyNetFlow(ctx, sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)) &&
 		!ctx.IsUpgraded(upgradetypes.Manchurian) {
 		store.Delete(types.GetGVGFamilyKey(gvg.FamilyId))
-		k.DeleteGVGFamilyWithinSP(ctx, primarySp.Id, gvg.FamilyId)
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroupFamily{
 			Id:          gvgFamily.Id,
 			PrimarySpId: gvgFamily.PrimarySpId,
@@ -553,6 +553,21 @@ func (k Keeper) SetGVGFamilyStatisticsWithinSP(ctx sdk.Context, vgfStatisticsWit
 func (k Keeper) BatchSetGVGFamilyStatisticsWithinSP(ctx sdk.Context, vgfStatisticsWithinSP []*types.GVGFamilyStatisticsWithinSP) {
 	for _, g := range vgfStatisticsWithinSP {
 		k.SetGVGFamilyStatisticsWithinSP(ctx, g)
+	}
+}
+
+func (k Keeper) MigrateGlobalVirtualGroupFamiliesForSP(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	gvgFamilyStore := prefix.NewStore(store, types.GVGFamilyKey)
+
+	iterator := gvgFamilyStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var gvgFamily types.GlobalVirtualGroupFamily
+		k.cdc.MustUnmarshal(iterator.Value(), &gvgFamily)
+		gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, gvgFamily.PrimarySpId)
+		gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamily.PrimarySpId)
+		k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
 	}
 }
 

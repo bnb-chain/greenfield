@@ -5,9 +5,9 @@ package greenfield.virtualgroup;
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+import "greenfield/virtualgroup/common.proto";
 import "greenfield/virtualgroup/params.proto";
 import "greenfield/virtualgroup/types.proto";
-import "greenfield/virtualgroup/common.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
 
