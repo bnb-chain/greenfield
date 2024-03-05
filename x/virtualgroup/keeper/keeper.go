@@ -6,6 +6,9 @@ import (
 	math2 "math"
 
 	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/internal/sequence"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -13,11 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"golang.org/x/exp/slices"
-
-	"github.com/bnb-chain/greenfield/internal/sequence"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type (
@@ -253,9 +251,11 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, prim
 			PrimarySpId:           primarySPID,
 			VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.GVGFamilyName, id).String(),
 		}
-		gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, primarySPID)
-		gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, id)
-		k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
+		if ctx.IsUpgraded(upgradetypes.Pawnee) {
+			gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, primarySPID)
+			gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, id)
+			k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
+		}
 		return &gvgFamily, nil
 	} else {
 		bz := store.Get(types.GetGVGFamilyKey(familyID))
@@ -294,8 +294,13 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 
 	srcStat := k.MustGetGVGStatisticsWithinSP(ctx, primarySP.Id)
 	dstStat := k.GetOrCreateGVGStatisticsWithinSP(ctx, successorSP.Id)
-	srcVGFStat := k.MustGetGVGFamilyStatisticsWithinSP(ctx, primarySP.Id)
-	dstVGFStat := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, successorSP.Id)
+	// TODO: Select the correct hard fork version to update vgf
+	var srcVGFStat *types.GVGFamilyStatisticsWithinSP
+	var dstVGFStat *types.GVGFamilyStatisticsWithinSP
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		srcVGFStat = k.MustGetGVGFamilyStatisticsWithinSP(ctx, primarySP.Id)
+		dstVGFStat = k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, successorSP.Id)
+	}
 
 	var gvgs []*types.GlobalVirtualGroup
 	for _, gvgID := range family.GlobalVirtualGroupIds {
@@ -365,9 +370,11 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 	}
 	k.SetGVGStatisticsWithSP(ctx, srcStat)
 	k.SetGVGStatisticsWithSP(ctx, dstStat)
-	k.DeleteGVGFamilyWithinSP(ctx, srcVGFStat.SpId, family.Id)
-	dstVGFStat.GlobalVirtualGroupFamilyIds = append(dstVGFStat.GlobalVirtualGroupFamilyIds, family.Id)
-	k.SetGVGFamilyStatisticsWithinSP(ctx, dstVGFStat)
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		k.DeleteGVGFamilyWithinSP(ctx, srcVGFStat.SpId, family.Id)
+		dstVGFStat.GlobalVirtualGroupFamilyIds = append(dstVGFStat.GlobalVirtualGroupFamilyIds, family.Id)
+		k.SetGVGFamilyStatisticsWithinSP(ctx, dstVGFStat)
+	}
 
 	return nil
 }
@@ -566,11 +573,12 @@ func (k Keeper) MigrateGlobalVirtualGroupFamiliesForSP(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		var gvgFamily types.GlobalVirtualGroupFamily
 		k.cdc.MustUnmarshal(iterator.Value(), &gvgFamily)
+		k.Logger(ctx).Info(fmt.Sprintf("gvgFamily id %d, sp id: %d", gvgFamily.Id, gvgFamily.PrimarySpId))
 		gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, gvgFamily.PrimarySpId)
-		if !slices.Contains(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamily.Id) {
-			gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamily.Id)
-			k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
-		}
+		k.Logger(ctx).Info(fmt.Sprintf("gvgFamilyStatistics1 gvgFamily id %v, sp id: %d", gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamilyStatistics.SpId))
+		gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamily.Id)
+		k.Logger(ctx).Info(fmt.Sprintf("gvgFamilyStatistics2 gvgFamily id %v, sp id: %d", gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamilyStatistics.SpId))
+		k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
 	}
 }
 

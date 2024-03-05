@@ -116,14 +116,12 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
 	}
 
-	// check primary sp approval
-	// TODO: Select the correct hard fork version to update vgf
-	if !ctx.IsUpgraded(upgradetypes.Pawnee) && opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
-	}
-
 	// TODO: Select the correct hard fork version to update vgf
 	if !ctx.IsUpgraded(upgradetypes.Pawnee) {
+		// check primary sp approval
+		if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
+			return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+		}
 		err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, ownerAcc)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
@@ -596,12 +594,10 @@ func (k Keeper) CreateObject(
 	}
 
 	// TODO: Select the correct hard fork version to update vgf
-	if !ctx.IsUpgraded(upgradetypes.Pawnee) && opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
-	}
-
-	// TODO: Select the correct hard fork version to update vgf
 	if !ctx.IsUpgraded(upgradetypes.Pawnee) {
+		if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
+			return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+		}
 		err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
