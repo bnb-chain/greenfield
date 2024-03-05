@@ -912,7 +912,7 @@ func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) GetPickVgfStrategy() Pic
 	if m != nil {
 		return m.PickVgfStrategy
 	}
-	return StrategyMaximizeFreeStoreSize
+	return Strategy_Maximize_Free_Store_Size
 }
 
 type QuerySpOptimalGlobalVirtualGroupFamilyResponse struct {

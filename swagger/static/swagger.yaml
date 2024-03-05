@@ -6491,8 +6491,8 @@ paths:
           required: false
           type: string
           enum:
-            - StrategyMaximizeFreeStoreSize
-          default: StrategyMaximizeFreeStoreSize
+            - Strategy_Maximize_Free_Store_Size
+          default: Strategy_Maximize_Free_Store_Size
       tags:
         - Query
   /greenfield/virtualgroup/swap_in_info:
@@ -37240,8 +37240,8 @@ definitions:
   greenfield.virtualgroup.PickVGFStrategy:
     type: string
     enum:
-      - StrategyMaximizeFreeStoreSize
-    default: StrategyMaximizeFreeStoreSize
+      - Strategy_Maximize_Free_Store_Size
+    default: Strategy_Maximize_Free_Store_Size
     title: >-
       PickVGFStrategy represents the method for selecting the best global
       virtual group family based on the strategy

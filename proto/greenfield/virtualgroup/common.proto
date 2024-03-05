@@ -9,5 +9,5 @@ option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
 enum PickVGFStrategy {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  StrategyMaximizeFreeStoreSize = 0;
+  Strategy_Maximize_Free_Store_Size = 0;
 }
