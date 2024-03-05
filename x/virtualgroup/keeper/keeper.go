@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"golang.org/x/exp/slices"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -566,8 +567,10 @@ func (k Keeper) MigrateGlobalVirtualGroupFamiliesForSP(ctx sdk.Context) {
 		var gvgFamily types.GlobalVirtualGroupFamily
 		k.cdc.MustUnmarshal(iterator.Value(), &gvgFamily)
 		gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, gvgFamily.PrimarySpId)
-		gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamily.PrimarySpId)
-		k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
+		if !slices.Contains(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamily.Id) {
+			gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamily.Id)
+			k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
+		}
 	}
 }
 
