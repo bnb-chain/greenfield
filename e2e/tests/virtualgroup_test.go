@@ -135,7 +135,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	spAvailableGvgFamilyIds := s.querySpAvailableGlobalVirtualGroupFamilies(primarySP.Info.Id)
 	s.Require().Equal(spAvailableGvgFamilyIds[0], gvg.FamilyId)
 
-	spOptimalGvgFamilyId := s.querySpOptimalGlobalVirtualGroupFamily(primarySP.Info.Id, virtualgroupmoduletypes.StrategyMaximizeFreeStoreSize)
+	spOptimalGvgFamilyId := s.querySpOptimalGlobalVirtualGroupFamily(primarySP.Info.Id, virtualgroupmoduletypes.Strategy_Maximize_Free_Store_Size)
 	s.Require().Equal(spOptimalGvgFamilyId, gvg.FamilyId)
 
 	srcGVGs := s.queryGlobalVirtualGroupsByFamily(gvg.FamilyId)
