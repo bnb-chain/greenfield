@@ -38,11 +38,14 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 	}
 
 	// delete buckets
-	_, err = keeper.DeleteDiscontinueBucketsUntil(ctx, blockTime, deletionMax-deleted)
-	if err != nil {
-		ctx.Logger().Error("should not happen, fail to delete buckets, err " + err.Error())
-		panic("should not happen")
+	if ctx.BlockHeight() <= 5946511 && ctx.ChainID() == "greenfield_5600-1" {
+		_, err = keeper.DeleteDiscontinueBucketsUntil(ctx, blockTime, deletionMax-deleted)
+		if err != nil {
+			ctx.Logger().Error("should not happen, fail to delete buckets, err " + err.Error())
+			panic("should not happen")
+		}
 	}
+
 	keeper.PersistDeleteInfo(ctx)
 
 	// Permission GC
