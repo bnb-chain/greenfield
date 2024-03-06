@@ -19,40 +19,31 @@ func (k Keeper) SetBucketFlowRateLimit(ctx sdk.Context, operator sdk.AccAddress,
 
 	// get the bucket
 	bucket, found := k.GetBucketInfo(ctx, bucketName)
-	if !found {
-		return types.ErrNoSuchBucket
-	}
 
-	// check the bucket owner is the same as the bucket owner
-	if bucket.Owner != bucketOwner.String() {
-		return types.ErrInvalidBucketOwner
+	// check the bucket owner is the same as the bucket owner of the bucket
+	if found && bucket.Owner != bucketOwner.String() {
+		return fmt.Errorf("the bucket owner is not the same as the bucket owner of the bucket")
 	}
 
 	// if the bucket does not use the payment account, just set the flow rate limit
-	if bucket.PaymentAddress != paymentAccount.String() {
+	if !found || (found && bucket.PaymentAddress != paymentAccount.String()) {
 		// set the flow rate limit to the store
 		k.setBucketFlowRateLimit(ctx, paymentAccount, bucketName, &types.BucketFlowRateLimit{
 			FlowRateLimit: rateLimit,
+			BucketOwner:   bucketOwner.String(),
 		})
 		return nil
 	}
 
-	// below are the logic for the bucket using the payment account
-	if rateLimit.IsZero() {
-		err := k.setZeroBucketFlowRateLimit(ctx, bucket, paymentAccount, bucketName)
-		if err != nil {
-			return err
-		}
-	} else {
-		err := k.setNonZeroBucketFlowRateLimit(ctx, bucket, paymentAccount, bucketName, rateLimit)
-		if err != nil {
-			return err
-		}
+	err := k.setFlowRateLimit(ctx, bucket, paymentAccount, bucketName, rateLimit)
+	if err != nil {
+		return err
 	}
 
 	// set the flow rate limit to the store
 	k.setBucketFlowRateLimit(ctx, paymentAccount, bucketName, &types.BucketFlowRateLimit{
 		FlowRateLimit: rateLimit,
+		BucketOwner:   bucketOwner.String(),
 	})
 
 	return nil
@@ -83,6 +74,7 @@ func (k Keeper) chargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetyp
 	if err != nil {
 		return fmt.Errorf("apply user flows list failed: %s %w", bucketInfo.BucketName, err)
 	}
+	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 	return nil
 }
 
@@ -94,13 +86,11 @@ func getTotalOutFlowRate(flows []paymenttypes.OutFlow) sdkmath.Int {
 	return totalFlowRate
 }
 
-func (k Keeper) setZeroBucketFlowRateLimit(ctx sdk.Context, bucketInfo *types.BucketInfo, paymentAccount sdk.AccAddress, bucketName string) error {
-	currentRateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAccount, bucketName)
-
-	// do nothing if the bucket flow rate limit is already 0
-	if found && currentRateLimit.FlowRateLimit.IsZero() {
-		return nil
-	}
+func (k Keeper) unChargeAndLimitBucket(ctx sdk.Context, bucketInfo *types.BucketInfo, paymentAccount sdk.AccAddress, bucketName string) error {
+	k.setBucketFlowRateLimitStatus(ctx, bucketName, &types.BucketFlowRateLimitStatus{
+		IsBucketLimited: true,
+		PaymentAddress:  paymentAccount.String(),
+	})
 
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 	// if the rate limit is not set and the payment account is not owned by the bucket owner,
@@ -108,7 +98,7 @@ func (k Keeper) setZeroBucketFlowRateLimit(ctx sdk.Context, bucketInfo *types.Bu
 	return k.unChargeBucketReadStoreFee(ctx, bucketInfo, internalBucketInfo)
 }
 
-func (k Keeper) setNonZeroBucketFlowRateLimit(ctx sdk.Context, bucketInfo *types.BucketInfo, paymentAccount sdk.AccAddress, bucketName string, rateLimit sdkmath.Int) error {
+func (k Keeper) setFlowRateLimit(ctx sdk.Context, bucketInfo *types.BucketInfo, paymentAccount sdk.AccAddress, bucketName string, rateLimit sdkmath.Int) error {
 	currentRateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAccount, bucketName)
 
 	// do nothing if the bucket flow rate limit is already the same as the new rate limit
@@ -117,21 +107,27 @@ func (k Keeper) setNonZeroBucketFlowRateLimit(ctx sdk.Context, bucketInfo *types
 	}
 
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	isRateLimited := k.isBucketRateLimited(ctx, bucketName)
 
-	// if the rate limit is set to zero before, we should resume the payment of the bucket
-	if found && currentRateLimit.FlowRateLimit.IsZero() {
+	if found && isRateLimited {
 		internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 
-		bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
+		currentBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 		if err != nil {
-			return fmt.Errorf("get bucket bill failed: %s %s", bucketInfo.BucketName, err.Error())
+			return fmt.Errorf("get bucket currentBill failed: %s %s", bucketInfo.BucketName, err.Error())
 		}
-		totalOutFlowRate := getTotalOutFlowRate(bill.Flows)
-		if totalOutFlowRate.GT(rateLimit) {
-			return fmt.Errorf("the total out flow rate(%s) of the bucket is greater than the new rate limit(%s)", totalOutFlowRate.String(), rateLimit.String())
+		totalOutFlowRate := getTotalOutFlowRate(currentBill.Flows)
+
+		if totalOutFlowRate.LTE(rateLimit) {
+			err := k.chargeBucketReadStoreFee(ctx, bucketInfo, internalBucketInfo)
+			if err != nil {
+				return fmt.Errorf("charge bucket failed: %s %s", bucketInfo.BucketName, err.Error())
+			}
+			k.deleteBucketFlowRateLimitStatus(ctx, bucketName)
+			return nil
 		}
 
-		return k.chargeBucketReadStoreFee(ctx, bucketInfo, internalBucketInfo)
+		return nil
 	}
 
 	// if the rate limit is not set t0 zero before, we should check the net flow rate of the bucket
@@ -141,7 +137,7 @@ func (k Keeper) setNonZeroBucketFlowRateLimit(ctx sdk.Context, bucketInfo *types
 	}
 	totalOutFlowRate := getTotalOutFlowRate(bill.Flows)
 	if totalOutFlowRate.GT(rateLimit) {
-		return fmt.Errorf("the total out flow rate(%s) of the bucket is greater than the new rate limit(%s)", totalOutFlowRate.String(), rateLimit.String())
+		return k.unChargeAndLimitBucket(ctx, bucketInfo, paymentAccount, bucketName)
 	}
 
 	return nil
@@ -169,44 +165,56 @@ func (k Keeper) setBucketFlowRateLimit(ctx sdk.Context, paymentAccount sdk.AccAd
 	store.Set(types.GetBucketFlowRateLimitKey(paymentAccount, bucketName), bz)
 }
 
-// isBucketFlowRateLimitSetToZero checks if the flow rate limit of the bucket is set to zero by the payment account owner
-func (k Keeper) isBucketFlowRateLimitSetToZero(ctx sdk.Context, paymentAccount sdk.AccAddress, bucketName string) bool {
-	rateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAccount, bucketName)
+// setBucketFlowRateLimitStatus sets the flow rate limit status of the bucket to the store
+func (k Keeper) setBucketFlowRateLimitStatus(ctx sdk.Context, bucketName string, status *types.BucketFlowRateLimitStatus) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := k.cdc.MustMarshal(status)
+	store.Set(types.GetBucketFlowRateLimitStatusKey(bucketName), bz)
+}
+
+// getBucketFlowRateLimitStatus returns the flow rate limit status of the bucket from the store
+func (k Keeper) getBucketFlowRateLimitStatus(ctx sdk.Context, bucketName string) (*types.BucketFlowRateLimitStatus, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetBucketFlowRateLimitStatusKey(bucketName))
+	if bz == nil {
+		return nil, false
+	}
+
+	var status types.BucketFlowRateLimitStatus
+	k.cdc.MustUnmarshal(bz, &status)
+	return &status, true
+}
+
+// deleteBucketFlowRateLimitStatus deletes the flow rate limit status of the bucket from the store
+func (k Keeper) deleteBucketFlowRateLimitStatus(ctx sdk.Context, bucketName string) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetBucketFlowRateLimitStatusKey(bucketName))
+}
+
+// isBucketRateLimited checks if the bucket is rate limited
+func (k Keeper) isBucketRateLimited(ctx sdk.Context, bucketName string) bool {
+	status, found := k.getBucketFlowRateLimitStatus(ctx, bucketName)
 	if !found {
 		return false
 	}
-	return rateLimit.FlowRateLimit.IsZero()
+	return status.IsBucketLimited
 }
 
 // isBucketFlowRateUnderLimit checks if the flow rate of the bucket is under the flow rate limit
 func (k Keeper) isBucketFlowRateUnderLimit(ctx sdk.Context, paymentAccount, bucketOwner sdk.AccAddress, bucketName string, userFlows paymenttypes.UserFlows) error {
 	totalFlowRate := getTotalOutFlowRate(userFlows.Flows)
 
-	isPaymentAccountOwner := k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAccount, bucketOwner)
-
-	rateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAccount, bucketName)
-	// if the rate limit is not set
-	if !found {
-		// if the bucket owner is owner of the payment account and the rate limit is not set, the flow rate is unlimited
-		if isPaymentAccountOwner {
-			return nil
-		}
-
-		// if the total net flow rate is zero, it should be allowed
-		if totalFlowRate.IsZero() {
-			return nil
-		}
-
-		return fmt.Errorf("the flow rate limit is not set for the bucket %s", bucketName)
-	}
-
-	if totalFlowRate.LTE(rateLimit.FlowRateLimit) {
-		return nil
-	}
-	return fmt.Errorf("the total flow rate of the bucket(%s) %s is greater than the flow rate limit(%s)", totalFlowRate.String(), bucketName, rateLimit.String())
+	return k.isBucketFlowRateUnderLimitWithRate(ctx, paymentAccount, bucketOwner, bucketName, totalFlowRate)
 }
 
 func (k Keeper) isBucketFlowRateUnderLimitWithRate(ctx sdk.Context, paymentAccount, bucketOwner sdk.AccAddress, bucketName string, rate sdkmath.Int) error {
+	// if the total net flow rate is zero, it should be allowed
+	if rate.IsZero() {
+		return nil
+	}
+
 	isPaymentAccountOwner := k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAccount, bucketOwner)
 
 	rateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAccount, bucketName)
@@ -217,16 +225,49 @@ func (k Keeper) isBucketFlowRateUnderLimitWithRate(ctx sdk.Context, paymentAccou
 			return nil
 		}
 
-		// if the total net flow rate is zero, it should be allowed
-		if rate.IsZero() {
-			return nil
-		}
-
 		return fmt.Errorf("the flow rate limit is not set for the bucket %s", bucketName)
 	}
 
-	if rate.LTE(rateLimit.FlowRateLimit) {
-		return nil
+	// check the flow rate limit is granted to the bucket owner
+	if rateLimit.BucketOwner != bucketOwner.String() {
+		return fmt.Errorf("the flow rate limit is not granted to the bucket owner %s", bucketOwner.String())
 	}
-	return fmt.Errorf("the total flow rate of the bucket %s is greater than the flow rate limit", bucketName)
+
+	// check the flow rate is under the limit
+	if rate.GT(rateLimit.FlowRateLimit) {
+		return fmt.Errorf("the total flow rate of the bucket %s is greater than the flow rate limit", bucketName)
+	}
+	return nil
+}
+
+func (k Keeper) GetBucketExtraInfo(ctx sdk.Context, bucketName string) (*types.BucketExtraInfo, error) {
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+
+	paymentAcc, err := sdk.AccAddressFromHexUnsafe(bucketInfo.PaymentAddress)
+	if err != nil {
+		return nil, err
+	}
+	rateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAcc, bucketName)
+
+	extraInfo := &types.BucketExtraInfo{}
+
+	if !found {
+		extraInfo.FlowRateLimit = sdk.NewInt(-1)
+	} else {
+		extraInfo.FlowRateLimit = rateLimit.FlowRateLimit
+	}
+
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+
+	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
+	if err != nil {
+		return nil, fmt.Errorf("get bucket bill failed: %s %s", bucketInfo.BucketName, err.Error())
+	}
+	totalOutFlowRate := getTotalOutFlowRate(bill.Flows)
+	extraInfo.CurrentFlowRate = totalOutFlowRate
+
+	return extraInfo, nil
 }

@@ -62,8 +62,13 @@ func (k Keeper) HeadBucket(goCtx context.Context, req *types.QueryHeadBucketRequ
 
 	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
 	if found {
+		extraInfo, err := k.GetBucketExtraInfo(ctx, req.BucketName)
+		if err != nil {
+			return nil, err
+		}
 		return &types.QueryHeadBucketResponse{
 			BucketInfo: bucketInfo,
+			ExtraInfo:  extraInfo,
 		}, nil
 	}
 	return nil, types.ErrNoSuchBucket
@@ -673,4 +678,34 @@ func (k Keeper) QueryGroupsExistById(goCtx context.Context, req *types.QueryGrou
 		exists[groupId] = found
 	}
 	return &types.QueryGroupsExistResponse{Exists: exists}, nil
+}
+
+func (k Keeper) QueryPaymentAccountBucketFlowRateLimit(goCtx context.Context, req *types.QueryPaymentAccountBucketFlowRateLimitRequest) (*types.QueryPaymentAccountBucketFlowRateLimitResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	acc, err := sdk.AccAddressFromHexUnsafe(req.PaymentAccount)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid payment account address")
+	}
+
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+
+	flowRateLimit, found := k.getBucketFlowRateLimit(ctx, acc, bucketInfo.BucketName)
+	if !found {
+		return &types.QueryPaymentAccountBucketFlowRateLimitResponse{
+			IsSet: false,
+		}, nil
+	}
+
+	return &types.QueryPaymentAccountBucketFlowRateLimitResponse{
+		IsSet:         true,
+		FlowRateLimit: flowRateLimit.FlowRateLimit,
+	}, nil
 }

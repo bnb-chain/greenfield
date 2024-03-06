@@ -118,4 +118,13 @@ message BucketFlowRateLimit {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // bucket_owner is the owner of the bucket
+  string bucket_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message BucketFlowRateLimitStatus {
+  // is_bucket_limited defines the flow rate limit status of the bucket, true means limited and the bucket is uncharged
+  bool is_bucket_limited = 1;
+  // payment_address is the payment address of the bucket which limited the flow rate
+  string payment_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }

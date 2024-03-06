@@ -16,7 +16,7 @@ func (k Keeper) VerifyPaymentAccount(ctx sdk.Context, paymentAddress string, own
 	}
 
 	// don't check if the payment account is owned by the owner account
-	if !ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
 		if !k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAcc, ownerAcc) {
 			return nil, paymenttypes.ErrNotPaymentAccountOwner
 		}

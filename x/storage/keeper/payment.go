@@ -25,7 +25,7 @@ func (k Keeper) ChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.Bu
 		return fmt.Errorf("charge bucket read fee failed, get bucket bill failed: %s %s", bucketInfo.BucketName, err.Error())
 	}
 
-	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		err := k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, bill)
 		if err != nil {
 			return err
@@ -46,9 +46,9 @@ func (k Keeper) UnChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.
 		return fmt.Errorf("unexpected total store charge size: %s, %d", bucketInfo.BucketName, internalBucketInfo.TotalChargeSize)
 	}
 
-	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		// if the bucket's flow rate limit is set to zero, no need to uncharge, since the bucket is already uncharged
-		if k.isBucketFlowRateLimitSetToZero(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), bucketInfo.BucketName) {
+		if k.isBucketRateLimited(ctx, bucketInfo.BucketName) {
 			return nil
 		}
 	}
@@ -145,7 +145,7 @@ func (k Keeper) lockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.Buc
 		})
 	}
 
-	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 		internalBucketInfo.PriceTime = timestamp
 		nextBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
@@ -333,7 +333,8 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	if err != nil {
 		return fmt.Errorf("charge via bucket change failed, get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
 	}
-	isPreviousBucketSuspended := k.isBucketFlowRateLimitSetToZero(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), bucketInfo.BucketName)
+	isPreviousBucketLimited := k.isBucketRateLimited(ctx, bucketInfo.BucketName)
+	prevPaymentAccount := bucketInfo.PaymentAddress
 
 	// change bucket internal info
 	if err = changeFunc(bucketInfo, internalBucketInfo); err != nil {
@@ -346,19 +347,25 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 		return fmt.Errorf("get new bucket bill failed: %s %w", bucketInfo.BucketName, err)
 	}
 
-	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
+		if prevPaymentAccount == bucketInfo.PaymentAddress && isPreviousBucketLimited {
+			// todo: do we need to contraint this
+			return fmt.Errorf("payment account is not changed but the bucket is limited")
+		}
+
 		// check the bucket's new flow rate limit
 		err := k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, newBill)
 		if err != nil {
 			return err
 		}
 
-		if isPreviousBucketSuspended {
+		if isPreviousBucketLimited {
 			err = k.ApplyBillChanges(ctx, nil, &newBill)
 			if err != nil {
 				ctx.Logger().Error("charge via bucket change failed", "bucket", bucketInfo.BucketName, "err", err.Error())
 				return err
 			}
+			k.deleteBucketFlowRateLimitStatus(ctx, bucketInfo.BucketName)
 		} else {
 			err = k.ApplyBillChanges(ctx, &prevBill, &newBill)
 			if err != nil {
@@ -427,7 +434,7 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 	userFlows.Flows = append(userFlows.Flows, getNegFlows(preOutFlows)...)
 	userFlows.Flows = append(userFlows.Flows, newOutFlows...)
 
-	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		currentBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 		if err != nil {
 			return nil, fmt.Errorf("get bucket bill failed: %s %w", bucketInfo.BucketName, err)
@@ -541,9 +548,9 @@ func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes
 func (k Keeper) UnChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) error {
 
-	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		// if the bucket's flow rate limit is set to zero, no need to uncharge, since the bucket is already uncharged
-		if k.isBucketFlowRateLimitSetToZero(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), bucketInfo.BucketName) {
+		if k.isBucketRateLimited(ctx, bucketInfo.BucketName) {
 			return nil
 		}
 	}
@@ -568,7 +575,7 @@ func (k Keeper) ChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetyp
 		return fmt.Errorf("get bucket bill failed: %s %s", bucketInfo.BucketName, err.Error())
 	}
 
-	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		// todo: if the bucket's flow rate is under limit before, but the price is changed, the bucket may be over limit now, should we allow it or not?
 		err := k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, bill)
 		if err != nil {

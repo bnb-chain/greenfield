@@ -340,3 +340,46 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_BucketPaymentAccount()
 	s.SendTxBlock(user, msgUpdateBucketInfo)
 	s.Require().NoError(err)
 }
+
+func (s *StorageTestSuite) TestQueryBucketRateLimit() {
+	var err error
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	user := s.User
+	paymentAcc := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	// CreateBucket
+	bucketName := storageutils.GenRandomBucketName()
+
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
+		paymentAcc.GetAddr(), math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateBucket)
+
+	// SetBucketRateLimit
+	msgSetBucketRateLimit := storagetypes.NewMsgSetBucketFlowRateLimit(paymentAcc.GetAddr(), s.User.GetAddr(), paymentAcc.GetAddr(), bucketName, sdkmath.NewInt(100000000000000))
+	s.SendTxBlock(paymentAcc, msgSetBucketRateLimit)
+
+	// update bucket
+	var readQuota uint64 = 100
+	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
+		user.GetAddr(), bucketName, &readQuota, nil, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+	s.SendTxBlock(user, msgUpdateBucketInfo)
+
+	s.Require().NoError(err)
+
+	// QueryBucketRateLimit
+	ctx := context.Background()
+	queryBucketRateLimitRequest := storagetypes.QueryPaymentAccountBucketFlowRateLimitRequest{
+		PaymentAccount: paymentAcc.GetAddr().String(),
+		BucketName:     bucketName,
+	}
+	queryBucketRateLimitResponse, err := s.Client.QueryPaymentAccountBucketFlowRateLimit(ctx, &queryBucketRateLimitRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryBucketRateLimitResponse.IsSet, true)
+	s.Require().Equal(queryBucketRateLimitResponse.FlowRateLimit, sdkmath.NewInt(100000000000000))
+}

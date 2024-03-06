@@ -64,7 +64,8 @@ var (
 
 	MigrateBucketPrefix = []byte{0x61}
 
-	BucketRateLimitPrefix = []byte{0x71}
+	BucketRateLimitPrefix       = []byte{0x71}
+	BucketRateLimitStatusPrefix = []byte{0x72}
 )
 
 // GetBucketKey return the bucket name store key
@@ -179,4 +180,10 @@ func GetLockedObjectCountKey(bucketId math.Uint) []byte {
 func GetBucketFlowRateLimitKey(paymentAccount sdk.AccAddress, bucketName string) []byte {
 	bucketNameHash := sdk.Keccak256([]byte(bucketName))
 	return append(BucketRateLimitPrefix, append(paymentAccount.Bytes(), bucketNameHash...)...)
+}
+
+// GetBucketFlowRateLimitStatusKey return the bucket rate limit store key
+func GetBucketFlowRateLimitStatusKey(bucketName string) []byte {
+	bucketNameHash := sdk.Keccak256([]byte(bucketName))
+	return append(BucketRateLimitPrefix, bucketNameHash...)
 }
