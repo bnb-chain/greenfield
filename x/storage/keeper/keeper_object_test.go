@@ -2,7 +2,6 @@ package keeper_test
 
 import (
 	"cosmossdk.io/math"
-	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/mock/gomock"
 
@@ -11,6 +10,7 @@ import (
 	types4 "github.com/bnb-chain/greenfield/x/payment/types"
 	types3 "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (s *TestSuite) TestCreateObject() {
