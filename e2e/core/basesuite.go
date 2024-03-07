@@ -127,9 +127,9 @@ func (s *BaseSuite) InitChain() {
 
 func (s *BaseSuite) SetupSuite() {
 	s.Config = InitConfig()
-	//initValidatorOnce.Do(func() {
-	//	s.InitChain()
-	//})
+	initValidatorOnce.Do(func() {
+		s.InitChain()
+	})
 
 	s.Client, _ = client.NewGreenfieldClient(s.Config.TendermintAddr, s.Config.ChainId)
 	tmClient := client.NewTendermintClient(s.Config.TendermintAddr)
