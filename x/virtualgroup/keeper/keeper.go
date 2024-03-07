@@ -251,7 +251,7 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, prim
 			PrimarySpId:           primarySPID,
 			VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.GVGFamilyName, id).String(),
 		}
-		if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		if ctx.IsUpgraded(upgradetypes.Serengeti) {
 			gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, primarySPID)
 			gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, id)
 			k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
@@ -294,10 +294,9 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 
 	srcStat := k.MustGetGVGStatisticsWithinSP(ctx, primarySP.Id)
 	dstStat := k.GetOrCreateGVGStatisticsWithinSP(ctx, successorSP.Id)
-	// TODO: Select the correct hard fork version to update vgf
 	var srcVGFStat *types.GVGFamilyStatisticsWithinSP
 	var dstVGFStat *types.GVGFamilyStatisticsWithinSP
-	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		srcVGFStat = k.MustGetGVGFamilyStatisticsWithinSP(ctx, primarySP.Id)
 		dstVGFStat = k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, successorSP.Id)
 	}
@@ -370,7 +369,7 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 	}
 	k.SetGVGStatisticsWithSP(ctx, srcStat)
 	k.SetGVGStatisticsWithSP(ctx, dstStat)
-	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		k.DeleteGVGFamilyWithinSP(ctx, srcVGFStat.SpId, family.Id)
 		dstVGFStat.GlobalVirtualGroupFamilyIds = append(dstVGFStat.GlobalVirtualGroupFamilyIds, family.Id)
 		k.SetGVGFamilyStatisticsWithinSP(ctx, dstVGFStat)

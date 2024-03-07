@@ -116,8 +116,7 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
 	}
 
-	// TODO: Select the correct hard fork version to update vgf
-	if !ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
 		// check primary sp approval
 		if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 			return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
@@ -593,8 +592,7 @@ func (k Keeper) CreateObject(
 		creator = operator
 	}
 
-	// TODO: Select the correct hard fork version to update vgf
-	if !ctx.IsUpgraded(upgradetypes.Pawnee) {
+	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
 		if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 			return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 		}

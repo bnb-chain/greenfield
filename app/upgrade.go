@@ -30,6 +30,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerHulunbeierPatchUpgradeHandler()
 	app.registerUralUpgradeHandler()
 	app.registerPawneeUpgradeHandler()
+	app.registerSerengetiUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -203,8 +204,6 @@ func (app *App) registerPawneeUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Pawnee,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
-			// TODO: Select the correct hard fork version to update vgf
-			app.VirtualgroupKeeper.MigrateGlobalVirtualGroupFamiliesForSP(ctx)
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgUpdateObjectContent{}), 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgCancelUpdateObjectContent{}), 1.2e3))
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
@@ -214,6 +213,23 @@ func (app *App) registerPawneeUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Pawnee,
 		func() error {
 			app.Logger().Info("Init Pawnee upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerSerengetiUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Serengeti,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			app.VirtualgroupKeeper.MigrateGlobalVirtualGroupFamiliesForSP(ctx)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Serengeti,
+		func() error {
+			app.Logger().Info("Init Serengeti upgrade")
 			return nil
 		})
 }
