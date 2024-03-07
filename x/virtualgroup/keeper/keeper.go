@@ -370,7 +370,7 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 	k.SetGVGStatisticsWithSP(ctx, srcStat)
 	k.SetGVGStatisticsWithSP(ctx, dstStat)
 	if ctx.IsUpgraded(upgradetypes.Serengeti) {
-		k.DeleteGVGFamilyWithinSP(ctx, srcVGFStat.SpId, family.Id)
+		k.DeleteSpecificGVGFamilyStatisticsFromSP(ctx, srcVGFStat.SpId, family.Id)
 		dstVGFStat.GlobalVirtualGroupFamilyIds = append(dstVGFStat.GlobalVirtualGroupFamilyIds, family.Id)
 		k.SetGVGFamilyStatisticsWithinSP(ctx, dstVGFStat)
 	}
@@ -512,7 +512,7 @@ func (k Keeper) GetOrCreateGVGFamilyStatisticsWithinSP(ctx sdk.Context, spID uin
 	return ret
 }
 
-func (k Keeper) DeleteGVGFamilyWithinSP(ctx sdk.Context, spID uint32, familyID uint32) {
+func (k Keeper) DeleteSpecificGVGFamilyStatisticsFromSP(ctx sdk.Context, spID uint32, familyID uint32) {
 	gvgFamilyStatistics := k.MustGetGVGFamilyStatisticsWithinSP(ctx, spID)
 	for i, id := range gvgFamilyStatistics.GlobalVirtualGroupFamilyIds {
 		if id == familyID {
@@ -557,12 +557,6 @@ func (k Keeper) SetGVGFamilyStatisticsWithinSP(ctx sdk.Context, vgfStatisticsWit
 	store.Set(types.GetGVGFamilyStatisticsWithinSPKey(vgfStatisticsWithinSP.SpId), bz)
 }
 
-func (k Keeper) BatchSetGVGFamilyStatisticsWithinSP(ctx sdk.Context, vgfStatisticsWithinSP []*types.GVGFamilyStatisticsWithinSP) {
-	for _, g := range vgfStatisticsWithinSP {
-		k.SetGVGFamilyStatisticsWithinSP(ctx, g)
-	}
-}
-
 func (k Keeper) MigrateGlobalVirtualGroupFamiliesForSP(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	gvgFamilyStore := prefix.NewStore(store, types.GVGFamilyKey)
@@ -572,11 +566,8 @@ func (k Keeper) MigrateGlobalVirtualGroupFamiliesForSP(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		var gvgFamily types.GlobalVirtualGroupFamily
 		k.cdc.MustUnmarshal(iterator.Value(), &gvgFamily)
-		k.Logger(ctx).Info(fmt.Sprintf("gvgFamily id %d, sp id: %d", gvgFamily.Id, gvgFamily.PrimarySpId))
 		gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, gvgFamily.PrimarySpId)
-		k.Logger(ctx).Info(fmt.Sprintf("gvgFamilyStatistics1 gvgFamily id %v, sp id: %d", gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamilyStatistics.SpId))
 		gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamily.Id)
-		k.Logger(ctx).Info(fmt.Sprintf("gvgFamilyStatistics2 gvgFamily id %v, sp id: %d", gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamilyStatistics.SpId))
 		k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
 	}
 }
