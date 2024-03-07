@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
@@ -38,11 +39,22 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 	}
 
 	// delete buckets
-	_, err = keeper.DeleteDiscontinueBucketsUntil(ctx, blockTime, deletionMax-deleted)
-	if err != nil {
-		ctx.Logger().Error("should not happen, fail to delete buckets, err " + err.Error())
-		panic("should not happen")
+	doDeleteBucket := true
+	if ctx.BlockHeight() > 5946511 && ctx.ChainID() == "greenfield_5600-1" {
+		doDeleteBucket = false
 	}
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		doDeleteBucket = true
+	}
+
+	if doDeleteBucket {
+		_, err = keeper.DeleteDiscontinueBucketsUntil(ctx, blockTime, deletionMax-deleted)
+		if err != nil {
+			ctx.Logger().Error("should not happen, fail to delete buckets, err " + err.Error())
+			panic("should not happen")
+		}
+	}
+
 	keeper.PersistDeleteInfo(ctx)
 
 	// Permission GC
