@@ -6,16 +6,16 @@ import (
 	math2 "math"
 
 	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/internal/sequence"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
-	"github.com/bnb-chain/greenfield/internal/sequence"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type (
@@ -251,6 +251,11 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, prim
 			PrimarySpId:           primarySPID,
 			VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.GVGFamilyName, id).String(),
 		}
+		if ctx.IsUpgraded(upgradetypes.Serengeti) {
+			gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, primarySPID)
+			gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, id)
+			k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
+		}
 		return &gvgFamily, nil
 	} else {
 		bz := store.Get(types.GetGVGFamilyKey(familyID))
@@ -289,6 +294,12 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 
 	srcStat := k.MustGetGVGStatisticsWithinSP(ctx, primarySP.Id)
 	dstStat := k.GetOrCreateGVGStatisticsWithinSP(ctx, successorSP.Id)
+	var srcVGFStat *types.GVGFamilyStatisticsWithinSP
+	var dstVGFStat *types.GVGFamilyStatisticsWithinSP
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
+		srcVGFStat = k.MustGetGVGFamilyStatisticsWithinSP(ctx, primarySP.Id)
+		dstVGFStat = k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, successorSP.Id)
+	}
 
 	var gvgs []*types.GlobalVirtualGroup
 	for _, gvgID := range family.GlobalVirtualGroupIds {
@@ -358,6 +369,11 @@ func (k Keeper) SwapAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes
 	}
 	k.SetGVGStatisticsWithSP(ctx, srcStat)
 	k.SetGVGStatisticsWithSP(ctx, dstStat)
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
+		k.DeleteSpecificGVGFamilyStatisticsFromSP(ctx, srcVGFStat.SpId, family.Id)
+		dstVGFStat.GlobalVirtualGroupFamilyIds = append(dstVGFStat.GlobalVirtualGroupFamilyIds, family.Id)
+		k.SetGVGFamilyStatisticsWithinSP(ctx, dstVGFStat)
+	}
 
 	return nil
 }
@@ -479,6 +495,81 @@ func (k Keeper) StorageProviderExitable(ctx sdk.Context, spID uint32) error {
 		}
 	}
 	return nil
+}
+
+func (k Keeper) GetOrCreateGVGFamilyStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGFamilyStatisticsWithinSP {
+	store := ctx.KVStore(k.storeKey)
+
+	ret := &types.GVGFamilyStatisticsWithinSP{
+		SpId: spID,
+	}
+	bz := store.Get(types.GetGVGFamilyStatisticsWithinSPKey(spID))
+	if bz == nil {
+		return ret
+	}
+
+	k.cdc.MustUnmarshal(bz, ret)
+	return ret
+}
+
+func (k Keeper) DeleteSpecificGVGFamilyStatisticsFromSP(ctx sdk.Context, spID uint32, familyID uint32) {
+	gvgFamilyStatistics := k.MustGetGVGFamilyStatisticsWithinSP(ctx, spID)
+	for i, id := range gvgFamilyStatistics.GlobalVirtualGroupFamilyIds {
+		if id == familyID {
+			gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds[:i], gvgFamilyStatistics.GlobalVirtualGroupFamilyIds[i+1:]...)
+			k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
+			break
+		}
+	}
+}
+
+func (k Keeper) GetGVGFamilyStatisticsWithinSP(ctx sdk.Context, spID uint32) (*types.GVGFamilyStatisticsWithinSP, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetGVGFamilyStatisticsWithinSPKey(spID))
+	if bz == nil {
+		return nil, false
+	}
+
+	var ret types.GVGFamilyStatisticsWithinSP
+	k.cdc.MustUnmarshal(bz, &ret)
+	return &ret, true
+}
+
+func (k Keeper) MustGetGVGFamilyStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGFamilyStatisticsWithinSP {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetGVGFamilyStatisticsWithinSPKey(spID))
+	if bz == nil {
+		panic("must get vgf within sp")
+	}
+
+	var ret types.GVGFamilyStatisticsWithinSP
+	k.cdc.MustUnmarshal(bz, &ret)
+	return &ret
+}
+
+func (k Keeper) SetGVGFamilyStatisticsWithinSP(ctx sdk.Context, vgfStatisticsWithinSP *types.GVGFamilyStatisticsWithinSP) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := k.cdc.MustMarshal(vgfStatisticsWithinSP)
+
+	store.Set(types.GetGVGFamilyStatisticsWithinSPKey(vgfStatisticsWithinSP.SpId), bz)
+}
+
+func (k Keeper) MigrateGlobalVirtualGroupFamiliesForSP(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	gvgFamilyStore := prefix.NewStore(store, types.GVGFamilyKey)
+
+	iterator := gvgFamilyStore.Iterator(nil, nil)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		var gvgFamily types.GlobalVirtualGroupFamily
+		k.cdc.MustUnmarshal(iterator.Value(), &gvgFamily)
+		gvgFamilyStatistics := k.GetOrCreateGVGFamilyStatisticsWithinSP(ctx, gvgFamily.PrimarySpId)
+		gvgFamilyStatistics.GlobalVirtualGroupFamilyIds = append(gvgFamilyStatistics.GlobalVirtualGroupFamilyIds, gvgFamily.Id)
+		k.SetGVGFamilyStatisticsWithinSP(ctx, gvgFamilyStatistics)
+	}
 }
 
 // GetStoreSizeOfFamily Rather than calculating the stored size of a Global Virtual Group Family (GVGF) in real-time,

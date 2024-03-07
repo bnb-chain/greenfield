@@ -6310,6 +6310,54 @@ paths:
                       format: byte
       tags:
         - Query
+  /greenfield/virtualgroup/sp_available_global_virtual_group_families:
+    get:
+      summary: >-
+        QuerySpAvailableGlobalVirtualGroupFamilies filters a list of
+        GlobalVirtualGroupFamilies IDs under a certain SP that are qualified to
+        create a bucket on
+      operationId: QuerySpAvailableGlobalVirtualGroupFamilies
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              global_virtual_group_family_ids:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: sp_id
+          in: query
+          required: false
+          type: integer
+          format: int64
+      tags:
+        - Query
   /greenfield/virtualgroup/sp_gvg_statistics:
     get:
       summary: GVGStatistics gets gvg statistics for a SP
@@ -6392,6 +6440,59 @@ paths:
           required: false
           type: integer
           format: int64
+      tags:
+        - Query
+  /greenfield/virtualgroup/sp_optimal_global_virtual_group_family:
+    get:
+      summary: >-
+        QuerySpOptimalGlobalVirtualGroupFamily filters the optimal
+        GlobalVirtualGroupFamily under a certain SP that is qualified to create
+        a bucket on
+      operationId: QuerySpOptimalGlobalVirtualGroupFamily
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              global_virtual_group_family_id:
+                type: integer
+                format: int64
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: sp_id
+          in: query
+          required: false
+          type: integer
+          format: int64
+        - name: pick_vgf_strategy
+          in: query
+          required: false
+          type: string
+          enum:
+            - Strategy_Maximize_Free_Store_Size
+          default: Strategy_Maximize_Free_Store_Size
       tags:
         - Query
   /greenfield/virtualgroup/swap_in_info:
@@ -37136,6 +37237,14 @@ definitions:
         type: string
         description: the the number of sp allowed to exit concurrently.
     description: Params defines the parameters for the module.
+  greenfield.virtualgroup.PickVGFStrategy:
+    type: string
+    enum:
+      - Strategy_Maximize_Free_Store_Size
+    default: Strategy_Maximize_Free_Store_Size
+    title: >-
+      PickVGFStrategy represents the method for selecting the best global
+      virtual group family based on the strategy
   greenfield.virtualgroup.QueryGlobalVirtualGroupByFamilyIDResponse:
     type: object
     properties:
@@ -37376,6 +37485,14 @@ definitions:
             type: string
             description: the the number of sp allowed to exit concurrently.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  greenfield.virtualgroup.QuerySPAvailableGlobalVirtualGroupFamiliesResponse:
+    type: object
+    properties:
+      global_virtual_group_family_ids:
+        type: array
+        items:
+          type: integer
+          format: int64
   greenfield.virtualgroup.QuerySPGVGStatisticsResponse:
     type: object
     properties:
@@ -37421,6 +37538,12 @@ definitions:
               unique to all other SP. So this will not be used for
 
               swapIn individual GVG as secondary
+  greenfield.virtualgroup.QuerySpOptimalGlobalVirtualGroupFamilyResponse:
+    type: object
+    properties:
+      global_virtual_group_family_id:
+        type: integer
+        format: int64
   greenfield.virtualgroup.QuerySwapInInfoResponse:
     type: object
     properties:

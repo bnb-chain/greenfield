@@ -763,6 +763,206 @@ func (m *QuerySPGVGStatisticsResponse) GetGvgStats() *GVGStatisticsWithinSP {
 	return nil
 }
 
+type QuerySPAvailableGlobalVirtualGroupFamiliesRequest struct {
+	SpId uint32 `protobuf:"varint,1,opt,name=sp_id,json=spId,proto3" json:"sp_id,omitempty"`
+}
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) Reset() {
+	*m = QuerySPAvailableGlobalVirtualGroupFamiliesRequest{}
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QuerySPAvailableGlobalVirtualGroupFamiliesRequest) ProtoMessage() {}
+func (*QuerySPAvailableGlobalVirtualGroupFamiliesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_83cd53fc415e00e7, []int{16}
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QuerySPAvailableGlobalVirtualGroupFamiliesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySPAvailableGlobalVirtualGroupFamiliesRequest.Merge(m, src)
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySPAvailableGlobalVirtualGroupFamiliesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QuerySPAvailableGlobalVirtualGroupFamiliesRequest proto.InternalMessageInfo
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) GetSpId() uint32 {
+	if m != nil {
+		return m.SpId
+	}
+	return 0
+}
+
+type QuerySPAvailableGlobalVirtualGroupFamiliesResponse struct {
+	GlobalVirtualGroupFamilyIds []uint32 `protobuf:"varint,1,rep,packed,name=global_virtual_group_family_ids,json=globalVirtualGroupFamilyIds,proto3" json:"global_virtual_group_family_ids,omitempty"`
+}
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) Reset() {
+	*m = QuerySPAvailableGlobalVirtualGroupFamiliesResponse{}
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QuerySPAvailableGlobalVirtualGroupFamiliesResponse) ProtoMessage() {}
+func (*QuerySPAvailableGlobalVirtualGroupFamiliesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_83cd53fc415e00e7, []int{17}
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QuerySPAvailableGlobalVirtualGroupFamiliesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySPAvailableGlobalVirtualGroupFamiliesResponse.Merge(m, src)
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySPAvailableGlobalVirtualGroupFamiliesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QuerySPAvailableGlobalVirtualGroupFamiliesResponse proto.InternalMessageInfo
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) GetGlobalVirtualGroupFamilyIds() []uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupFamilyIds
+	}
+	return nil
+}
+
+type QuerySpOptimalGlobalVirtualGroupFamilyRequest struct {
+	SpId            uint32          `protobuf:"varint,1,opt,name=sp_id,json=spId,proto3" json:"sp_id,omitempty"`
+	PickVgfStrategy PickVGFStrategy `protobuf:"varint,2,opt,name=pick_vgf_strategy,json=pickVgfStrategy,proto3,enum=greenfield.virtualgroup.PickVGFStrategy" json:"pick_vgf_strategy,omitempty"`
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) Reset() {
+	*m = QuerySpOptimalGlobalVirtualGroupFamilyRequest{}
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QuerySpOptimalGlobalVirtualGroupFamilyRequest) ProtoMessage() {}
+func (*QuerySpOptimalGlobalVirtualGroupFamilyRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_83cd53fc415e00e7, []int{18}
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QuerySpOptimalGlobalVirtualGroupFamilyRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySpOptimalGlobalVirtualGroupFamilyRequest.Merge(m, src)
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySpOptimalGlobalVirtualGroupFamilyRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QuerySpOptimalGlobalVirtualGroupFamilyRequest proto.InternalMessageInfo
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) GetSpId() uint32 {
+	if m != nil {
+		return m.SpId
+	}
+	return 0
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) GetPickVgfStrategy() PickVGFStrategy {
+	if m != nil {
+		return m.PickVgfStrategy
+	}
+	return Strategy_Maximize_Free_Store_Size
+}
+
+type QuerySpOptimalGlobalVirtualGroupFamilyResponse struct {
+	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,1,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) Reset() {
+	*m = QuerySpOptimalGlobalVirtualGroupFamilyResponse{}
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*QuerySpOptimalGlobalVirtualGroupFamilyResponse) ProtoMessage() {}
+func (*QuerySpOptimalGlobalVirtualGroupFamilyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_83cd53fc415e00e7, []int{19}
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QuerySpOptimalGlobalVirtualGroupFamilyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySpOptimalGlobalVirtualGroupFamilyResponse.Merge(m, src)
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySpOptimalGlobalVirtualGroupFamilyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QuerySpOptimalGlobalVirtualGroupFamilyResponse proto.InternalMessageInfo
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) GetGlobalVirtualGroupFamilyId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupFamilyId
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "greenfield.virtualgroup.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "greenfield.virtualgroup.QueryParamsResponse")
@@ -780,6 +980,10 @@ func init() {
 	proto.RegisterType((*QuerySwapInInfoResponse)(nil), "greenfield.virtualgroup.QuerySwapInInfoResponse")
 	proto.RegisterType((*QuerySPGVGStatisticsRequest)(nil), "greenfield.virtualgroup.QuerySPGVGStatisticsRequest")
 	proto.RegisterType((*QuerySPGVGStatisticsResponse)(nil), "greenfield.virtualgroup.QuerySPGVGStatisticsResponse")
+	proto.RegisterType((*QuerySPAvailableGlobalVirtualGroupFamiliesRequest)(nil), "greenfield.virtualgroup.QuerySPAvailableGlobalVirtualGroupFamiliesRequest")
+	proto.RegisterType((*QuerySPAvailableGlobalVirtualGroupFamiliesResponse)(nil), "greenfield.virtualgroup.QuerySPAvailableGlobalVirtualGroupFamiliesResponse")
+	proto.RegisterType((*QuerySpOptimalGlobalVirtualGroupFamilyRequest)(nil), "greenfield.virtualgroup.QuerySpOptimalGlobalVirtualGroupFamilyRequest")
+	proto.RegisterType((*QuerySpOptimalGlobalVirtualGroupFamilyResponse)(nil), "greenfield.virtualgroup.QuerySpOptimalGlobalVirtualGroupFamilyResponse")
 }
 
 func init() {
@@ -787,67 +991,77 @@ func init() {
 }
 
 var fileDescriptor_83cd53fc415e00e7 = []byte{
-	// 954 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x97, 0xcf, 0x6f, 0xdc, 0x44,
-	0x14, 0xc7, 0x33, 0xa1, 0x8d, 0xda, 0xd7, 0xe4, 0x32, 0x09, 0x24, 0x72, 0xa2, 0x5d, 0x70, 0xda,
-	0xa6, 0xa4, 0x8d, 0x4d, 0x42, 0x52, 0x2a, 0xd4, 0x96, 0x76, 0x1b, 0xba, 0x44, 0x48, 0x28, 0x6c,
-	0xaa, 0x56, 0x42, 0x42, 0x66, 0x9c, 0x78, 0x27, 0x23, 0x36, 0x1e, 0x77, 0xc7, 0xbb, 0x65, 0x6f,
-	0x88, 0x73, 0x0f, 0x48, 0x3d, 0x71, 0xe1, 0x6f, 0xe0, 0x2f, 0xe0, 0x9c, 0x63, 0x24, 0x0e, 0x70,
-	0x02, 0x94, 0x70, 0xe1, 0x5f, 0xe0, 0x84, 0x3c, 0x33, 0xee, 0xee, 0xd6, 0x3b, 0xde, 0xf5, 0xb6,
-	0x37, 0xcb, 0x7e, 0xef, 0xfb, 0xbe, 0x9f, 0xf9, 0xf1, 0x9e, 0x0c, 0xcb, 0xb4, 0x19, 0x04, 0x61,
-	0x9d, 0x05, 0x8d, 0x03, 0xb7, 0xcd, 0x9a, 0x71, 0x8b, 0x34, 0x68, 0x93, 0xb7, 0x22, 0xf7, 0x69,
-	0x2b, 0x68, 0x76, 0x9c, 0xa8, 0xc9, 0x63, 0x8e, 0xe7, 0xbb, 0x41, 0x4e, 0x6f, 0x90, 0xb5, 0xba,
-	0xcf, 0xc5, 0x11, 0x17, 0xae, 0x4f, 0x44, 0xa0, 0x32, 0xdc, 0xf6, 0xba, 0x1f, 0xc4, 0x64, 0xdd,
-	0x8d, 0x08, 0x65, 0x21, 0x89, 0x19, 0x0f, 0x95, 0x88, 0x35, 0x47, 0x39, 0xe5, 0xf2, 0xd1, 0x4d,
-	0x9e, 0xf4, 0xdb, 0x25, 0xca, 0x39, 0x6d, 0x04, 0x2e, 0x89, 0x98, 0x4b, 0xc2, 0x90, 0xc7, 0x32,
-	0x45, 0xe8, 0xaf, 0x97, 0x4d, 0xee, 0x22, 0xd2, 0x24, 0x47, 0x69, 0x94, 0x91, 0x21, 0xee, 0x44,
-	0x81, 0x0e, 0xb2, 0xe7, 0x00, 0x7f, 0x99, 0x18, 0xdc, 0x95, 0x99, 0xb5, 0xe0, 0x69, 0x2b, 0x10,
-	0xb1, 0xfd, 0x08, 0x66, 0xfb, 0xde, 0x8a, 0x88, 0x87, 0x22, 0xc0, 0x77, 0x60, 0x4a, 0x55, 0x58,
-	0x40, 0xef, 0xa2, 0x6b, 0x97, 0x36, 0xca, 0x8e, 0x61, 0x05, 0x1c, 0x95, 0x58, 0x39, 0x77, 0xfc,
-	0x67, 0x79, 0xa2, 0xa6, 0x93, 0xec, 0x27, 0x50, 0x92, 0xaa, 0xd5, 0x06, 0xf7, 0x49, 0xe3, 0xb1,
-	0x8a, 0xaf, 0x26, 0xf1, 0xba, 0x2e, 0xde, 0x82, 0x79, 0x2a, 0x3f, 0x7a, 0x5a, 0xcd, 0x93, 0x72,
-	0x1e, 0x3b, 0x90, 0x15, 0x67, 0x6a, 0x73, 0x34, 0x93, 0xbb, 0x73, 0x60, 0x7f, 0x8f, 0xa0, 0x6c,
-	0x54, 0xd6, 0xde, 0xbf, 0x86, 0xb9, 0x41, 0xd2, 0x9a, 0xe4, 0xba, 0x91, 0x64, 0x80, 0x24, 0xce,
-	0x9a, 0xb0, 0x43, 0xb8, 0x66, 0x70, 0x50, 0xe9, 0x3c, 0x24, 0x47, 0xac, 0xd1, 0xd9, 0xd9, 0x4e,
-	0x29, 0x2b, 0x50, 0x1a, 0x48, 0x59, 0x97, 0x71, 0x5d, 0x58, 0x2b, 0x5b, 0x47, 0x4b, 0x1d, 0xd8,
-	0xcf, 0x11, 0xbc, 0x3f, 0x42, 0x41, 0x0d, 0xef, 0xc1, 0xdb, 0x83, 0x2a, 0x26, 0xfb, 0xf8, 0x56,
-	0x51, 0xfa, 0xd9, 0xac, 0x2b, 0x61, 0x3f, 0x80, 0xcb, 0x06, 0x37, 0xca, 0x4b, 0x8a, 0xbe, 0x08,
-	0x17, 0x5f, 0xa5, 0xbc, 0x50, 0x4f, 0x99, 0x7e, 0x42, 0x70, 0x65, 0x88, 0x8a, 0xe6, 0x89, 0x60,
-	0x31, 0x67, 0x05, 0xf5, 0x9e, 0xae, 0x17, 0xa0, 0xd2, 0xfa, 0x0b, 0xa6, 0x15, 0xb7, 0x23, 0xb8,
-	0x9a, 0x67, 0x8d, 0x05, 0xe9, 0xdd, 0xc1, 0x0f, 0x01, 0xba, 0x97, 0x5c, 0x5b, 0xb9, 0xea, 0xa8,
-	0x8e, 0xe0, 0x24, 0x1d, 0xc1, 0x51, 0x3d, 0x44, 0x77, 0x04, 0x67, 0x97, 0xd0, 0x40, 0xe7, 0xd6,
-	0x7a, 0x32, 0xed, 0x63, 0x04, 0x2b, 0x43, 0x4b, 0xea, 0xf5, 0x78, 0x04, 0xd3, 0xb4, 0x4d, 0x15,
-	0x3e, 0x0b, 0xd2, 0x6d, 0x1d, 0x63, 0x01, 0x2e, 0xd1, 0x36, 0x4d, 0xd5, 0x71, 0xb5, 0x8f, 0x64,
-	0x52, 0x92, 0xac, 0x0c, 0x25, 0x51, 0x96, 0xfa, 0x50, 0x9a, 0xb0, 0x7a, 0xbf, 0x4d, 0x58, 0x83,
-	0xf8, 0x8d, 0x60, 0xf8, 0x02, 0x6e, 0x43, 0x39, 0xff, 0x7a, 0x28, 0xbe, 0x99, 0xda, 0xa2, 0xf9,
-	0x7e, 0x08, 0x5b, 0xc0, 0xf5, 0x91, 0x6a, 0xea, 0x15, 0x7c, 0x33, 0x45, 0x5f, 0x20, 0x78, 0x47,
-	0xee, 0xd9, 0xde, 0x33, 0x12, 0xed, 0x84, 0x3b, 0x61, 0x9d, 0xbf, 0xc1, 0x4b, 0x9f, 0xd7, 0x1e,
-	0x27, 0x73, 0xda, 0xe3, 0x37, 0x30, 0x9f, 0x31, 0xa5, 0xb1, 0x3f, 0x85, 0x69, 0xf1, 0x8c, 0x44,
-	0x1e, 0x0b, 0x3d, 0x16, 0xd6, 0xb9, 0x3e, 0xae, 0xcb, 0xc6, 0x83, 0xd3, 0x23, 0x01, 0xe2, 0xe5,
-	0xb3, 0xbd, 0x01, 0x8b, 0xaa, 0xc2, 0x6e, 0xf5, 0x71, 0x75, 0x2f, 0x19, 0x56, 0x22, 0x66, 0xfb,
-	0x2f, 0x77, 0x74, 0x16, 0xce, 0x8b, 0x9e, 0x26, 0x7e, 0x4e, 0x24, 0xae, 0xbe, 0x85, 0xa5, 0xc1,
-	0x39, 0xda, 0xda, 0xe7, 0x70, 0x31, 0x39, 0xd3, 0x22, 0x26, 0x71, 0x3a, 0x6f, 0x1c, 0xf3, 0x81,
-	0xee, 0x95, 0x78, 0xc2, 0xe2, 0x43, 0x16, 0xee, 0xed, 0xd6, 0x2e, 0xd0, 0x36, 0x4d, 0x5e, 0x8b,
-	0x8d, 0x93, 0x69, 0x38, 0x2f, 0xab, 0xe1, 0xe7, 0x08, 0xa6, 0xd4, 0x74, 0xc2, 0xe6, 0xb6, 0x97,
-	0x1d, 0x89, 0xd6, 0x8d, 0xd1, 0x82, 0x95, 0x79, 0x7b, 0xe5, 0x87, 0xdf, 0xfe, 0x79, 0x31, 0xf9,
-	0x1e, 0x2e, 0xbb, 0xf9, 0xa3, 0x1a, 0xff, 0x8a, 0x00, 0x67, 0x8f, 0x27, 0xfe, 0x28, 0xbf, 0x9a,
-	0x71, 0x82, 0x5a, 0xb7, 0x8a, 0x27, 0x6a, 0xcb, 0x5b, 0xd2, 0xb2, 0x8b, 0xd7, 0x8c, 0x96, 0x07,
-	0x9d, 0x3d, 0xfc, 0x2f, 0x82, 0xa5, 0xbc, 0x19, 0x84, 0xef, 0x17, 0x75, 0x94, 0x19, 0x98, 0x56,
-	0xe5, 0x75, 0x24, 0x34, 0x5e, 0x45, 0xe2, 0xdd, 0xc6, 0x1f, 0x17, 0xc2, 0xf3, 0xfc, 0x4e, 0xf7,
-	0x86, 0xe2, 0xdf, 0x11, 0x2c, 0x98, 0x5a, 0x27, 0xbe, 0x53, 0xd4, 0x64, 0xdf, 0x64, 0xb4, 0xee,
-	0x8e, 0x9b, 0xae, 0xf9, 0x6e, 0x4b, 0xbe, 0x9b, 0x78, 0xb3, 0x18, 0x9f, 0x82, 0xc3, 0x7f, 0x21,
-	0xb0, 0xcc, 0x5d, 0x12, 0x7f, 0x32, 0x96, 0xb9, 0x6e, 0x4f, 0xb7, 0xee, 0x8d, 0x2f, 0xa0, 0xf9,
-	0xee, 0x4a, 0xbe, 0x5b, 0xf8, 0xe6, 0x18, 0x7c, 0x09, 0xc2, 0x7f, 0x08, 0x96, 0x47, 0x18, 0x08,
-	0xf8, 0x81, 0xd1, 0xe9, 0xe8, 0x23, 0xcc, 0xda, 0x7e, 0x3d, 0x11, 0x8d, 0xfc, 0x99, 0x44, 0xae,
-	0xe0, 0x7b, 0x46, 0x64, 0x92, 0xaa, 0x79, 0xf9, 0xf0, 0x3f, 0x23, 0x80, 0x6e, 0xeb, 0xc6, 0x6e,
-	0xfe, 0x6e, 0x64, 0x86, 0x97, 0xf5, 0xc1, 0xe8, 0x09, 0xda, 0xfb, 0x9a, 0xf4, 0xbe, 0x82, 0xaf,
-	0x18, 0xbd, 0xf7, 0xce, 0x1d, 0xfc, 0x0b, 0x82, 0x99, 0xbe, 0x1e, 0x8e, 0x37, 0x87, 0x94, 0x1c,
-	0x38, 0x69, 0xac, 0xad, 0x82, 0x59, 0xda, 0xed, 0x86, 0x74, 0x7b, 0x03, 0xaf, 0x9a, 0xdd, 0x46,
-	0x5e, 0x3a, 0x8d, 0x54, 0x6e, 0xe5, 0x8b, 0xe3, 0xd3, 0x12, 0x3a, 0x39, 0x2d, 0xa1, 0xbf, 0x4f,
-	0x4b, 0xe8, 0xc7, 0xb3, 0xd2, 0xc4, 0xc9, 0x59, 0x69, 0xe2, 0x8f, 0xb3, 0xd2, 0xc4, 0x57, 0x9b,
-	0x94, 0xc5, 0x87, 0x2d, 0xdf, 0xd9, 0xe7, 0x47, 0xae, 0x1f, 0xfa, 0x6b, 0xfb, 0x87, 0x84, 0x85,
-	0xbd, 0xca, 0xdf, 0x0d, 0xf8, 0x1f, 0xf3, 0xa7, 0xe4, 0x0f, 0xd9, 0x87, 0xff, 0x07, 0x00, 0x00,
-	0xff, 0xff, 0x90, 0x43, 0xb6, 0xb4, 0x7b, 0x0e, 0x00, 0x00,
+	// 1120 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x98, 0x4f, 0x73, 0xdb, 0xc4,
+	0x1b, 0xc7, 0xb3, 0xf9, 0xb5, 0x99, 0xf6, 0x69, 0xf3, 0x03, 0x36, 0x81, 0x64, 0x94, 0x8c, 0x0d,
+	0x4a, 0xdb, 0x84, 0xb4, 0x91, 0x88, 0x49, 0x4a, 0x87, 0xe9, 0xbf, 0x38, 0x69, 0xdc, 0x90, 0x19,
+	0x08, 0x4e, 0x26, 0x9d, 0x61, 0x86, 0x11, 0x6b, 0x47, 0xde, 0xec, 0xc4, 0x96, 0x54, 0x4b, 0x76,
+	0x31, 0x27, 0xa6, 0xe7, 0x1e, 0x18, 0x7a, 0x82, 0x03, 0xaf, 0x81, 0x57, 0xc0, 0x39, 0xc7, 0xce,
+	0x70, 0x80, 0x13, 0x30, 0x09, 0x17, 0x78, 0x09, 0x9c, 0x18, 0xad, 0x56, 0xb1, 0x8d, 0xb5, 0xb2,
+	0xe4, 0xf8, 0xa6, 0x51, 0xf6, 0xf9, 0x3e, 0xdf, 0xcf, 0xb3, 0x8f, 0x9e, 0xdd, 0x18, 0xe6, 0x68,
+	0xdd, 0x34, 0xad, 0x0a, 0x33, 0xab, 0x07, 0x7a, 0x93, 0xd5, 0xbd, 0x06, 0xa9, 0xd2, 0xba, 0xdd,
+	0x70, 0xf4, 0xa7, 0x0d, 0xb3, 0xde, 0xd2, 0x9c, 0xba, 0xed, 0xd9, 0x78, 0xaa, 0xbd, 0x48, 0xeb,
+	0x5c, 0xa4, 0x2c, 0x96, 0x6d, 0xb7, 0x66, 0xbb, 0x7a, 0x89, 0xb8, 0x66, 0x10, 0xa1, 0x37, 0x97,
+	0x4b, 0xa6, 0x47, 0x96, 0x75, 0x87, 0x50, 0x66, 0x11, 0x8f, 0xd9, 0x56, 0x20, 0xa2, 0x4c, 0x52,
+	0x9b, 0xda, 0xfc, 0x51, 0xf7, 0x9f, 0xc4, 0xdb, 0x59, 0x6a, 0xdb, 0xb4, 0x6a, 0xea, 0xc4, 0x61,
+	0x3a, 0xb1, 0x2c, 0xdb, 0xe3, 0x21, 0xae, 0xf8, 0xeb, 0x35, 0x99, 0xbb, 0xb2, 0x5d, 0xab, 0x9d,
+	0x29, 0x4b, 0x57, 0x39, 0xa4, 0x4e, 0x6a, 0xa1, 0x96, 0x94, 0xd4, 0x6b, 0x39, 0xa6, 0x58, 0xa4,
+	0x4e, 0x02, 0xfe, 0xd4, 0xc7, 0xd8, 0xe1, 0x91, 0x45, 0xf3, 0x69, 0xc3, 0x74, 0x3d, 0x75, 0x0f,
+	0x26, 0xba, 0xde, 0xba, 0x8e, 0x6d, 0xb9, 0x26, 0xbe, 0x07, 0x63, 0x41, 0x86, 0x69, 0xf4, 0x36,
+	0x5a, 0xb8, 0x92, 0xcb, 0x6a, 0x92, 0x3a, 0x69, 0x41, 0x60, 0xfe, 0xc2, 0xf1, 0x6f, 0xd9, 0x91,
+	0xa2, 0x08, 0x52, 0x9f, 0x40, 0x86, 0xab, 0x16, 0xaa, 0x76, 0x89, 0x54, 0xf7, 0x83, 0xf5, 0x05,
+	0x7f, 0xbd, 0xc8, 0x8b, 0x57, 0x61, 0x8a, 0xf2, 0x3f, 0x1a, 0x42, 0xcd, 0xe0, 0x72, 0x06, 0x3b,
+	0xe0, 0x19, 0xc7, 0x8b, 0x93, 0xb4, 0x27, 0x76, 0xeb, 0x40, 0xfd, 0x1a, 0x41, 0x56, 0xaa, 0x2c,
+	0xbc, 0x7f, 0x0e, 0x93, 0x51, 0xd2, 0x82, 0xe4, 0xa6, 0x94, 0x24, 0x42, 0x12, 0xf7, 0x9a, 0x50,
+	0x2d, 0x58, 0x90, 0x38, 0xc8, 0xb7, 0x36, 0x49, 0x8d, 0x55, 0x5b, 0x5b, 0x1b, 0x21, 0x65, 0x1e,
+	0x32, 0x91, 0x94, 0x15, 0xbe, 0xae, 0x0d, 0xab, 0xf4, 0xe6, 0x11, 0x52, 0x07, 0xea, 0x0b, 0x04,
+	0xef, 0x26, 0x48, 0x28, 0xe0, 0x0d, 0x78, 0x33, 0x2a, 0xa3, 0xbf, 0x8f, 0xff, 0x4b, 0x4b, 0x3f,
+	0xd1, 0xeb, 0xca, 0x55, 0xd7, 0xe1, 0x9a, 0xc4, 0x4d, 0xe0, 0x25, 0x44, 0x9f, 0x81, 0xcb, 0xff,
+	0xa5, 0xbc, 0x54, 0x09, 0x99, 0xbe, 0x43, 0x70, 0xbd, 0x8f, 0x8a, 0xe0, 0x71, 0x60, 0x26, 0xa6,
+	0x82, 0x62, 0x4f, 0x97, 0x53, 0x50, 0x09, 0xfd, 0x69, 0x59, 0xc5, 0x55, 0x07, 0x6e, 0xc4, 0x59,
+	0x63, 0x66, 0xf8, 0xed, 0xe0, 0x4d, 0x80, 0xf6, 0x28, 0x10, 0x56, 0x6e, 0x68, 0xc1, 0xdc, 0xd0,
+	0xfc, 0xb9, 0xa1, 0x05, 0x93, 0x46, 0xcc, 0x0d, 0x6d, 0x87, 0x50, 0x53, 0xc4, 0x16, 0x3b, 0x22,
+	0xd5, 0x63, 0x04, 0xf3, 0x7d, 0x53, 0x8a, 0x7a, 0xec, 0xc1, 0x55, 0xda, 0xa4, 0x01, 0x3e, 0x33,
+	0xc3, 0x6d, 0x1d, 0xa0, 0x00, 0x57, 0x68, 0x93, 0x86, 0xea, 0xb8, 0xd0, 0x45, 0x32, 0xca, 0x49,
+	0xe6, 0xfb, 0x92, 0x04, 0x96, 0xba, 0x50, 0xea, 0xb0, 0xb8, 0xd6, 0x24, 0xac, 0x4a, 0x4a, 0x55,
+	0xb3, 0x7f, 0x01, 0x37, 0x20, 0x1b, 0xff, 0x79, 0x04, 0x7c, 0xe3, 0xc5, 0x19, 0xf9, 0xf7, 0xe1,
+	0xaa, 0x2e, 0xdc, 0x4c, 0x94, 0x53, 0x54, 0x70, 0x38, 0x49, 0x5f, 0x22, 0x78, 0x8b, 0xef, 0xd9,
+	0xee, 0x33, 0xe2, 0x6c, 0x59, 0x5b, 0x56, 0xc5, 0x1e, 0xe2, 0x47, 0x1f, 0x37, 0x1e, 0x47, 0x63,
+	0xc6, 0xe3, 0x17, 0x30, 0xd5, 0x63, 0x4a, 0x60, 0x3f, 0x82, 0xab, 0xee, 0x33, 0xe2, 0x18, 0xcc,
+	0x32, 0x98, 0x55, 0xb1, 0x45, 0xbb, 0xce, 0x49, 0x1b, 0xa7, 0x43, 0x02, 0xdc, 0xb3, 0x67, 0x35,
+	0x07, 0x33, 0x41, 0x86, 0x9d, 0xc2, 0x7e, 0x61, 0xd7, 0x3f, 0xd2, 0x5c, 0x8f, 0x95, 0xcf, 0x76,
+	0x74, 0x02, 0x2e, 0xba, 0x1d, 0x43, 0xfc, 0x82, 0xeb, 0xbb, 0x3a, 0x82, 0xd9, 0xe8, 0x18, 0x61,
+	0x6d, 0x1b, 0x2e, 0xfb, 0x3d, 0xed, 0x7a, 0xc4, 0x0b, 0xcf, 0x1b, 0x4d, 0xde, 0xd0, 0x9d, 0x12,
+	0x4f, 0x98, 0x77, 0xc8, 0xac, 0xdd, 0x9d, 0xe2, 0x25, 0xda, 0xa4, 0xfe, 0x6b, 0x57, 0x7d, 0x0c,
+	0xcb, 0x22, 0x59, 0x8a, 0x46, 0x8c, 0xb4, 0xfd, 0x15, 0xe4, 0xd2, 0x28, 0x0d, 0xb5, 0xbd, 0xbe,
+	0x47, 0xb0, 0x14, 0x24, 0x77, 0x3e, 0x71, 0x3c, 0x56, 0x23, 0xd5, 0x7e, 0xf3, 0x36, 0x0a, 0x01,
+	0xef, 0xc1, 0x1b, 0x0e, 0x2b, 0x1f, 0x19, 0x4d, 0x5a, 0x31, 0x5c, 0xaf, 0x4e, 0x3c, 0x93, 0xb6,
+	0x78, 0x03, 0xfd, 0x3f, 0xb7, 0x20, 0x3f, 0xd1, 0x59, 0xf9, 0x68, 0xbf, 0xb0, 0xb9, 0x2b, 0xd6,
+	0x17, 0x5f, 0xf3, 0x25, 0xf6, 0x69, 0x25, 0x7c, 0xa1, 0x7a, 0xa0, 0x25, 0xf5, 0x26, 0x8a, 0x32,
+	0x84, 0x4f, 0x22, 0xf7, 0xf7, 0xeb, 0x70, 0x91, 0xa7, 0xc5, 0x2f, 0x10, 0x8c, 0x05, 0xd7, 0x0e,
+	0x2c, 0x3f, 0xcf, 0x7a, 0xef, 0x3a, 0xca, 0xad, 0x64, 0x8b, 0x03, 0xcf, 0xea, 0xfc, 0xf3, 0x9f,
+	0xff, 0x7c, 0x39, 0xfa, 0x0e, 0xce, 0xea, 0xf1, 0x77, 0x30, 0xfc, 0x13, 0x02, 0xdc, 0x5b, 0x01,
+	0xfc, 0x41, 0x7c, 0x36, 0xe9, 0xd5, 0x48, 0xb9, 0x93, 0x3e, 0x50, 0x58, 0x5e, 0xe5, 0x96, 0x75,
+	0xbc, 0x24, 0xb5, 0x1c, 0xb5, 0x0b, 0xf8, 0x2f, 0x04, 0xb3, 0x71, 0x97, 0x0b, 0xbc, 0x96, 0xd6,
+	0x51, 0xcf, 0x4d, 0x48, 0xc9, 0x9f, 0x47, 0x42, 0xe0, 0xe5, 0x39, 0xde, 0x5d, 0xfc, 0x61, 0x2a,
+	0x3c, 0xa3, 0xd4, 0x6a, 0xf7, 0x19, 0xfe, 0x05, 0xc1, 0xb4, 0xac, 0x5d, 0xf1, 0xbd, 0xb4, 0x26,
+	0xbb, 0x3e, 0x41, 0xe5, 0xfe, 0xa0, 0xe1, 0x82, 0xef, 0x2e, 0xe7, 0xbb, 0x8d, 0x57, 0xd2, 0xf1,
+	0x05, 0x70, 0xf8, 0x77, 0x04, 0x8a, 0x7c, 0x3e, 0xe1, 0x07, 0x03, 0x99, 0x6b, 0xcf, 0x48, 0xe5,
+	0xe1, 0xe0, 0x02, 0x82, 0xef, 0x3e, 0xe7, 0xbb, 0x83, 0x6f, 0x0f, 0xc0, 0xe7, 0x23, 0xfc, 0x83,
+	0x60, 0x2e, 0xc1, 0x28, 0xc6, 0xeb, 0x52, 0xa7, 0xc9, 0x8f, 0x04, 0x65, 0xe3, 0x7c, 0x22, 0x02,
+	0xf9, 0x31, 0x47, 0xce, 0xe3, 0x87, 0x52, 0x64, 0x12, 0xaa, 0x19, 0xf1, 0xf0, 0x3f, 0x20, 0x80,
+	0xf6, 0x99, 0x8c, 0xf5, 0xf8, 0xdd, 0xe8, 0xb9, 0x95, 0x28, 0xef, 0x25, 0x0f, 0x10, 0xde, 0x97,
+	0xb8, 0xf7, 0x79, 0x7c, 0x5d, 0xea, 0xbd, 0xf3, 0x42, 0x81, 0x7f, 0x44, 0x30, 0xde, 0x75, 0x38,
+	0xe3, 0x95, 0x3e, 0x29, 0x23, 0xaf, 0x10, 0xca, 0x6a, 0xca, 0x28, 0xe1, 0x36, 0xc7, 0xdd, 0xde,
+	0xc2, 0x8b, 0x72, 0xb7, 0x8e, 0x11, 0x5e, 0x33, 0x84, 0xc1, 0x6f, 0x47, 0x61, 0x51, 0x9c, 0x64,
+	0x49, 0xfa, 0xea, 0xa3, 0x7e, 0xce, 0x52, 0xb4, 0xd7, 0xf6, 0x50, 0xb4, 0x04, 0xfb, 0x36, 0x67,
+	0x7f, 0x84, 0xd7, 0xe3, 0xd8, 0x93, 0x36, 0xda, 0xf3, 0x51, 0xf1, 0x0f, 0x50, 0xdf, 0xe3, 0x1d,
+	0x6f, 0xf6, 0x81, 0x48, 0x78, 0x77, 0x51, 0x0a, 0xe7, 0xd6, 0x11, 0x85, 0x28, 0xf0, 0x42, 0xac,
+	0xe1, 0x07, 0x71, 0x85, 0xb0, 0x03, 0xb1, 0x98, 0x32, 0xb4, 0xf2, 0x1f, 0x1f, 0x9f, 0x64, 0xd0,
+	0xab, 0x93, 0x0c, 0xfa, 0xe3, 0x24, 0x83, 0xbe, 0x39, 0xcd, 0x8c, 0xbc, 0x3a, 0xcd, 0x8c, 0xfc,
+	0x7a, 0x9a, 0x19, 0xf9, 0x6c, 0x85, 0x32, 0xef, 0xb0, 0x51, 0xd2, 0xca, 0x76, 0x4d, 0x2f, 0x59,
+	0xa5, 0xa5, 0xf2, 0x21, 0x61, 0x56, 0x67, 0xba, 0x2f, 0x23, 0x7e, 0x82, 0x29, 0x8d, 0xf1, 0xdf,
+	0x60, 0xde, 0xff, 0x37, 0x00, 0x00, 0xff, 0xff, 0x6a, 0x1e, 0x4e, 0x52, 0x94, 0x12, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -878,6 +1092,10 @@ type QueryClient interface {
 	SwapInInfo(ctx context.Context, in *QuerySwapInInfoRequest, opts ...grpc.CallOption) (*QuerySwapInInfoResponse, error)
 	// GVGStatistics gets gvg statistics for a SP
 	GVGStatistics(ctx context.Context, in *QuerySPGVGStatisticsRequest, opts ...grpc.CallOption) (*QuerySPGVGStatisticsResponse, error)
+	// QuerySpAvailableGlobalVirtualGroupFamilies filters a list of GlobalVirtualGroupFamilies IDs under a certain SP that are qualified to create a bucket on
+	QuerySpAvailableGlobalVirtualGroupFamilies(ctx context.Context, in *QuerySPAvailableGlobalVirtualGroupFamiliesRequest, opts ...grpc.CallOption) (*QuerySPAvailableGlobalVirtualGroupFamiliesResponse, error)
+	// QuerySpOptimalGlobalVirtualGroupFamily filters the optimal GlobalVirtualGroupFamily under a certain SP that is qualified to create a bucket on
+	QuerySpOptimalGlobalVirtualGroupFamily(ctx context.Context, in *QuerySpOptimalGlobalVirtualGroupFamilyRequest, opts ...grpc.CallOption) (*QuerySpOptimalGlobalVirtualGroupFamilyResponse, error)
 }
 
 type queryClient struct {
@@ -960,6 +1178,24 @@ func (c *queryClient) GVGStatistics(ctx context.Context, in *QuerySPGVGStatistic
 	return out, nil
 }
 
+func (c *queryClient) QuerySpAvailableGlobalVirtualGroupFamilies(ctx context.Context, in *QuerySPAvailableGlobalVirtualGroupFamiliesRequest, opts ...grpc.CallOption) (*QuerySPAvailableGlobalVirtualGroupFamiliesResponse, error) {
+	out := new(QuerySPAvailableGlobalVirtualGroupFamiliesResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Query/QuerySpAvailableGlobalVirtualGroupFamilies", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) QuerySpOptimalGlobalVirtualGroupFamily(ctx context.Context, in *QuerySpOptimalGlobalVirtualGroupFamilyRequest, opts ...grpc.CallOption) (*QuerySpOptimalGlobalVirtualGroupFamilyResponse, error) {
+	out := new(QuerySpOptimalGlobalVirtualGroupFamilyResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Query/QuerySpOptimalGlobalVirtualGroupFamily", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
@@ -978,6 +1214,10 @@ type QueryServer interface {
 	SwapInInfo(context.Context, *QuerySwapInInfoRequest) (*QuerySwapInInfoResponse, error)
 	// GVGStatistics gets gvg statistics for a SP
 	GVGStatistics(context.Context, *QuerySPGVGStatisticsRequest) (*QuerySPGVGStatisticsResponse, error)
+	// QuerySpAvailableGlobalVirtualGroupFamilies filters a list of GlobalVirtualGroupFamilies IDs under a certain SP that are qualified to create a bucket on
+	QuerySpAvailableGlobalVirtualGroupFamilies(context.Context, *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) (*QuerySPAvailableGlobalVirtualGroupFamiliesResponse, error)
+	// QuerySpOptimalGlobalVirtualGroupFamily filters the optimal GlobalVirtualGroupFamily under a certain SP that is qualified to create a bucket on
+	QuerySpOptimalGlobalVirtualGroupFamily(context.Context, *QuerySpOptimalGlobalVirtualGroupFamilyRequest) (*QuerySpOptimalGlobalVirtualGroupFamilyResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -1007,6 +1247,12 @@ func (*UnimplementedQueryServer) SwapInInfo(ctx context.Context, req *QuerySwapI
 }
 func (*UnimplementedQueryServer) GVGStatistics(ctx context.Context, req *QuerySPGVGStatisticsRequest) (*QuerySPGVGStatisticsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GVGStatistics not implemented")
+}
+func (*UnimplementedQueryServer) QuerySpAvailableGlobalVirtualGroupFamilies(ctx context.Context, req *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) (*QuerySPAvailableGlobalVirtualGroupFamiliesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QuerySpAvailableGlobalVirtualGroupFamilies not implemented")
+}
+func (*UnimplementedQueryServer) QuerySpOptimalGlobalVirtualGroupFamily(ctx context.Context, req *QuerySpOptimalGlobalVirtualGroupFamilyRequest) (*QuerySpOptimalGlobalVirtualGroupFamilyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QuerySpOptimalGlobalVirtualGroupFamily not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1157,6 +1403,42 @@ func _Query_GVGStatistics_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_QuerySpAvailableGlobalVirtualGroupFamilies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuerySPAvailableGlobalVirtualGroupFamiliesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).QuerySpAvailableGlobalVirtualGroupFamilies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Query/QuerySpAvailableGlobalVirtualGroupFamilies",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).QuerySpAvailableGlobalVirtualGroupFamilies(ctx, req.(*QuerySPAvailableGlobalVirtualGroupFamiliesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_QuerySpOptimalGlobalVirtualGroupFamily_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuerySpOptimalGlobalVirtualGroupFamilyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).QuerySpOptimalGlobalVirtualGroupFamily(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Query/QuerySpOptimalGlobalVirtualGroupFamily",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).QuerySpOptimalGlobalVirtualGroupFamily(ctx, req.(*QuerySpOptimalGlobalVirtualGroupFamilyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "greenfield.virtualgroup.Query",
 	HandlerType: (*QueryServer)(nil),
@@ -1192,6 +1474,14 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GVGStatistics",
 			Handler:    _Query_GVGStatistics_Handler,
+		},
+		{
+			MethodName: "QuerySpAvailableGlobalVirtualGroupFamilies",
+			Handler:    _Query_QuerySpAvailableGlobalVirtualGroupFamilies_Handler,
+		},
+		{
+			MethodName: "QuerySpOptimalGlobalVirtualGroupFamily",
+			Handler:    _Query_QuerySpOptimalGlobalVirtualGroupFamily_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1742,6 +2032,136 @@ func (m *QuerySPGVGStatisticsResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.SpId != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.SpId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.GlobalVirtualGroupFamilyIds) > 0 {
+		dAtA13 := make([]byte, len(m.GlobalVirtualGroupFamilyIds)*10)
+		var j12 int
+		for _, num := range m.GlobalVirtualGroupFamilyIds {
+			for num >= 1<<7 {
+				dAtA13[j12] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j12++
+			}
+			dAtA13[j12] = uint8(num)
+			j12++
+		}
+		i -= j12
+		copy(dAtA[i:], dAtA13[:j12])
+		i = encodeVarintQuery(dAtA, i, uint64(j12))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.PickVgfStrategy != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.PickVgfStrategy))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.SpId != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.SpId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.GlobalVirtualGroupFamilyId != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.GlobalVirtualGroupFamilyId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -1963,6 +2383,61 @@ func (m *QuerySPGVGStatisticsResponse) Size() (n int) {
 	if m.GvgStats != nil {
 		l = m.GvgStats.Size()
 		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.SpId != 0 {
+		n += 1 + sovQuery(uint64(m.SpId))
+	}
+	return n
+}
+
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.GlobalVirtualGroupFamilyIds) > 0 {
+		l = 0
+		for _, e := range m.GlobalVirtualGroupFamilyIds {
+			l += sovQuery(uint64(e))
+		}
+		n += 1 + sovQuery(uint64(l)) + l
+	}
+	return n
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.SpId != 0 {
+		n += 1 + sovQuery(uint64(m.SpId))
+	}
+	if m.PickVgfStrategy != 0 {
+		n += 1 + sovQuery(uint64(m.PickVgfStrategy))
+	}
+	return n
+}
+
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.GlobalVirtualGroupFamilyId != 0 {
+		n += 1 + sovQuery(uint64(m.GlobalVirtualGroupFamilyId))
 	}
 	return n
 }
@@ -3335,6 +3810,358 @@ func (m *QuerySPGVGStatisticsResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QuerySPAvailableGlobalVirtualGroupFamiliesRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QuerySPAvailableGlobalVirtualGroupFamiliesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpId", wireType)
+			}
+			m.SpId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SpId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QuerySPAvailableGlobalVirtualGroupFamiliesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QuerySPAvailableGlobalVirtualGroupFamiliesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QuerySPAvailableGlobalVirtualGroupFamiliesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.GlobalVirtualGroupFamilyIds = append(m.GlobalVirtualGroupFamilyIds, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthQuery
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthQuery
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.GlobalVirtualGroupFamilyIds) == 0 {
+					m.GlobalVirtualGroupFamilyIds = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowQuery
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.GlobalVirtualGroupFamilyIds = append(m.GlobalVirtualGroupFamilyIds, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupFamilyIds", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QuerySpOptimalGlobalVirtualGroupFamilyRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QuerySpOptimalGlobalVirtualGroupFamilyRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpId", wireType)
+			}
+			m.SpId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SpId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PickVgfStrategy", wireType)
+			}
+			m.PickVgfStrategy = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PickVgfStrategy |= PickVGFStrategy(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QuerySpOptimalGlobalVirtualGroupFamilyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QuerySpOptimalGlobalVirtualGroupFamilyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QuerySpOptimalGlobalVirtualGroupFamilyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupFamilyId", wireType)
+			}
+			m.GlobalVirtualGroupFamilyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupFamilyId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])
