@@ -50,7 +50,7 @@ func (s *TestSuite) SetupTest() {
 	header := testCtx.Ctx.BlockHeader()
 	header.Time = time.Now()
 	upgradeChecker := func(ctx sdk.Context, name string) bool {
-		return name == upgradetypes.Pawnee
+		return name == upgradetypes.Serengeti
 	}
 	testCtx = testutil.TestContext{
 		Ctx: sdk.NewContext(testCtx.CMS, header, false, upgradeChecker, testCtx.Ctx.Logger()),
