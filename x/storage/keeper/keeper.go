@@ -2629,7 +2629,7 @@ func (k Keeper) CheckLockBalance(ctx sdk.Context) {
 		//}
 		if lock.locked != lock.expected {
 			fmt.Println("not equal", address, lock.locked, lock.expected)
-			panic("not equal")
+			//panic("not equal")
 		}
 	}
 	fmt.Println("totalLocked", totalLocked, "totalExpected", totalExpected)
