@@ -6,14 +6,6 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/gogoproto/proto"
-
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	types2 "github.com/bnb-chain/greenfield/types"
@@ -26,6 +18,13 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -117,14 +116,22 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
 	}
 
-	// check primary sp approval
-	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
+		// check primary sp approval
+		if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
+			return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+		}
+		err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, ownerAcc)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		err = k.VerifySP(ctx, sp, ownerAcc)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
-	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, ownerAcc)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
-	}
+
 	gvgFamily, err := k.virtualGroupKeeper.GetAndCheckGVGFamilyAvailableForNewBucket(ctx, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
@@ -590,21 +597,25 @@ func (k Keeper) CreateObject(
 			operator.String(), bucketName)
 	}
 
-	// set objectInfo creator to empty if same as owner
 	objectInfoCreator := creator
 	if objectInfoCreator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
 		objectInfoCreator = sdk.AccAddress{}
 	}
 
-	//// check approval
-	//if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-	//	return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
-	//}
-	//
-	//err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
-	//if err != nil {
-	//	return sdkmath.ZeroUint(), err
-	//}
+	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
+		if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
+			return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+		}
+		err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		err = k.VerifySP(ctx, sp, operator)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	}
 
 	objectKey := types.GetObjectKey(bucketName, objectName)
 	if store.Has(objectKey) {
@@ -1644,6 +1655,13 @@ func (k Keeper) VerifySPAndSignature(_ sdk.Context, sp *sptypes.StorageProvider,
 	return nil
 }
 
+func (k Keeper) VerifySP(_ sdk.Context, sp *sptypes.StorageProvider, operator sdk.AccAddress) error {
+	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, operator) {
+		return sptypes.ErrStorageProviderNotInService
+	}
+	return nil
+}
+
 func (k Keeper) GenNextBucketId(ctx sdk.Context) sdkmath.Uint {
 	store := ctx.KVStore(k.storeKey)
 
@@ -2468,10 +2486,12 @@ func (k Keeper) UpdateObjectContent(
 			"The updater(%s) has no updateObjectContent permission of the bucket(%s), object(%s)",
 			updater.String(), bucketName, objectName)
 	}
+
 	// check payload size
 	if payloadSize > k.MaxPayloadSize(ctx) {
 		return types.ErrTooLargeObject
 	}
+
 	// primary sp
 	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 	// a sp is not in service, neither in maintenance
@@ -2487,6 +2507,7 @@ func (k Keeper) UpdateObjectContent(
 		}
 	}
 	nextVersion := objectInfo.Version + 1
+
 	if payloadSize == 0 {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 		err := k.UnChargeObjectStoreFee(ctx, bucketInfo, k.MustGetInternalBucketInfo(ctx, bucketInfo.Id), objectInfo)
@@ -2530,6 +2551,7 @@ func (k Keeper) UpdateObjectContent(
 	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventUpdateObjectContent{
 		Operator:    updater.String(),
 		ObjectId:    objectInfo.Id,

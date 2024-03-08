@@ -30,6 +30,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerHulunbeierPatchUpgradeHandler()
 	app.registerUralUpgradeHandler()
 	app.registerPawneeUpgradeHandler()
+	app.registerSerengetiUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -219,6 +220,23 @@ func (app *App) registerPawneeUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Pawnee,
 		func() error {
 			app.Logger().Info("Init Pawnee upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerSerengetiUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Serengeti,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			app.VirtualgroupKeeper.MigrateGlobalVirtualGroupFamiliesForSP(ctx)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Serengeti,
+		func() error {
+			app.Logger().Info("Init Serengeti upgrade")
 			return nil
 		})
 }
