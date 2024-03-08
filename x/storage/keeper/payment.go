@@ -128,7 +128,7 @@ func (k Keeper) lockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.Buc
 			Amount:         amount,
 		})
 	}
-
+	fmt.Println("bucket", bucketInfo.BucketName, "objectName", objectName, "payloadSize", payloadSize, "timestamp", timestamp, "amount", amount)
 	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).WithLockBalanceChange(amount)
 	streamRecord, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {

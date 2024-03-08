@@ -222,11 +222,13 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 
 func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRecordChange) (ret *types.StreamRecord, err error) {
 	streamRecord, _ := k.GetStreamRecord(ctx, change.Addr)
+	fmt.Println("sr before", streamRecord.Account, streamRecord.LockBalance)
 	err = k.UpdateStreamRecord(ctx, streamRecord, change)
 	if err != nil {
 		return
 	}
 	k.SetStreamRecord(ctx, streamRecord)
+	fmt.Println("sr after", streamRecord.Account, streamRecord.LockBalance)
 	return streamRecord, nil
 }
 
