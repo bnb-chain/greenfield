@@ -8,7 +8,7 @@ import (
 	"github.com/bnb-chain/greenfield/types/s3util"
 )
 
-const TypeMsgSetBucketFlowRateLimit = "cancel_migrate_bucket"
+const TypeMsgSetBucketFlowRateLimit = "set_bucket_flow_rate_limit"
 
 var _ sdk.Msg = &MsgSetBucketFlowRateLimit{}
 

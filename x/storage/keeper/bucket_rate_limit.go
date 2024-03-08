@@ -8,7 +8,6 @@ import (
 
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 func (k Keeper) SetBucketFlowRateLimit(ctx sdk.Context, operator sdk.AccAddress, bucketOwner sdk.AccAddress, paymentAccount sdk.AccAddress, bucketName string, rateLimit sdkmath.Int) error {
@@ -55,8 +54,8 @@ func (k Keeper) SetBucketFlowRateLimit(ctx sdk.Context, operator sdk.AccAddress,
 	return nil
 }
 
-func (k Keeper) unChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
-	internalBucketInfo *storagetypes.InternalBucketInfo) error {
+func (k Keeper) unChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *types.BucketInfo,
+	internalBucketInfo *types.InternalBucketInfo) error {
 	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
 		return fmt.Errorf("get bucket bill failed: %s %s", bucketInfo.BucketName, err.Error())
@@ -69,8 +68,8 @@ func (k Keeper) unChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storaget
 	return nil
 }
 
-func (k Keeper) chargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
-	internalBucketInfo *storagetypes.InternalBucketInfo) error {
+func (k Keeper) chargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *types.BucketInfo,
+	internalBucketInfo *types.InternalBucketInfo) error {
 	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
