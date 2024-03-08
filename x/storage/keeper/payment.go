@@ -520,11 +520,15 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, priceTime int64, payloadSize u
 		return amount, fmt.Errorf("get charge size failed: %d %w", priceTime, err)
 	}
 
+	fmt.Println("price", price.PrimaryStorePrice, price.SecondaryStorePrice)
+
 	primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 
 	secondarySPNum := int64(k.GetExpectSecondarySPNumForECObject(ctx, priceTime))
 	secondaryRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	secondaryRate = secondaryRate.MulRaw(int64(secondarySPNum))
+
+	fmt.Println("rate", primaryRate, secondarySPNum, secondaryRate)
 
 	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, priceTime)
 	if err != nil {
@@ -532,8 +536,12 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, priceTime int64, payloadSize u
 	}
 	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryRate.Add(secondaryRate)).TruncateInt()
 
+	fmt.Println("params", versionedParams.ValidatorTaxRate, versionedParams.ReserveTime)
+
 	rate := primaryRate.Add(secondaryRate).Add(validatorTaxRate) // should also lock for validator tax pool
 	amount = rate.Mul(sdkmath.NewIntFromUint64(versionedParams.ReserveTime))
+
+	fmt.Println("final amount", rate, amount)
 	return amount, nil
 }
 
