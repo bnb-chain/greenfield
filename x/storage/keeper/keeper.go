@@ -1117,6 +1117,10 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), types.ErrSourceTypeMismatch
 	}
 
+	if srcObjectInfo.IsUpdating {
+		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("the object is being updated, can not be copied")
+	}
+
 	// check permission
 	effect := k.VerifyObjectPermission(ctx, srcBucketInfo, srcObjectInfo, operator, permtypes.ACTION_COPY_OBJECT)
 	if effect != permtypes.EFFECT_ALLOW {
