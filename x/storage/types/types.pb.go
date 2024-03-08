@@ -52,7 +52,7 @@ type BucketInfo struct {
 	// tags defines a list of tags the bucket has
 	Tags *ResourceTags `protobuf:"bytes,11,opt,name=tags,proto3" json:"tags,omitempty"`
 	// sp_as_delegated_agent_disabled indicates that whether bucket owner disable SP as the upload agent.
-	// when a bucket is created, Sp is delegated to create object for owner or granted users by default.
+	// when a bucket is created, by default, this is false, means SP is allowed to create object for delegator
 	SpAsDelegatedAgentDisabled bool `protobuf:"varint,12,opt,name=sp_as_delegated_agent_disabled,json=spAsDelegatedAgentDisabled,proto3" json:"sp_as_delegated_agent_disabled,omitempty"`
 }
 

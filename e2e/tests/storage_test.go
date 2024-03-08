@@ -11,8 +11,6 @@ import (
 	"testing"
 	"time"
 
-	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
-
 	sdkmath "cosmossdk.io/math"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -2455,8 +2453,6 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 	s.Require().True(found)
 
 	bucketOwner := s.GenAndChargeAccounts(1, 1000000)[0]
-	user := s.GenAndChargeAccounts(1, 100)[0]
-
 	bucketName := storageutils.GenRandomBucketName()
 	objectName := storageutils.GenRandomObjectName()
 
@@ -2487,7 +2483,7 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 	contextType := "text/event-stream"
 	msgDelegateCreateObject := storagetypes.NewMsgDelegateCreateObject(
 		sp.OperatorKey.GetAddr(),
-		user.GetAddr(),
+		bucketOwner.GetAddr(),
 		bucketName,
 		objectName,
 		uint64(payloadSize),
@@ -2495,21 +2491,6 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 		nil,
 		contextType,
 		storagetypes.REDUNDANCY_EC_TYPE)
-	s.SendTxBlockWithExpectErrorString(msgDelegateCreateObject, sp.OperatorKey, "has no CreateObject permission of the bucket")
-
-	statement := &permissiontypes.Statement{
-		Actions:   []permissiontypes.ActionType{permissiontypes.ACTION_CREATE_OBJECT, permissiontypes.ACTION_UPDATE_OBJECT_CONTENT},
-		Effect:    permissiontypes.EFFECT_ALLOW,
-		Resources: []string{fmt.Sprintf("grn:o::%s/*", bucketName)},
-	}
-
-	principal := permissiontypes.NewPrincipalWithAccount(user.GetAddr())
-	msgPutPolicy := storagetypes.NewMsgPutPolicy(bucketOwner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
-		principal, []*permissiontypes.Statement{statement}, nil)
-	fmt.Println(types2.NewBucketGRN(bucketName).String())
-
-	s.SendTxBlock(bucketOwner, msgPutPolicy)
-
 	s.SendTxBlock(sp.OperatorKey, msgDelegateCreateObject)
 
 	headObjectReq := storagetypes.QueryHeadObjectRequest{
@@ -2519,7 +2500,6 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 	headObjectResp, err := s.Client.HeadObject(ctx, &headObjectReq)
 	s.Require().NoError(err)
 	s.Require().Equal(objectName, headObjectResp.ObjectInfo.ObjectName)
-	s.Require().Equal(user.GetAddr().String(), headObjectResp.ObjectInfo.Creator)
 	s.Require().Equal(bucketOwner.GetAddr().String(), headObjectResp.ObjectInfo.Owner)
 	s.Require().Equal(0, len(headObjectResp.ObjectInfo.Checksums))
 
@@ -2550,7 +2530,6 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 	headObjectResp, err = s.Client.HeadObject(ctx, &headObjectReq)
 	s.Require().NoError(err)
 	s.Require().Equal(objectName, headObjectResp.ObjectInfo.ObjectName)
-	s.Require().Equal(user.GetAddr().String(), headObjectResp.ObjectInfo.Creator)
 	s.Require().Equal(bucketOwner.GetAddr().String(), headObjectResp.ObjectInfo.Owner)
 	s.Require().Equal(expectChecksum, headObjectResp.ObjectInfo.Checksums)
 
@@ -2564,7 +2543,7 @@ func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
 	newExpectChecksum := [][]byte{newChecksum, newChecksum, newChecksum, newChecksum, newChecksum, newChecksum, newChecksum}
 
 	msgUpdateObject := storagetypes.NewMsgDelegateUpdateObjectContent(sp.OperatorKey.GetAddr(),
-		user.GetAddr(), bucketName, objectName, newPayloadSize, nil)
+		bucketOwner.GetAddr(), bucketName, objectName, newPayloadSize, nil)
 	s.SendTxBlock(sp.OperatorKey, msgUpdateObject)
 	s.T().Logf("msgUpdateObject %s", msgUpdateObject.String())
 
