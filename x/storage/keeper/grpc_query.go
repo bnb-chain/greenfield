@@ -62,7 +62,7 @@ func (k Keeper) HeadBucket(goCtx context.Context, req *types.QueryHeadBucketRequ
 
 	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
 	if found {
-		extraInfo, err := k.GetBucketExtraInfo(ctx, req.BucketName)
+		extraInfo, err := k.GetBucketExtraInfo(ctx, bucketInfo)
 		if err != nil {
 			return nil, err
 		}

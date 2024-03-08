@@ -282,17 +282,12 @@ func (k Keeper) isBucketFlowRateUnderLimitWithRate(ctx sdk.Context, paymentAccou
 }
 
 // GetBucketExtraInfo returns the extra info of the bucket
-func (k Keeper) GetBucketExtraInfo(ctx sdk.Context, bucketName string) (*types.BucketExtraInfo, error) {
-	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
-	if !found {
-		return nil, types.ErrNoSuchBucket
-	}
-
+func (k Keeper) GetBucketExtraInfo(ctx sdk.Context, bucketInfo *types.BucketInfo) (*types.BucketExtraInfo, error) {
 	paymentAcc, err := sdk.AccAddressFromHexUnsafe(bucketInfo.PaymentAddress)
 	if err != nil {
 		return nil, err
 	}
-	rateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAcc, bucketName)
+	rateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAcc, bucketInfo.BucketName)
 
 	extraInfo := &types.BucketExtraInfo{}
 
