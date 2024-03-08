@@ -40,7 +40,7 @@ var (
 
 	ShadowObjectInfoPrefix = []byte{0x16}
 
-	CreatedObjectCountPrefix = []byte{0x17}
+	LockedObjectCountPrefix = []byte{0x17} // key to track count of created/updating objects, which will involve lock fee
 
 	BucketByIDPrefix = []byte{0x21}
 	ObjectByIDPrefix = []byte{0x22}
@@ -168,7 +168,7 @@ func GetInternalBucketInfoKey(bucketID math.Uint) []byte {
 	return append(InternalBucketInfoPrefix, seq.EncodeSequence(bucketID)...)
 }
 
-func GetCreatedObjectCountKey(bucketId math.Uint) []byte {
+func GetLockedObjectCountKey(bucketId math.Uint) []byte {
 	var seq sequence.Sequence[math.Uint]
-	return append(CreatedObjectCountPrefix, seq.EncodeSequence(bucketId)...)
+	return append(LockedObjectCountPrefix, seq.EncodeSequence(bucketId)...)
 }
