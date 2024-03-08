@@ -49,6 +49,7 @@ type PaymentKeeper interface {
 	UpdateStreamRecordByAddr(ctx sdk.Context, change *paymenttypes.StreamRecordChange) (ret *paymenttypes.StreamRecord, err error)
 	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (ret *paymenttypes.StreamRecord, found bool)
 	MergeOutFlows(flows []paymenttypes.OutFlow) []paymenttypes.OutFlow
+	GetAllStreamRecord(ctx sdk.Context) (list []paymenttypes.StreamRecord)
 }
 
 type PermissionKeeper interface {

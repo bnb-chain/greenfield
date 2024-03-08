@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"fmt"
 
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
@@ -36,6 +37,16 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 	if deleted >= deletionMax {
 		return
 	}
+
+	//bucketNames := []string{
+	//	"u-100-sp111",
+	//	"uploadimg",
+	//	"testaccount",
+	//	"pay1-1gb",
+	//}
+
+	fmt.Println("\n\n ############## checking in end block ##############", ctx.TxSize())
+	keeper.CheckLockBalance(ctx)
 
 	// delete buckets
 	_, err = keeper.DeleteDiscontinueBucketsUntil(ctx, blockTime, deletionMax-deleted)

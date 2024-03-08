@@ -2566,3 +2566,86 @@ func (k Keeper) CancelUpdateObjectContent(
 		ObjectId:   objectInfo.Id,
 	})
 }
+
+func (k Keeper) CheckLockBalance(ctx sdk.Context) {
+	fmt.Println("\n\n-------------checking lock balance-------------")
+	type LockDetail struct {
+		locked   uint64
+		expected uint64
+	}
+	paymentLocks := make(map[string]LockDetail, 0)
+
+	store := ctx.KVStore(k.storeKey)
+	bucketStore := prefix.NewStore(store, types.BucketByIDPrefix)
+	bucketIt := bucketStore.Iterator(nil, nil)
+	defer bucketIt.Close()
+
+	for ; bucketIt.Valid(); bucketIt.Next() {
+		var bucket types.BucketInfo
+		k.cdc.MustUnmarshal(bucketIt.Value(), &bucket)
+		if bucket.Id.Uint64() == 0 {
+			continue
+		}
+		streamRecord, _ := k.paymentKeeper.GetStreamRecord(ctx, sdk.MustAccAddressFromHex(bucket.PaymentAddress))
+
+		_, ok := paymentLocks[bucket.PaymentAddress]
+		if !ok {
+			paymentLocks[bucket.PaymentAddress] = LockDetail{
+				locked:   0,
+				expected: 0,
+			}
+		}
+
+		objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucket.BucketName))
+		it := objectPrefixStore.Iterator(nil, nil)
+		defer it.Close()
+
+		expected := paymentLocks[bucket.PaymentAddress].expected
+		for ; it.Valid(); it.Next() {
+			u256Seq := sequence.Sequence[sdkmath.Uint]{}
+			objectInfo, found := k.GetObjectInfoById(ctx, u256Seq.DecodeSequence(it.Value()))
+			if found && objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
+				toBeLocked, _ := k.GetObjectLockFee(ctx, objectInfo.CreateAt, objectInfo.PayloadSize)
+				expected = expected + toBeLocked.Uint64()
+			}
+		}
+		paymentLocks[bucket.PaymentAddress] = LockDetail{
+			locked:   streamRecord.LockBalance.Uint64(),
+			expected: expected,
+		}
+	}
+
+	totalLocked, totalExpected := uint64(0), uint64(0)
+	for address, lock := range paymentLocks {
+		totalLocked = totalLocked + lock.locked
+		totalExpected = totalExpected + lock.expected
+
+		//if lock.locked != 0 || lock.expected != 0 {
+		//	fmt.Println("not zero", address, lock.locked, lock.expected)
+		//}
+		if lock.locked != lock.expected {
+			fmt.Println("not equal", address, lock.locked, lock.expected)
+			panic("not equal")
+		}
+	}
+	fmt.Println("totalLocked", totalLocked, "totalExpected", totalExpected)
+
+	allLocked := uint64(0)
+	allStreamRecord := k.paymentKeeper.GetAllStreamRecord(ctx)
+	for _, streamRecord := range allStreamRecord {
+		allLocked = allLocked + streamRecord.LockBalance.Uint64()
+		_, ok := paymentLocks[streamRecord.Account]
+		if streamRecord.LockBalance.Uint64() > 0 && !ok {
+			fmt.Println(streamRecord.Account, streamRecord.LockBalance.Uint64())
+		}
+	}
+	fmt.Println("allLocked", allLocked)
+
+	if totalLocked != totalExpected {
+		panic(fmt.Sprintf("not balanced1: %d", ctx.BlockHeight()))
+	}
+
+	if totalLocked != allLocked {
+		panic(fmt.Sprintf("not balanced2: %d", ctx.BlockHeight()))
+	}
+}
