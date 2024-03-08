@@ -2626,12 +2626,12 @@ paths:
                         title: tags defines a list of tags the resource has
                   sp_as_delegated_agent_disabled:
                     type: boolean
-                    description: >-
+                    title: >-
                       sp_as_delegated_agent_disabled indicates that whether
                       bucket owner disable SP as the upload agent.
 
-                      when a bucket is created, Sp is delegated to create object
-                      for owner or granted users by default.
+                      when a bucket is created, by default, this is false, means
+                      SP is allowed to create object for delegator
         default:
           description: An unexpected error response.
           schema:
@@ -2758,12 +2758,12 @@ paths:
                         title: tags defines a list of tags the resource has
                   sp_as_delegated_agent_disabled:
                     type: boolean
-                    description: >-
+                    title: >-
                       sp_as_delegated_agent_disabled indicates that whether
                       bucket owner disable SP as the upload agent.
 
-                      when a bucket is created, Sp is delegated to create object
-                      for owner or granted users by default.
+                      when a bucket is created, by default, this is false, means
+                      SP is allowed to create object for delegator
         default:
           description: An unexpected error response.
           schema:
@@ -3912,12 +3912,12 @@ paths:
                           title: tags defines a list of tags the resource has
                     sp_as_delegated_agent_disabled:
                       type: boolean
-                      description: >-
+                      title: >-
                         sp_as_delegated_agent_disabled indicates that whether
                         bucket owner disable SP as the upload agent.
 
-                        when a bucket is created, Sp is delegated to create
-                        object for owner or granted users by default.
+                        when a bucket is created, by default, this is false,
+                        means SP is allowed to create object for delegator
               pagination:
                 type: object
                 properties:
@@ -34895,12 +34895,12 @@ definitions:
             title: tags defines a list of tags the resource has
       sp_as_delegated_agent_disabled:
         type: boolean
-        description: >-
+        title: >-
           sp_as_delegated_agent_disabled indicates that whether bucket owner
           disable SP as the upload agent.
 
-          when a bucket is created, Sp is delegated to create object for owner
-          or granted users by default.
+          when a bucket is created, by default, this is false, means SP is
+          allowed to create object for delegator
   greenfield.storage.BucketMetaData:
     type: object
     properties:
@@ -35599,12 +35599,12 @@ definitions:
                 title: tags defines a list of tags the resource has
           sp_as_delegated_agent_disabled:
             type: boolean
-            description: >-
+            title: >-
               sp_as_delegated_agent_disabled indicates that whether bucket owner
               disable SP as the upload agent.
 
-              when a bucket is created, Sp is delegated to create object for
-              owner or granted users by default.
+              when a bucket is created, by default, this is false, means SP is
+              allowed to create object for delegator
   greenfield.storage.QueryHeadGroupMemberResponse:
     type: object
     properties:
@@ -35984,12 +35984,12 @@ definitions:
                   title: tags defines a list of tags the resource has
             sp_as_delegated_agent_disabled:
               type: boolean
-              description: >-
+              title: >-
                 sp_as_delegated_agent_disabled indicates that whether bucket
                 owner disable SP as the upload agent.
 
-                when a bucket is created, Sp is delegated to create object for
-                owner or granted users by default.
+                when a bucket is created, by default, this is false, means SP is
+                allowed to create object for delegator
       pagination:
         type: object
         properties:
