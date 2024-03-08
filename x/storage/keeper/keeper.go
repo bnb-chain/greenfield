@@ -341,6 +341,15 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 				return false, deleted, err
 			}
 			k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
+
+			// if an object is updating, also need to unlock the shadowObject fee
+			if objectInfo.IsUpdating {
+				shadowObjectInfo := k.MustGetShadowObjectInfo(ctx, bucketInfo.BucketName, objectInfo.ObjectName)
+				err = k.UnlockShadowObjectFeeAndDeleteShadowObjectInfo(ctx, bucketInfo, shadowObjectInfo, objectInfo.ObjectName)
+				if err != nil {
+					return false, deleted, err
+				}
+			}
 		}
 		if err := k.doDeleteObject(ctx, spOperatorAddr, bucketInfo, &objectInfo); err != nil {
 			ctx.Logger().Error("do delete object err", "err", err)
