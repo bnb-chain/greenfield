@@ -11,8 +11,6 @@ import (
 	"testing"
 	"time"
 
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-
 	sdkmath "cosmossdk.io/math"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -30,6 +28,7 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/types"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
 	types2 "github.com/bnb-chain/greenfield/types"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )

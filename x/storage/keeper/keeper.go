@@ -987,6 +987,11 @@ func (k Keeper) DeleteObject(
 		return types.ErrNoSuchObject
 	}
 
+	if objectInfo.ObjectStatus == types.OBJECT_STATUS_DISCONTINUED {
+		return types.ErrInvalidObjectStatus.Wrapf("The object %s is discontined, will be deleted automatically",
+			objectInfo.ObjectName)
+	}
+
 	if objectInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}
