@@ -2606,6 +2606,9 @@ func (k Keeper) CheckLockBalance(ctx sdk.Context) {
 			objectInfo, found := k.GetObjectInfoById(ctx, u256Seq.DecodeSequence(it.Value()))
 			if found && (objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED || objectInfo.IsUpdating) {
 				if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
+					if objectInfo.ObjectName == "0ksqn9u532" {
+						fmt.Println("checking", objectInfo.BucketName, objectInfo.ObjectName, objectInfo.PayloadSize, objectInfo.CreateAt)
+					}
 					toBeLocked, err := k.GetObjectLockFee(ctx, objectInfo.CreateAt, objectInfo.PayloadSize)
 					if err != nil {
 						fmt.Println(objectInfo.BucketName, objectInfo.ObjectName, objectInfo.ObjectStatus, objectInfo.IsUpdating)
