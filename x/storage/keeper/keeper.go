@@ -2607,6 +2607,7 @@ func (k Keeper) CheckLockBalance(ctx sdk.Context) {
 			if found && (objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED || objectInfo.IsUpdating) {
 				toBeLocked, err := k.GetObjectLockFee(ctx, objectInfo.GetUpdatedAt(), objectInfo.PayloadSize)
 				if err != nil {
+					fmt.Println(objectInfo.BucketName, objectInfo.ObjectName, objectInfo.ObjectStatus, objectInfo.IsUpdating)
 					panic(err)
 				}
 				expected = expected + toBeLocked.Uint64()
