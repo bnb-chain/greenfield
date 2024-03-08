@@ -2605,12 +2605,22 @@ func (k Keeper) CheckLockBalance(ctx sdk.Context) {
 			u256Seq := sequence.Sequence[sdkmath.Uint]{}
 			objectInfo, found := k.GetObjectInfoById(ctx, u256Seq.DecodeSequence(it.Value()))
 			if found && (objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED || objectInfo.IsUpdating) {
-				toBeLocked, err := k.GetObjectLockFee(ctx, objectInfo.GetLatestUpdatedTime(), objectInfo.PayloadSize)
-				if err != nil {
-					fmt.Println(objectInfo.BucketName, objectInfo.ObjectName, objectInfo.ObjectStatus, objectInfo.IsUpdating)
-					panic(err)
+				if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
+					toBeLocked, err := k.GetObjectLockFee(ctx, objectInfo.CreateAt, objectInfo.PayloadSize)
+					if err != nil {
+						fmt.Println(objectInfo.BucketName, objectInfo.ObjectName, objectInfo.ObjectStatus, objectInfo.IsUpdating)
+						panic(err)
+					}
+					expected = expected + toBeLocked.Uint64()
+				} else {
+					shadowObject, _ := k.GetShadowObjectInfo(ctx, bucket.BucketName, objectInfo.ObjectName)
+					toBeLocked, err := k.GetObjectLockFee(ctx, shadowObject.UpdatedAt, shadowObject.PayloadSize)
+					if err != nil {
+						fmt.Println(objectInfo.BucketName, objectInfo.ObjectName, objectInfo.ObjectStatus, objectInfo.IsUpdating)
+						panic(err)
+					}
+					expected = expected + toBeLocked.Uint64()
 				}
-				expected = expected + toBeLocked.Uint64()
 			}
 		}
 		paymentLocks[bucket.PaymentAddress] = LockDetail{
