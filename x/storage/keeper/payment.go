@@ -145,7 +145,7 @@ func (k Keeper) lockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.Buc
 		})
 	}
 
-	if ctx.IsUpgraded(upgradetypes.Serengeti) {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) && k.shouldCheckRateLimit(ctx, paymentAddr, sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName) {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 		internalBucketInfo.PriceTime = timestamp
 		nextBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
@@ -333,7 +333,6 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	if err != nil {
 		return fmt.Errorf("charge via bucket change failed, get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
 	}
-	isPreviousBucketLimited := k.isBucketRateLimited(ctx, bucketInfo.BucketName)
 	prevPaymentAccount := bucketInfo.PaymentAddress
 
 	// change bucket internal info
@@ -348,6 +347,8 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	}
 
 	if ctx.IsUpgraded(upgradetypes.Serengeti) {
+		isPreviousBucketLimited := k.isBucketRateLimited(ctx, bucketInfo.BucketName)
+
 		if prevPaymentAccount == bucketInfo.PaymentAddress && isPreviousBucketLimited {
 			// todo: do we need to contraint this
 			return fmt.Errorf("payment account is not changed but the bucket is limited")
