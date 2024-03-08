@@ -2604,8 +2604,8 @@ func (k Keeper) CheckLockBalance(ctx sdk.Context) {
 		for ; it.Valid(); it.Next() {
 			u256Seq := sequence.Sequence[sdkmath.Uint]{}
 			objectInfo, found := k.GetObjectInfoById(ctx, u256Seq.DecodeSequence(it.Value()))
-			if found && objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
-				toBeLocked, _ := k.GetObjectLockFee(ctx, objectInfo.CreateAt, objectInfo.PayloadSize)
+			if found && (objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED || objectInfo.IsUpdating) {
+				toBeLocked, _ := k.GetObjectLockFee(ctx, objectInfo.GetUpdatedAt(), objectInfo.PayloadSize)
 				expected = expected + toBeLocked.Uint64()
 			}
 		}
