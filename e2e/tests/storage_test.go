@@ -829,56 +829,11 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 
 	// DiscontinueObject
 	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp.GcKey.GetAddr(), bucketName, []sdkmath.Uint{objectId}, "test")
-	txRes := s.SendTxBlock(sp.GcKey, msgDiscontinueObject)
-	deleteAt := filterDiscontinueObjectEventFromTx(txRes).DeleteAt
+	_ = s.SendTxBlock(sp.GcKey, msgDiscontinueObject)
 
 	// DeleteObject before discontinue confirm window
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
-	txRes = s.SendTxBlock(user, msgDeleteObject)
-	event := filterDeleteObjectEventFromTx(txRes)
-	s.Require().Equal(event.ObjectId, objectId)
-
-	// Wait after the delete timestamp
-	heightBefore := txRes.Height
-	heightAfter := int64(0)
-	for {
-		time.Sleep(200 * time.Millisecond)
-		statusRes, err := s.TmClient.TmClient.Status(context.Background())
-		s.Require().NoError(err)
-		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
-
-		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
-
-		if blockTime >= deleteAt {
-			heightAfter = statusRes.SyncInfo.LatestBlockHeight
-			break
-		} else {
-			heightBefore = statusRes.SyncInfo.LatestBlockHeight
-		}
-	}
-
-	time.Sleep(200 * time.Millisecond)
-	events := make([]storagetypes.EventDeleteObject, 0)
-	for heightBefore <= heightAfter {
-		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
-		s.Require().NoError(err)
-		events = append(events, filterDeleteObjectEventFromBlock(blockRes)...)
-		heightBefore++
-	}
-
-	// Already deleted by user
-	found := false
-	for _, event := range events {
-		if event.ObjectId.Equal(objectId) {
-			found = true
-		}
-	}
-	s.Require().True(!found)
-
-	time.Sleep(500 * time.Millisecond)
-	statusRes, err := s.TmClient.TmClient.Status(context.Background())
-	s.Require().NoError(err)
-	s.Require().True(statusRes.SyncInfo.LatestBlockHeight > heightAfter)
+	s.SendTxBlockWithExpectErrorString(msgDeleteObject, user, "is discontined")
 }
 
 func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
@@ -1189,23 +1144,6 @@ func filterDeleteObjectEventFromBlock(blockRes *ctypes.ResultBlockResults) []sto
 		}
 	}
 	return events
-}
-
-func filterDeleteObjectEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDeleteObject {
-	objectIdStr := ""
-	for _, event := range txRes.Events {
-		if event.Type == "greenfield.storage.EventDeleteObject" {
-			for _, attr := range event.Attributes {
-				if string(attr.Key) == "object_id" {
-					objectIdStr = strings.Trim(string(attr.Value), `"`)
-				}
-			}
-		}
-	}
-	objectId := sdkmath.NewUintFromString(objectIdStr)
-	return storagetypes.EventDeleteObject{
-		ObjectId: objectId,
-	}
 }
 
 func filterDiscontinueBucketEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDiscontinueBucket {
