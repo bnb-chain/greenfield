@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 func (k Keeper) CheckStreamRecord(streamRecord *types.StreamRecord) {
@@ -123,7 +124,12 @@ func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.St
 		streamRecord.LockBalance = streamRecord.LockBalance.Add(change.LockBalanceChange)
 		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(change.LockBalanceChange)
 		if streamRecord.LockBalance.IsNegative() {
-			return fmt.Errorf("lock balance can not become negative, current: %s", streamRecord.LockBalance)
+			if ctx.IsUpgraded(upgradetypes.Pawnee) {
+				streamRecord.StaticBalance = streamRecord.StaticBalance.Add(streamRecord.LockBalance)
+				streamRecord.LockBalance = sdkmath.ZeroInt()
+			} else {
+				return fmt.Errorf("lock balance can not become negative, current: %s", streamRecord.LockBalance)
+			}
 		}
 	}
 	if !change.RateChange.IsZero() {
@@ -158,7 +164,12 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		streamRecord.LockBalance = streamRecord.LockBalance.Add(change.LockBalanceChange)
 		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(change.LockBalanceChange)
 		if streamRecord.LockBalance.IsNegative() {
-			return fmt.Errorf("lock balance can not become negative, current: %s", streamRecord.LockBalance)
+			if ctx.IsUpgraded(upgradetypes.Pawnee) {
+				streamRecord.StaticBalance = streamRecord.StaticBalance.Add(streamRecord.LockBalance)
+				streamRecord.LockBalance = sdkmath.ZeroInt()
+			} else {
+				return fmt.Errorf("lock balance can not become negative, current: %s", streamRecord.LockBalance)
+			}
 		}
 	}
 	// update buffer balance

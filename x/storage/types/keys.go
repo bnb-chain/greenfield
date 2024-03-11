@@ -40,6 +40,8 @@ var (
 
 	ShadowObjectInfoPrefix = []byte{0x16}
 
+	LockedObjectCountPrefix = []byte{0x17} // key to track count of created/updating objects, which will involve lock fee
+
 	BucketByIDPrefix = []byte{0x21}
 	ObjectByIDPrefix = []byte{0x22}
 	GroupByIDPrefix  = []byte{0x23}
@@ -164,4 +166,9 @@ func GetQuotaKey(bucketID math.Uint) []byte {
 func GetInternalBucketInfoKey(bucketID math.Uint) []byte {
 	var seq sequence.Sequence[math.Uint]
 	return append(InternalBucketInfoPrefix, seq.EncodeSequence(bucketID)...)
+}
+
+func GetLockedObjectCountKey(bucketId math.Uint) []byte {
+	var seq sequence.Sequence[math.Uint]
+	return append(LockedObjectCountPrefix, seq.EncodeSequence(bucketId)...)
 }

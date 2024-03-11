@@ -40,7 +40,7 @@ func (k Keeper) QueryParamsByTimestamp(c context.Context, req *types.QueryParams
 
 	ts := req.GetTimestamp()
 	if ts == 0 {
-		ts = ctx.BlockTime().Unix()
+		ts = ctx.BlockTime().Unix() + 1
 	}
 
 	params := k.GetParams(ctx)

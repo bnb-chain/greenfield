@@ -53,8 +53,11 @@ func (k Keeper) SetVersionedParamsWithTs(ctx sdk.Context, verParams types.Versio
 func (k Keeper) GetVersionedParamsWithTs(ctx sdk.Context, ts int64) (verParams types.VersionedParams, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VersionedParamsKeyPrefix)
 
-	// ReverseIterator will exclusive end, so we increment ts by 1
-	startKey := types.VersionedParamsKey(ts + 1)
+	// params are updated in the endblock, so we do not need to make the ts to be included
+	// for example, if the params is updated in 100 timestamp: the txs that are executed in 100 timestamp
+	// will use the old parameter, after 100 timestamp, when we passing 100 to query, we should still get
+	// the old parameter.
+	startKey := types.VersionedParamsKey(ts)
 	iterator := store.ReverseIterator(nil, startKey)
 	defer iterator.Close()
 	if !iterator.Valid() {

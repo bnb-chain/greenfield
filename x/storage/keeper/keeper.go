@@ -235,6 +235,7 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetQuotaKey(bucketInfo.Id))
 	store.Delete(types.GetInternalBucketInfoKey(bucketInfo.Id))
 	store.Delete(types.GetMigrationBucketKey(bucketInfo.Id))
+	store.Delete(types.GetLockedObjectCountKey(bucketInfo.Id))
 
 	err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id)
 	if err != nil {
@@ -334,6 +335,9 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 				ctx.Logger().Error("unlock store fee error", "err", err)
 				return false, deleted, err
 			}
+			if ctx.IsUpgraded(upgradetypes.Pawnee) {
+				k.DecreaseLockedObjectCount(ctx, bucketInfo.Id)
+			}
 		} else if objectStatus == types.OBJECT_STATUS_SEALED {
 			internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 			if err = k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, &objectInfo); err != nil {
@@ -349,6 +353,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 				if err != nil {
 					return false, deleted, err
 				}
+				k.DecreaseLockedObjectCount(ctx, bucketInfo.Id)
 			}
 		}
 		if err := k.doDeleteObject(ctx, spOperatorAddr, bucketInfo, &objectInfo); err != nil {
@@ -430,6 +435,12 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 		paymentAcc, err = k.VerifyPaymentAccount(ctx, opts.PaymentAddress, ownerAcc)
 		if err != nil {
 			return err
+		}
+
+		if ctx.IsUpgraded(upgradetypes.Pawnee) {
+			if !paymentAcc.Equals(sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)) && k.GetLockedObjectCount(ctx, bucketInfo.Id) != 0 {
+				return types.ErrUpdatePaymentAccountFailed.Wrapf("The bucket %s has unseald objects", bucketInfo.BucketName)
+			}
 		}
 	} else {
 		paymentAcc = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
@@ -650,6 +661,11 @@ func (k Keeper) CreateObject(
 
 	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
+			k.IncreaseLockedObjectCount(ctx, bucketInfo.Id)
+		}
+	}
 
 	obz := k.cdc.MustMarshal(&objectInfo)
 	store.Set(objectKey, k.objectSeq.EncodeSequence(objectInfo.Id))
@@ -850,6 +866,9 @@ func (k Keeper) SealObject(
 
 	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		k.DecreaseLockedObjectCount(ctx, bucketInfo.Id)
+	}
 
 	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
@@ -934,6 +953,11 @@ func (k Keeper) CancelCreateObject(
 
 	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
+			k.DecreaseLockedObjectCount(ctx, bucketInfo.Id)
+		}
+	}
 
 	store.Delete(types.GetObjectKey(bucketName, objectName))
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
@@ -963,6 +987,11 @@ func (k Keeper) DeleteObject(
 		return types.ErrNoSuchObject
 	}
 
+	if objectInfo.ObjectStatus == types.OBJECT_STATUS_DISCONTINUED {
+		return types.ErrInvalidObjectStatus.Wrapf("The object %s is discontined, will be deleted automatically",
+			objectInfo.ObjectName)
+	}
+
 	if objectInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}
@@ -986,6 +1015,7 @@ func (k Keeper) DeleteObject(
 		if err != nil {
 			return err
 		}
+		k.DecreaseLockedObjectCount(ctx, bucketInfo.Id)
 	}
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
@@ -1058,6 +1088,9 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 			ctx.Logger().Error("unlock store fee error", "err", err)
 			return err
 		}
+		if ctx.IsUpgraded(upgradetypes.Pawnee) {
+			k.DecreaseLockedObjectCount(ctx, bucketInfo.Id)
+		}
 	} else if objectStatus == types.OBJECT_STATUS_SEALED {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 		err := k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
@@ -1074,6 +1107,7 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 			if err != nil {
 				return err
 			}
+			k.DecreaseLockedObjectCount(ctx, bucketInfo.Id)
 		}
 	}
 
@@ -1172,6 +1206,11 @@ func (k Keeper) CopyObject(
 
 	bbz := k.cdc.MustMarshal(dstBucketInfo)
 	store.Set(types.GetBucketByIDKey(dstBucketInfo.Id), bbz)
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
+			k.IncreaseLockedObjectCount(ctx, dstBucketInfo.Id)
+		}
+	}
 
 	obz := k.cdc.MustMarshal(&objectInfo)
 	store.Set(types.GetObjectKey(dstBucketName, dstObjectName), k.objectSeq.EncodeSequence(objectInfo.Id))
@@ -1238,6 +1277,11 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		store.Delete(types.GetObjectKey(bucketName, objectName))
 		store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 	}
+
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		k.DecreaseLockedObjectCount(ctx, bucketInfo.Id)
+	}
+
 	return ctx.EventManager().EmitTypedEvents(&types.EventRejectSealObject{
 		Operator:   operator.String(),
 		BucketName: bucketInfo.BucketName,
@@ -2509,6 +2553,7 @@ func (k Keeper) UpdateObjectContent(
 		if err != nil {
 			return err
 		}
+		k.IncreaseLockedObjectCount(ctx, bucketInfo.Id)
 	}
 
 	obz := k.cdc.MustMarshal(objectInfo)
@@ -2567,6 +2612,7 @@ func (k Keeper) CancelUpdateObjectContent(
 	objectInfo.IsUpdating = false
 	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+	k.DecreaseLockedObjectCount(ctx, bucketInfo.Id)
 
 	return ctx.EventManager().EmitTypedEvents(&types.EventCancelUpdateObjectContent{
 		Operator:   operator.String(),
@@ -2574,4 +2620,55 @@ func (k Keeper) CancelUpdateObjectContent(
 		ObjectName: objectInfo.ObjectName,
 		ObjectId:   objectInfo.Id,
 	})
+}
+
+func (k Keeper) GetLockedObjectCount(ctx sdk.Context, bucketId sdkmath.Uint) uint64 {
+	store := ctx.KVStore(k.storeKey)
+
+	key := types.GetLockedObjectCountKey(bucketId)
+	bz := store.Get(key)
+	current := uint64(0)
+	if bz != nil {
+		current = binary.BigEndian.Uint64(bz)
+	}
+	return current
+}
+
+func (k Keeper) IncreaseLockedObjectCount(ctx sdk.Context, bucketId sdkmath.Uint) {
+	store := ctx.KVStore(k.storeKey)
+
+	key := types.GetLockedObjectCountKey(bucketId)
+	bz := store.Get(key)
+	before := uint64(0)
+	if bz != nil {
+		before = binary.BigEndian.Uint64(bz)
+	}
+	after := before + 1
+
+	bz = make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, after)
+	store.Set(key, bz)
+}
+
+func (k Keeper) DecreaseLockedObjectCount(ctx sdk.Context, bucketId sdkmath.Uint) {
+	store := ctx.KVStore(k.storeKey)
+
+	key := types.GetLockedObjectCountKey(bucketId)
+	bz := store.Get(key)
+	before := uint64(0)
+	if bz != nil {
+		before = binary.BigEndian.Uint64(bz)
+	}
+
+	after := before
+	if before > 0 {
+		after = before - 1
+	}
+	// this feature is not introduced from the genesis, which means that some buckets do not have such
+	// indicators earlier, they could have created objects even the indicator is zero. For such buckets,
+	// after they delete or seal all the created objects, the indicator will become correct finally.
+
+	bz = make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, after)
+	store.Set(key, bz)
 }

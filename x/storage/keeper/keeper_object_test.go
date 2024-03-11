@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"time"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/mock/gomock"
@@ -202,6 +204,7 @@ func (s *TestSuite) TestCreateObject() {
 		OutFlowCount:      0,
 		FrozenNetflowRate: math.Int{},
 	}, nil).AnyTimes()
+	s.ctx = s.ctx.WithBlockTime(s.ctx.BlockTime().Add(1 * time.Second))
 	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
 		objectName, 100, types.CreateObjectOptions{
 			Visibility:     0,

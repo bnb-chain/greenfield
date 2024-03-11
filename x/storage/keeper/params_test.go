@@ -30,7 +30,7 @@ func GetVersionedParamsWithTimestamp(k *keeper.Keeper, ctx sdk.Context, ts int64
 	return params
 }
 
-func TestMultiVersiontParams(t *testing.T) {
+func TestMultiVersionParams(t *testing.T) {
 	k, ctx := makeKeeper(t)
 	params := types.DefaultParams()
 
@@ -53,8 +53,8 @@ func TestMultiVersiontParams(t *testing.T) {
 
 	require.EqualValues(t, params, k.GetParams(ctx))
 	// default params
-	require.EqualValues(t, GetVersionedParamsWithTimestamp(k, ctx, blockTimeT1).MaxSegmentSize, 1)
-	require.EqualValues(t, GetVersionedParamsWithTimestamp(k, ctx, blockTimeT2).MaxSegmentSize, 2)
-	require.EqualValues(t, GetVersionedParamsWithTimestamp(k, ctx, blockTimeT3).MaxSegmentSize, 3)
+	require.EqualValues(t, GetVersionedParamsWithTimestamp(k, ctx, blockTimeT1+1).MaxSegmentSize, 1)
+	require.EqualValues(t, GetVersionedParamsWithTimestamp(k, ctx, blockTimeT2+1).MaxSegmentSize, 2)
+	require.EqualValues(t, GetVersionedParamsWithTimestamp(k, ctx, blockTimeT3+1).MaxSegmentSize, 3)
 
 }

@@ -834,6 +834,21 @@ func (mr *MockVirtualGroupKeeperMockRecorder) GetGlobalVirtualGroupIfAvailable(c
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGlobalVirtualGroupIfAvailable", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGlobalVirtualGroupIfAvailable), ctx, gvgID, expectedStoreSize)
 }
 
+// GetSwapInInfo mocks base method.
+func (m *MockVirtualGroupKeeper) GetSwapInInfo(ctx types3.Context, familyID, gvgID uint32) (*types2.SwapInInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSwapInInfo", ctx, familyID, gvgID)
+	ret0, _ := ret[0].(*types2.SwapInInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetSwapInInfo indicates an expected call of GetSwapInInfo.
+func (mr *MockVirtualGroupKeeperMockRecorder) GetSwapInInfo(ctx, familyID, gvgID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSwapInInfo", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetSwapInInfo), ctx, familyID, gvgID)
+}
+
 // SetGVGAndEmitUpdateEvent mocks base method.
 func (m *MockVirtualGroupKeeper) SetGVGAndEmitUpdateEvent(ctx types3.Context, gvg *types2.GlobalVirtualGroup) error {
 	m.ctrl.T.Helper()
@@ -876,49 +891,10 @@ func (mr *MockVirtualGroupKeeperMockRecorder) SettleAndDistributeGVGFamily(ctx, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SettleAndDistributeGVGFamily", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).SettleAndDistributeGVGFamily), ctx, sp, family)
 }
 
-// GetSwapInInfo mocks base method.
-func (m *MockVirtualGroupKeeper) GetSwapInInfo(ctx types3.Context, familyID, gvgID uint32) (*types2.SwapInInfo, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSwapInInfo", ctx, familyID, gvgID)
-	ret0, _ := ret[0].(*types2.SwapInInfo)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetSwapInInfo indicates an expected call of GetSwapInInfo.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetSwapInInfo(ctx, familyID, gvgID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSwapInInfo", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetSwapInInfo), ctx, familyID, gvgID)
-}
-
 // MockStorageKeeper is a mock of StorageKeeper interface.
 type MockStorageKeeper struct {
 	ctrl     *gomock.Controller
 	recorder *MockStorageKeeperMockRecorder
-}
-
-func (m *MockStorageKeeper) NormalizePrincipal(ctx types3.Context, principal *types0.Principal) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "NormalizePrincipal", ctx, principal)
-}
-
-// NormalizePrincipal indicates an expected call of NormalizePrincipal.
-func (mr *MockStorageKeeperMockRecorder) NormalizePrincipal(ctx types3.Context, principal *types0.Principal) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizePrincipal", reflect.TypeOf((*MockStorageKeeper)(nil).NormalizePrincipal), ctx, principal)
-}
-
-func (m *MockStorageKeeper) ValidatePrincipal(ctx types3.Context, resOwner types3.AccAddress, principal *types0.Principal) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ValidatePrincipal", ctx, resOwner, principal)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// NormalizePrincipal indicates an expected call of NormalizePrincipal.
-func (mr *MockStorageKeeperMockRecorder) ValidatePrincipal(ctx types3.Context, resOwner types3.AccAddress, principal *types0.Principal) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidatePrincipal", reflect.TypeOf((*MockStorageKeeper)(nil).ValidatePrincipal), ctx, resOwner, principal)
 }
 
 // MockStorageKeeperMockRecorder is the mock recorder for MockStorageKeeper.
@@ -1025,18 +1001,25 @@ func (mr *MockStorageKeeperMockRecorder) GetBucketInfoById(ctx, bucketId interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBucketInfoById", reflect.TypeOf((*MockStorageKeeper)(nil).GetBucketInfoById), ctx, bucketId)
 }
 
-// GetGroupInfoById mocks base method.
-func (m *MockStorageKeeper) GetGroupInfoById(ctx types3.Context, groupId math.Uint) (*GroupInfo, bool) {
+// GetGroupInfo mocks base method.
+func (m *MockStorageKeeper) GetGroupInfo(ctx types3.Context, ownerAddr types3.AccAddress, groupName string) (*GroupInfo, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroupInfoById", ctx, groupId)
+	ret := m.ctrl.Call(m, "GetGroupInfo", ctx, ownerAddr, groupName)
 	ret0, _ := ret[0].(*GroupInfo)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
-func (m *MockStorageKeeper) GetGroupInfo(ctx types3.Context, ownerAddr types3.AccAddress, groupName string) (*GroupInfo, bool) {
+// GetGroupInfo indicates an expected call of GetGroupInfo.
+func (mr *MockStorageKeeperMockRecorder) GetGroupInfo(ctx, ownerAddr, groupName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupInfo", reflect.TypeOf((*MockStorageKeeper)(nil).GetGroupInfo), ctx, ownerAddr, groupName)
+}
+
+// GetGroupInfoById mocks base method.
+func (m *MockStorageKeeper) GetGroupInfoById(ctx types3.Context, groupId math.Uint) (*GroupInfo, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroupInfo", ctx, ownerAddr, groupName)
+	ret := m.ctrl.Call(m, "GetGroupInfoById", ctx, groupId)
 	ret0, _ := ret[0].(*GroupInfo)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
@@ -1090,6 +1073,18 @@ func (m *MockStorageKeeper) Logger(ctx types3.Context) log.Logger {
 func (mr *MockStorageKeeperMockRecorder) Logger(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logger", reflect.TypeOf((*MockStorageKeeper)(nil).Logger), ctx)
+}
+
+// NormalizePrincipal mocks base method.
+func (m *MockStorageKeeper) NormalizePrincipal(ctx types3.Context, principal *types0.Principal) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NormalizePrincipal", ctx, principal)
+}
+
+// NormalizePrincipal indicates an expected call of NormalizePrincipal.
+func (mr *MockStorageKeeperMockRecorder) NormalizePrincipal(ctx, principal interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizePrincipal", reflect.TypeOf((*MockStorageKeeper)(nil).NormalizePrincipal), ctx, principal)
 }
 
 // RenewGroupMember mocks base method.
@@ -1154,4 +1149,18 @@ func (m *MockStorageKeeper) UpdateGroupMember(ctx types3.Context, operator types
 func (mr *MockStorageKeeperMockRecorder) UpdateGroupMember(ctx, operator, groupInfo, opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupMember", reflect.TypeOf((*MockStorageKeeper)(nil).UpdateGroupMember), ctx, operator, groupInfo, opts)
+}
+
+// ValidatePrincipal mocks base method.
+func (m *MockStorageKeeper) ValidatePrincipal(ctx types3.Context, resOwner types3.AccAddress, principal *types0.Principal) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidatePrincipal", ctx, resOwner, principal)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidatePrincipal indicates an expected call of ValidatePrincipal.
+func (mr *MockStorageKeeperMockRecorder) ValidatePrincipal(ctx, resOwner, principal interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidatePrincipal", reflect.TypeOf((*MockStorageKeeper)(nil).ValidatePrincipal), ctx, resOwner, principal)
 }
