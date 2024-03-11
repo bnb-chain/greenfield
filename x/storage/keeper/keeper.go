@@ -1118,13 +1118,19 @@ func (k Keeper) CopyObject(
 			operator.String(), srcObjectInfo.BucketName, srcObjectInfo.ObjectName)
 	}
 
-	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
-	}
-
-	err = k.VerifySPAndSignature(ctx, dstPrimarySP, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
+	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
+		if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
+			return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+		}
+		err = k.VerifySPAndSignature(ctx, dstPrimarySP, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		err = k.VerifySP(ctx, dstPrimarySP, operator)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	// check payload size, the empty object doesn't need sealed
