@@ -224,15 +224,10 @@ func (k Keeper) isBucketFlowRateUnderLimit(ctx sdk.Context, paymentAccount, buck
 
 // shouldCheckRateLimit checks if the flow rate of the bucket should be checked
 func (k Keeper) shouldCheckRateLimit(ctx sdk.Context, paymentAccount, bucketOwner sdk.AccAddress, bucketName string) bool {
-	isPaymentAccountOwner := k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAccount, bucketOwner)
-
 	_, found := k.getBucketFlowRateLimit(ctx, paymentAccount, bucketOwner, bucketName)
 	if !found {
 		// if the bucket owner is owner of the payment account and the rate limit is not set, the flow rate is unlimited
-		if isPaymentAccountOwner {
-			return false
-		}
-		return true
+		return !k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAccount, bucketOwner)
 	}
 
 	return true
@@ -245,13 +240,11 @@ func (k Keeper) isBucketFlowRateUnderLimitWithRate(ctx sdk.Context, paymentAccou
 		return nil
 	}
 
-	isPaymentAccountOwner := k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAccount, bucketOwner)
-
 	rateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAccount, bucketOwner, bucketName)
 	// if the rate limit is not set
 	if !found {
 		// if the bucket owner is owner of the payment account and the rate limit is not set, the flow rate is unlimited
-		if isPaymentAccountOwner {
+		if k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAccount, bucketOwner) {
 			return nil
 		}
 
