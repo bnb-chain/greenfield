@@ -160,6 +160,7 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Object() {
 	objectName = storageutils.GenRandomObjectName()
 	msgCreateObject = storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
 	s.SendTxBlockWithExpectErrorString(msgCreateObject, user, "greater than the flow rate limit")
 
 	// SetBucketRateLimit
@@ -170,6 +171,8 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Object() {
 	objectName = storageutils.GenRandomObjectName()
 	msgCreateObject = storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+
 	s.SendTxBlock(user, msgCreateObject)
 }
 
