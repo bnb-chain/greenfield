@@ -177,9 +177,9 @@ func GetLockedObjectCountKey(bucketId math.Uint) []byte {
 }
 
 // GetBucketFlowRateLimitKey return the bucket rate limit store key
-func GetBucketFlowRateLimitKey(paymentAccount sdk.AccAddress, bucketName string) []byte {
+func GetBucketFlowRateLimitKey(paymentAccount, bucketOwner sdk.AccAddress, bucketName string) []byte {
 	bucketNameHash := sdk.Keccak256([]byte(bucketName))
-	return append(BucketRateLimitPrefix, append(paymentAccount.Bytes(), bucketNameHash...)...)
+	return append(BucketRateLimitPrefix, append(paymentAccount.Bytes(), append(bucketOwner, bucketNameHash...)...)...)
 }
 
 // GetBucketFlowRateLimitStatusKey return the bucket rate limit store key

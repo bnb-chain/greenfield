@@ -425,7 +425,8 @@ message QueryGroupsExistResponse {
 
 message QueryPaymentAccountBucketFlowRateLimitRequest {
   string payment_account = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string bucket_name = 2;
+  string bucket_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 3;
 }
 
 message QueryPaymentAccountBucketFlowRateLimitResponse {

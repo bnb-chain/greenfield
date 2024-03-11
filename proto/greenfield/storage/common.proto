@@ -118,8 +118,6 @@ message BucketFlowRateLimit {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  // bucket_owner is the owner of the bucket
-  string bucket_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message BucketFlowRateLimitStatus {

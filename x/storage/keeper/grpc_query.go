@@ -687,17 +687,17 @@ func (k Keeper) QueryPaymentAccountBucketFlowRateLimit(goCtx context.Context, re
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	acc, err := sdk.AccAddressFromHexUnsafe(req.PaymentAccount)
+	paymentAcc, err := sdk.AccAddressFromHexUnsafe(req.PaymentAccount)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid payment account address")
 	}
 
-	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
-	if !found {
-		return nil, types.ErrNoSuchBucket
+	bucketOwner, err := sdk.AccAddressFromHexUnsafe(req.BucketOwner)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid bucket owner address")
 	}
 
-	flowRateLimit, found := k.getBucketFlowRateLimit(ctx, acc, bucketInfo.BucketName)
+	flowRateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAcc, bucketOwner, req.BucketName)
 	if !found {
 		return &types.QueryPaymentAccountBucketFlowRateLimitResponse{
 			IsSet: false,

@@ -267,6 +267,9 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 			return err
 		}
 	}
+
+	// delete bucket flow rate limit status
+	k.deleteBucketFlowRateLimitStatus(ctx, bucketInfo.BucketName)
 	return nil
 }
 

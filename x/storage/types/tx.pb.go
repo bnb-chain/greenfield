@@ -3933,7 +3933,7 @@ type MsgSetBucketFlowRateLimit struct {
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// bucket_owner defines the account address of the bucket owner
 	BucketOwner string `protobuf:"bytes,3,opt,name=bucket_owner,json=bucketOwner,proto3" json:"bucket_owner,omitempty"`
-	// payment_address defines an account address specified by bucket owner to pay the read fee.
+	// payment_address defines an account address to pay the fee for the bucket.
 	PaymentAddress string `protobuf:"bytes,4,opt,name=payment_address,json=paymentAddress,proto3" json:"payment_address,omitempty"`
 	// flow_rate_limit defines the flow rate limit of the bucket
 	FlowRateLimit github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=flow_rate_limit,json=flowRateLimit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"flow_rate_limit"`

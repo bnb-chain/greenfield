@@ -350,7 +350,6 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 		isPreviousBucketLimited := k.isBucketRateLimited(ctx, bucketInfo.BucketName)
 
 		if prevPaymentAccount == bucketInfo.PaymentAddress && isPreviousBucketLimited {
-			// todo: do we need to contraint this
 			return fmt.Errorf("payment account is not changed but the bucket is limited")
 		}
 
@@ -577,7 +576,6 @@ func (k Keeper) ChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetyp
 	}
 
 	if ctx.IsUpgraded(upgradetypes.Serengeti) {
-		// todo: if the bucket's flow rate is under limit before, but the price is changed, the bucket may be over limit now, should we allow it or not?
 		err := k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, bill)
 		if err != nil {
 			return err
