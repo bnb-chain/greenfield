@@ -48,7 +48,7 @@ func (k Keeper) UnChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.
 
 	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		// if the bucket's flow rate limit is set to zero, no need to uncharge, since the bucket is already uncharged
-		if k.isBucketRateLimited(ctx, bucketInfo.BucketName) {
+		if k.IsBucketRateLimited(ctx, bucketInfo.BucketName) {
 			return nil
 		}
 	}
@@ -347,7 +347,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	}
 
 	if ctx.IsUpgraded(upgradetypes.Serengeti) {
-		isPreviousBucketLimited := k.isBucketRateLimited(ctx, bucketInfo.BucketName)
+		isPreviousBucketLimited := k.IsBucketRateLimited(ctx, bucketInfo.BucketName)
 
 		if prevPaymentAccount == bucketInfo.PaymentAddress && isPreviousBucketLimited {
 			return fmt.Errorf("payment account is not changed but the bucket is limited")
@@ -550,7 +550,7 @@ func (k Keeper) UnChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storaget
 
 	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		// if the bucket's flow rate limit is set to zero, no need to uncharge, since the bucket is already uncharged
-		if k.isBucketRateLimited(ctx, bucketInfo.BucketName) {
+		if k.IsBucketRateLimited(ctx, bucketInfo.BucketName) {
 			return nil
 		}
 	}

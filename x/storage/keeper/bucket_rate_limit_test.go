@@ -27,7 +27,7 @@ func (s *TestSuite) TestSetBucketFlowRateLimit() {
 	// case 2: bucket is not found
 	s.paymentKeeper.EXPECT().IsPaymentAccountOwner(gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, sdkmath.NewInt(1))
-	s.Require().ErrorContains(err, "No such bucket")
+	s.Require().NoError(err)
 
 	bucketInfo := &types.BucketInfo{
 		Owner:            bucketOwner.String(),
@@ -41,7 +41,7 @@ func (s *TestSuite) TestSetBucketFlowRateLimit() {
 
 	// case 3: different bucket owner
 	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, sample.RandAccAddress(), paymentAccount, bucketName, sdkmath.NewInt(1))
-	s.Require().ErrorContains(err, "invalid bucket owner")
+	s.Require().NoError(err)
 
 	// case 4: bucket does not use the payment account
 	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, sample.RandAccAddress(), bucketName, sdkmath.NewInt(1))
@@ -69,7 +69,52 @@ func (s *TestSuite) TestSetZeroBucketFlowRateLimit() {
 	s.Require().NoError(err)
 }
 
-func (s *TestSuite) TestSetNonZeroBucketFlowRateLimit() {
+func (s *TestSuite) TestSetFlowRateLimit_NotLimited() {
+	operatorAddress := sample.RandAccAddress()
+	bucketOwner := sample.RandAccAddress()
+	paymentAccount := sample.RandAccAddress()
+	bucketName := string(sample.RandStr(10))
+
+	bucketInfo := &types.BucketInfo{
+		Owner:            bucketOwner.String(),
+		BucketName:       bucketName,
+		Id:               sdk.NewUint(1),
+		PaymentAddress:   paymentAccount.String(),
+		ChargedReadQuota: 100,
+	}
+	prepareReadStoreBill(s, bucketInfo)
+
+	s.paymentKeeper.EXPECT().IsPaymentAccountOwner(gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+	s.paymentKeeper.EXPECT().ApplyUserFlowsList(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
+	internalBucketInfo := s.storageKeeper.MustGetInternalBucketInfo(s.ctx, bucketInfo.Id)
+	bill, err := s.storageKeeper.GetBucketReadStoreBill(s.ctx, bucketInfo, internalBucketInfo)
+	s.Require().NoError(err)
+	totalOutFlowRate := getTotalOutFlowRate(bill.Flows)
+
+	// case 1: rate limit does not exist before and is larger than total out flow rate
+	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate.Add(sdkmath.NewInt(1)))
+	s.Require().NoError(err)
+
+	isRateLimited := s.storageKeeper.IsBucketRateLimited(s.ctx, bucketName)
+	s.Require().False(isRateLimited)
+
+	// case 2: rate limit exists before and is equal to the previous flow rate limit
+	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate.Add(sdkmath.NewInt(1)))
+	s.Require().NoError(err)
+
+	isRateLimited = s.storageKeeper.IsBucketRateLimited(s.ctx, bucketName)
+	s.Require().False(isRateLimited)
+
+	// case 3: rate limit exists before and larger than the previous flow rate limit
+	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate.Add(sdkmath.NewInt(2)))
+	s.Require().NoError(err)
+
+	isRateLimited = s.storageKeeper.IsBucketRateLimited(s.ctx, bucketName)
+	s.Require().False(isRateLimited)
+}
+
+func (s *TestSuite) TestSetBucketFlowRateLimit_Limited() {
 	operatorAddress := sample.RandAccAddress()
 	bucketOwner := sample.RandAccAddress()
 	paymentAccount := sample.RandAccAddress()
@@ -94,29 +139,32 @@ func (s *TestSuite) TestSetNonZeroBucketFlowRateLimit() {
 
 	// case 1: rate limit does not exist before and is less than total out flow rate
 	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate.Sub(sdkmath.NewInt(1)))
-	s.Require().ErrorContains(err, "greater than the new rate limit")
-
-	// case 2: rate limit does not exist before and is equal to total out flow rate
-	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate)
 	s.Require().NoError(err)
 
-	// case 3: rate limit does not exist before and is greater than total out flow rate
-	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate.Add(sdkmath.NewInt(1)))
-	s.Require().NoError(err)
+	isRateLimited := s.storageKeeper.IsBucketRateLimited(s.ctx, bucketName)
+	s.Require().True(isRateLimited)
 
-	// case 4: rate limit exists before and is equal than total out flow rate
-	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate)
-	s.Require().NoError(err)
-
-	// case 5: rate limit exists before and is 0, and the new rate limit is less than total out flow rate
-	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, sdk.NewInt(0))
-	s.Require().NoError(err)
+	// case 2: rate limit exists before and is equal to the previous flow rate limit
 	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate.Sub(sdkmath.NewInt(1)))
-	s.Require().ErrorContains(err, "greater than the new rate limit")
+	s.Require().NoError(err)
 
-	// case 6: rate limit exists before and is 0, and the new rate limit is larger than the total out flow rate
+	isRateLimited = s.storageKeeper.IsBucketRateLimited(s.ctx, bucketName)
+	s.Require().True(isRateLimited)
+
+	// case 3: bucket is rate limited and the new rate limit is less than the total out flow rate
+	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate.Sub(sdkmath.NewInt(2)))
+	s.Require().NoError(err)
+
+	isRateLimited = s.storageKeeper.IsBucketRateLimited(s.ctx, bucketName)
+	s.Require().True(isRateLimited)
+
+	// case 4: bucket is rate limited and the new rate limit is larger than the total out flow rate
 	err = s.storageKeeper.SetBucketFlowRateLimit(s.ctx, operatorAddress, bucketOwner, paymentAccount, bucketName, totalOutFlowRate.Add(sdkmath.NewInt(1)))
 	s.Require().NoError(err)
+
+	// the bucket should be no longer rate limited
+	isRateLimited = s.storageKeeper.IsBucketRateLimited(s.ctx, bucketName)
+	s.Require().False(isRateLimited)
 }
 
 func getTotalOutFlowRate(flows []paymenttypes.OutFlow) sdkmath.Int {
@@ -194,4 +242,8 @@ func prepareReadStoreBill(s *TestSuite, bucketInfo *types.BucketInfo) {
 
 	s.storageKeeper.StoreBucketInfo(s.ctx, bucketInfo)
 	s.storageKeeper.SetInternalBucketInfo(s.ctx, bucketInfo.Id, internalBucketInfo)
+}
+
+func (s *TestSuite) TestChargeBucketReadFee() {
+
 }

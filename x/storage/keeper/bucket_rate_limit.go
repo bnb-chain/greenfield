@@ -19,13 +19,8 @@ func (k Keeper) SetBucketFlowRateLimit(ctx sdk.Context, operator sdk.AccAddress,
 	// get the bucket
 	bucket, found := k.GetBucketInfo(ctx, bucketName)
 
-	// check the bucket owner is the same as the bucket owner of the bucket
-	if found && bucket.Owner != bucketOwner.String() {
-		return fmt.Errorf("the bucket owner is not the same as the bucket owner of the bucket")
-	}
-
 	// if the bucket does not use the payment account, just set the flow rate limit
-	if !found || (found && bucket.PaymentAddress != paymentAccount.String()) {
+	if !found || (found && (bucket.PaymentAddress != paymentAccount.String() || bucket.Owner != bucketOwner.String())) {
 		// set the flow rate limit to the store
 		k.setBucketFlowRateLimit(ctx, paymentAccount, bucketOwner, bucketName, &types.BucketFlowRateLimit{
 			FlowRateLimit: rateLimit,
@@ -107,7 +102,7 @@ func (k Keeper) setFlowRateLimit(ctx sdk.Context, bucketInfo *types.BucketInfo, 
 	}
 
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-	isRateLimited := k.isBucketRateLimited(ctx, bucketName)
+	isRateLimited := k.IsBucketRateLimited(ctx, bucketName)
 
 	if found && isRateLimited {
 		internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
@@ -211,8 +206,8 @@ func (k Keeper) deleteBucketFlowRateLimitStatus(ctx sdk.Context, bucketName stri
 	}
 }
 
-// isBucketRateLimited checks if the bucket is rate limited
-func (k Keeper) isBucketRateLimited(ctx sdk.Context, bucketName string) bool {
+// IsBucketRateLimited checks if the bucket is rate limited
+func (k Keeper) IsBucketRateLimited(ctx sdk.Context, bucketName string) bool {
 	status, found := k.getBucketFlowRateLimitStatus(ctx, bucketName)
 	if !found {
 		return false
