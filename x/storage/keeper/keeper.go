@@ -811,7 +811,9 @@ func (k Keeper) SealObject(
 	prevCheckSums := objectInfo.Checksums
 
 	isUpdate := objectInfo.IsUpdating
-	if isUpdate {
+
+	// an object might be set to OBJECT_STATUS_DISCONTINUED
+	if isUpdate && objectInfo.ObjectStatus == types.OBJECT_STATUS_SEALED {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 		err := k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
 		if err != nil {
@@ -1149,6 +1151,10 @@ func (k Keeper) CopyObject(
 
 	if srcObjectInfo.SourceType != opts.SourceType {
 		return sdkmath.ZeroUint(), types.ErrSourceTypeMismatch
+	}
+
+	if srcObjectInfo.IsUpdating {
+		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("the object is being updated, can not be copied")
 	}
 
 	// check permission
