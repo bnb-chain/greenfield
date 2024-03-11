@@ -281,6 +281,9 @@ func (k Keeper) GetBucketExtraInfo(ctx sdk.Context, bucketInfo *types.BucketInfo
 		extraInfo.FlowRateLimit = rateLimit.FlowRateLimit
 	}
 
+	isRateLimited := k.IsBucketRateLimited(ctx, bucketInfo.BucketName)
+	extraInfo.IsRateLimited = isRateLimited
+
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
 	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
