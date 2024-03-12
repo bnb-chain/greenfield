@@ -344,8 +344,13 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_BucketPaymentAccount()
 	s.SendTxBlockWithExpectErrorString(msgUpdateBucketInfo, user, "greater than the flow rate limit")
 
 	// SetBucketRateLimit
-	msgSetBucketRateLimit = storagetypes.NewMsgSetBucketFlowRateLimit(paymentAcc.GetAddr(), s.User.GetAddr(), paymentAcc.GetAddr(), bucketName, sdkmath.NewInt(100000000000))
+	msgSetBucketRateLimit = storagetypes.NewMsgSetBucketFlowRateLimit(paymentAcc.GetAddr(), s.User.GetAddr(), paymentAcc.GetAddr(), bucketName, sdkmath.NewInt(100000000000000))
 	s.SendTxBlock(paymentAcc, msgSetBucketRateLimit)
+
+	// UpdateBucketInfo
+	msgUpdateBucketInfo = storagetypes.NewMsgUpdateBucketInfo(
+		user.GetAddr(), bucketName, nil, paymentAcc.GetAddr(), storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+	s.SendTxBlock(user, msgUpdateBucketInfo)
 
 	queryHeadBucketRequest = storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
@@ -354,11 +359,6 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_BucketPaymentAccount()
 	s.Require().NoError(err)
 
 	s.Require().Equal(queryHeadBucketResponse.ExtraInfo.IsRateLimited, false)
-
-	// UpdateBucketInfo
-	msgUpdateBucketInfo = storagetypes.NewMsgUpdateBucketInfo(
-		user.GetAddr(), bucketName, nil, paymentAcc.GetAddr(), storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
-	s.SendTxBlock(user, msgUpdateBucketInfo)
 }
 
 func (s *StorageTestSuite) TestQueryBucketRateLimit() {
