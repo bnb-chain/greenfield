@@ -111,11 +111,7 @@ func (k msgServer) ToggleSPAsDelegatedAgent(goCtx context.Context, msg *storaget
 	if msg.Operator != bucketInfo.Owner {
 		return nil, types.ErrAccessDenied.Wrapf("Only the bucket owner(%s) can toggle", bucketInfo.Owner)
 	}
-	if bucketInfo.SpAsDelegatedAgentDisabled {
-		bucketInfo.SpAsDelegatedAgentDisabled = false
-	} else {
-		bucketInfo.SpAsDelegatedAgentDisabled = true
-	}
+	bucketInfo.SpAsDelegatedAgentDisabled = !bucketInfo.SpAsDelegatedAgentDisabled
 	k.SetBucketInfo(ctx, bucketInfo)
 	return &types.MsgToggleSPAsDelegatedAgentResponse{}, nil
 
