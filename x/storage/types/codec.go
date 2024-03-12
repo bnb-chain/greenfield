@@ -27,6 +27,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCompleteMigrateBucket{}, "storage/CompleteMigrateBucket", nil)
 	cdc.RegisterConcrete(&MsgCancelMigrateBucket{}, "storage/CancelMigrateBucket", nil)
 	cdc.RegisterConcrete(&MsgRejectMigrateBucket{}, "storage/RejectMigrateBucket", nil)
+	cdc.RegisterConcrete(&MsgSetBucketFlowRateLimit{}, "storage/SetBucketFlowRateLimit", nil)
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -133,6 +134,10 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgDelegateUpdateObjectContent{},
 	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgSetBucketFlowRateLimit{},
+	)
+
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
