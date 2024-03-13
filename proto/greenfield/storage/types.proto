@@ -39,6 +39,9 @@ message BucketInfo {
   BucketStatus bucket_status = 10;
   // tags defines a list of tags the bucket has
   ResourceTags tags = 11;
+  // sp_as_delegated_agent_disabled indicates that whether bucket owner disable SP as the upload agent.
+  // when a bucket is created, by default, this is false, means SP is allowed to create object for delegator
+  bool sp_as_delegated_agent_disabled = 12;
 }
 
 message InternalBucketInfo {

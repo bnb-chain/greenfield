@@ -102,6 +102,21 @@ func (k msgServer) DiscontinueBucket(goCtx context.Context, msg *storagetypes.Ms
 	return &types.MsgDiscontinueBucketResponse{}, nil
 }
 
+func (k msgServer) ToggleSPAsDelegatedAgent(goCtx context.Context, msg *storagetypes.MsgToggleSPAsDelegatedAgent) (*storagetypes.MsgToggleSPAsDelegatedAgentResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	bucketInfo, found := k.GetBucketInfo(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+	if msg.Operator != bucketInfo.Owner {
+		return nil, types.ErrAccessDenied.Wrapf("Only the bucket owner(%s) can toggle", bucketInfo.Owner)
+	}
+	bucketInfo.SpAsDelegatedAgentDisabled = !bucketInfo.SpAsDelegatedAgentDisabled
+	k.SetBucketInfo(ctx, bucketInfo)
+	return &types.MsgToggleSPAsDelegatedAgentResponse{}, nil
+
+}
+
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -737,6 +752,59 @@ func (k msgServer) CancelUpdateObjectContent(goCtx context.Context, msg *storage
 		return nil, err
 	}
 	return &types.MsgCancelUpdateObjectContentResponse{}, nil
+}
+
+func (k msgServer) DelegateCreateObject(goCtx context.Context, msg *storagetypes.MsgDelegateCreateObject) (*storagetypes.MsgDelegateCreateObjectResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
+	creatorAddr := sdk.MustAccAddressFromHex(msg.Creator)
+	id, err := k.Keeper.CreateObject(ctx, operatorAddr, msg.BucketName, msg.ObjectName, msg.PayloadSize, storagetypes.CreateObjectOptions{
+		SourceType:     types.SOURCE_TYPE_ORIGIN,
+		Visibility:     msg.Visibility,
+		ContentType:    msg.ContentType,
+		RedundancyType: msg.RedundancyType,
+		Checksums:      msg.ExpectChecksums,
+		Delegated:      true,
+		Creator:        creatorAddr,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDelegateCreateObjectResponse{
+		ObjectId: id,
+	}, nil
+}
+
+func (k msgServer) DelegateUpdateObjectContent(goCtx context.Context, msg *storagetypes.MsgDelegateUpdateObjectContent) (*storagetypes.MsgDelegateUpdateObjectContentResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
+	updaterAddr := sdk.MustAccAddressFromHex(msg.Updater)
+	err := k.Keeper.UpdateObjectContent(ctx, operatorAddr, msg.BucketName, msg.ObjectName, msg.PayloadSize, storagetypes.UpdateObjectOptions{
+		ContentType: msg.ContentType,
+		Checksums:   msg.ExpectChecksums,
+		Delegated:   true,
+		Updater:     updaterAddr,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDelegateUpdateObjectContentResponse{}, nil
+}
+
+func (k msgServer) SealObjectV2(goCtx context.Context, msg *storagetypes.MsgSealObjectV2) (*storagetypes.MsgSealObjectV2Response, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	spSealAcc := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.Keeper.SealObject(ctx, spSealAcc, msg.BucketName, msg.ObjectName, SealObjectOptions{
+		GlobalVirtualGroupId:     msg.GlobalVirtualGroupId,
+		SecondarySpBlsSignatures: msg.SecondarySpBlsAggSignatures,
+		Checksums:                msg.ExpectChecksums,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgSealObjectV2Response{}, nil
 }
 
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {

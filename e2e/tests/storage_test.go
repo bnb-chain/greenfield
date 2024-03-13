@@ -2407,3 +2407,158 @@ func (s *StorageTestSuite) TestDeleteCreateObject_InCreatedStatus() {
 	_, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
 	s.Require().EqualError(err, "rpc error: code = Unknown desc = No such object: unknown request")
 }
+
+func (s *StorageTestSuite) TestToggleBucketSpAsDelegatedAgents() {
+	var err error
+	// CreateBucket
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateBucket)
+
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	ctx := context.Background()
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(false, queryHeadBucketResponse.BucketInfo.SpAsDelegatedAgentDisabled)
+
+	MsgToggleSPAsDelegatedAgent := storagetypes.NewMsgToggleSPAsDelegatedAgent(
+		user.GetAddr(),
+		bucketName)
+	s.SendTxBlock(user, MsgToggleSPAsDelegatedAgent)
+
+	// HeadBucket
+	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(true, queryHeadBucketResponse.BucketInfo.SpAsDelegatedAgentDisabled)
+}
+
+func (s *StorageTestSuite) TestCreateObjectByDelegatedAgents() {
+	var err error
+	ctx := context.Background()
+
+	// CreateBucket
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+
+	bucketOwner := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storageutils.GenRandomBucketName()
+	objectName := storageutils.GenRandomObjectName()
+
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		bucketOwner.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+
+	s.SendTxBlock(bucketOwner, msgCreateBucket)
+
+	// HeadBucket
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(false, queryHeadBucketResponse.BucketInfo.SpAsDelegatedAgentDisabled)
+
+	// DelegateCreate for user2, who does not have permission
+	var buffer bytes.Buffer
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	contextType := "text/event-stream"
+	msgDelegateCreateObject := storagetypes.NewMsgDelegateCreateObject(
+		sp.OperatorKey.GetAddr(),
+		bucketOwner.GetAddr(),
+		bucketName,
+		objectName,
+		uint64(payloadSize),
+		storagetypes.VISIBILITY_TYPE_PRIVATE,
+		nil,
+		contextType,
+		storagetypes.REDUNDANCY_EC_TYPE)
+	s.SendTxBlock(sp.OperatorKey, msgDelegateCreateObject)
+
+	headObjectReq := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	headObjectResp, err := s.Client.HeadObject(ctx, &headObjectReq)
+	s.Require().NoError(err)
+	s.Require().Equal(objectName, headObjectResp.ObjectInfo.ObjectName)
+	s.Require().Equal(bucketOwner.GetAddr().String(), headObjectResp.ObjectInfo.Owner)
+	s.Require().Equal(0, len(headObjectResp.ObjectInfo.Checksums))
+
+	// SP seal object, and update the object checksum
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+
+	gvgId := gvg.Id
+	msgSealObject := storagetypes.NewMsgSealObjectV2(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil, expectChecksum)
+	secondarySigs := make([][]byte, 0)
+	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, headObjectResp.ObjectInfo.Id, storagetypes.GenerateHash(expectChecksum[:])).GetBlsSignHash()
+	// every secondary sp signs the checksums
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
+		s.Require().NoError(err)
+		secondarySigs = append(secondarySigs, sig)
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
+		s.Require().NoError(err)
+		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
+	}
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, blsSignHash, secondarySigs)
+	s.Require().NoError(err)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+	s.T().Logf("msg %s", msgSealObject.String())
+	s.SendTxBlock(sp.SealKey, msgSealObject)
+
+	headObjectResp, err = s.Client.HeadObject(ctx, &headObjectReq)
+	s.Require().NoError(err)
+	s.Require().Equal(objectName, headObjectResp.ObjectInfo.ObjectName)
+	s.Require().Equal(bucketOwner.GetAddr().String(), headObjectResp.ObjectInfo.Owner)
+	s.Require().Equal(expectChecksum, headObjectResp.ObjectInfo.Checksums)
+
+	// delegate update
+	var newBuffer bytes.Buffer
+	for i := 0; i < 2048; i++ {
+		newBuffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	newPayloadSize := uint64(newBuffer.Len())
+	newChecksum := sdk.Keccak256(newBuffer.Bytes())
+	newExpectChecksum := [][]byte{newChecksum, newChecksum, newChecksum, newChecksum, newChecksum, newChecksum, newChecksum}
+
+	msgUpdateObject := storagetypes.NewMsgDelegateUpdateObjectContent(sp.OperatorKey.GetAddr(),
+		bucketOwner.GetAddr(), bucketName, objectName, newPayloadSize, nil)
+	s.SendTxBlock(sp.OperatorKey, msgUpdateObject)
+	s.T().Logf("msgUpdateObject %s", msgUpdateObject.String())
+
+	// every secondary sp signs the checksums
+	newSecondarySigs := make([][]byte, 0)
+	newBlsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, headObjectResp.ObjectInfo.Id, storagetypes.GenerateHash(newExpectChecksum[:])).GetBlsSignHash()
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], newBlsSignHash)
+		s.Require().NoError(err)
+		newSecondarySigs = append(newSecondarySigs, sig)
+	}
+	aggBlsSig, err = core.BlsAggregateAndVerify(secondarySPBlsPubKeys, newBlsSignHash, newSecondarySigs)
+	s.Require().NoError(err)
+	msgSealObject = storagetypes.NewMsgSealObjectV2(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil, newExpectChecksum)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+	s.T().Logf("msgSealObject %s", msgSealObject.String())
+	s.SendTxBlock(sp.SealKey, msgSealObject)
+}

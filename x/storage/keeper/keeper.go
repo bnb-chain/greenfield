@@ -576,20 +576,30 @@ func (k Keeper) CreateObject(
 
 	// primary sp
 	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
+	creator := operator
+	if opts.Delegated {
+		creator = opts.Creator
+		if bucketInfo.SpAsDelegatedAgentDisabled {
+			return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrap("the SP is not allowed to create object for delegator, disabled by the bucket owner previously")
+		}
+		if operator.String() != sp.OperatorAddress {
+			return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrap("only the primary SP is allowed to create object for delegator")
+		}
+	}
 
 	// verify permission
 	verifyOpts := &permtypes.VerifyOptions{
 		WantedSize: &payloadSize,
 	}
-	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, creator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
 	if effect != permtypes.EFFECT_ALLOW {
-		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator(%s) has no CreateObject permission of the bucket(%s)",
+		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The creator(%s) has no CreateObject permission of the bucket(%s)",
 			operator.String(), bucketName)
 	}
 
-	var creator sdk.AccAddress
-	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
-		creator = operator
+	objectInfoCreator := creator
+	if objectInfoCreator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
+		objectInfoCreator = sdk.AccAddress{}
 	}
 
 	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
@@ -624,7 +634,7 @@ func (k Keeper) CreateObject(
 	// construct objectInfo
 	objectInfo := types.ObjectInfo{
 		Owner:          bucketInfo.Owner,
-		Creator:        creator.String(),
+		Creator:        objectInfoCreator.String(),
 		BucketName:     bucketName,
 		ObjectName:     objectName,
 		PayloadSize:    payloadSize,
@@ -659,7 +669,7 @@ func (k Keeper) CreateObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		Creator:             operator.String(),
+		Creator:             creator.String(),
 		Owner:               objectInfo.Owner,
 		BucketName:          bucketInfo.BucketName,
 		ObjectName:          objectInfo.ObjectName,
@@ -766,6 +776,7 @@ func (k Keeper) MustGetShadowObjectInfo(ctx sdk.Context, bucketName, objectName 
 type SealObjectOptions struct {
 	GlobalVirtualGroupId     uint32
 	SecondarySpBlsSignatures []byte
+	Checksums                [][]byte
 }
 
 func (k Keeper) SealObject(
@@ -792,6 +803,13 @@ func (k Keeper) SealObject(
 	if !found {
 		return types.ErrNoSuchObject
 	}
+
+	if objectInfo.Checksums == nil {
+		if opts.Checksums == nil {
+			return types.ErrObjectChecksumsMissing
+		}
+		objectInfo.Checksums = opts.Checksums
+	}
 	store := ctx.KVStore(k.storeKey)
 
 	prevPayloadSize := objectInfo.PayloadSize
@@ -813,6 +831,12 @@ func (k Keeper) SealObject(
 		shadowObjectInfo := k.MustGetShadowObjectInfo(ctx, bucketName, objectName)
 		objectInfo.UpdatedAt = shadowObjectInfo.UpdatedAt // the updated_at in objetInfo will not be visible until the object is sealed.
 		objectInfo.Version = shadowObjectInfo.Version
+		if shadowObjectInfo.Checksums == nil {
+			if opts.Checksums == nil {
+				return types.ErrObjectChecksumsMissing
+			}
+			shadowObjectInfo.Checksums = opts.Checksums
+		}
 		objectInfo.Checksums = shadowObjectInfo.Checksums
 		objectInfo.PayloadSize = shadowObjectInfo.PayloadSize
 		objectInfo.UpdatedBy = shadowObjectInfo.Operator
@@ -882,6 +906,7 @@ func (k Keeper) SealObject(
 		Status:               objectInfo.ObjectStatus,
 		GlobalVirtualGroupId: opts.GlobalVirtualGroupId,
 		LocalVirtualGroupId:  objectInfo.LocalVirtualGroupId,
+		Checksums:            objectInfo.Checksums,
 	}); err != nil {
 		return err
 	}
@@ -2455,11 +2480,17 @@ func (k Keeper) UpdateObjectContent(
 		return types.ErrObjectIsUpdating.Wrapf("The object is already being updated")
 	}
 	// check permission
-	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_UPDATE_OBJECT_CONTENT)
+	var updater sdk.AccAddress
+	if opts.Delegated {
+		updater = opts.Updater
+	} else {
+		updater = operator
+	}
+	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, updater, permtypes.ACTION_UPDATE_OBJECT_CONTENT)
 	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
-			"The operator(%s) has no updateObjectContent permission of the bucket(%s), object(%s)",
-			operator.String(), bucketName, objectName)
+			"The updater(%s) has no updateObjectContent permission of the bucket(%s), object(%s)",
+			updater.String(), bucketName, objectName)
 	}
 
 	// check payload size
@@ -2473,7 +2504,14 @@ func (k Keeper) UpdateObjectContent(
 	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, operator) {
 		return errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
 	}
-
+	if opts.Delegated {
+		if bucketInfo.SpAsDelegatedAgentDisabled {
+			return types.ErrAccessDenied.Wrap("the SP is not allowed to create object for delegator, disabled by the bucket owner previously")
+		}
+		if operator.String() != sp.OperatorAddress {
+			return types.ErrAccessDenied.Wrap("only the primary SP is allowed to create object for delegator")
+		}
+	}
 	nextVersion := objectInfo.Version + 1
 
 	if payloadSize == 0 {
@@ -2487,12 +2525,11 @@ func (k Keeper) UpdateObjectContent(
 		if err != nil {
 			return err
 		}
-
 		objectInfo.UpdatedAt = ctx.BlockTime().Unix()
 		objectInfo.Version = nextVersion
 		objectInfo.PayloadSize = 0
 		objectInfo.Checksums = opts.Checksums
-		objectInfo.UpdatedBy = operator.String()
+		objectInfo.UpdatedBy = updater.String()
 		objectInfo.ContentType = opts.ContentType
 
 		_, err = k.SealEmptyObjectOnVirtualGroup(ctx, bucketInfo, objectInfo)
@@ -2502,7 +2539,7 @@ func (k Keeper) UpdateObjectContent(
 	} else {
 		objectInfo.IsUpdating = true
 		shadowObjectInfo := &types.ShadowObjectInfo{
-			Operator:    operator.String(),
+			Operator:    updater.String(),
 			Id:          objectInfo.Id,
 			PayloadSize: payloadSize,
 			Checksums:   opts.Checksums,
@@ -2522,7 +2559,7 @@ func (k Keeper) UpdateObjectContent(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventUpdateObjectContent{
-		Operator:    operator.String(),
+		Operator:    updater.String(),
 		ObjectId:    objectInfo.Id,
 		PayloadSize: payloadSize,
 		Checksums:   opts.Checksums,
