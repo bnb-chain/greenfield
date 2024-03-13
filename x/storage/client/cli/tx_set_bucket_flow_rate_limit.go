@@ -19,7 +19,7 @@ var _ = strconv.Itoa(0)
 func CmdSetBucketFlowRateLimit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set-bucket-flow-rate-limit [bucket-name] [payment-account] [bucket-owner] [flow-rate-limit]",
-		Short: "cancel a existing bucket migration",
+		Short: "set flow rate limit for a bucket",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
