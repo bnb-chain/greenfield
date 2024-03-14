@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.5.0
+This release introduces the Pawnee upgrade to Testnet and Mainnet
+
+Features:
+* [#564](https://github.com/bnb-chain/greenfield/pull/564) feat: add settlement events
+* [#570](https://github.com/bnb-chain/greenfield/pull/570) feat: atomic object update
+* [#571](https://github.com/bnb-chain/greenfield/pull/571) feat: modify dependency for supporting custom blocks to rollback
+* [#573](https://github.com/bnb-chain/greenfield/pull/573) feat: support delete object in created status
+
+Fix:
+* [#579](https://github.com/bnb-chain/greenfield/pull/579) fix: delete created object by authorized account
+* [#583](https://github.com/bnb-chain/greenfield/pull/583) fix: disable discontinue on testnet
+* [#584](https://github.com/bnb-chain/greenfield/pull/584) fix: disallow update payment address when there are created/updating objects
+* [#586](https://github.com/bnb-chain/greenfield/pull/586) fix: unlock shadow-object balance when a bucket is force deleted
+* [#587](https://github.com/bnb-chain/greenfield/pull/587) fix: disallow copy an object is being updated
+
 ## v1.4.0
 This release introduces the Ural upgrade to the testnet.
 

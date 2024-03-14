@@ -34,7 +34,8 @@ var (
 	ErrUpdateObjectNotAllowed       = errors.Register(ModuleName, 1126, "Object is not allowed to update")
 	ErrObjectIsUpdating             = errors.Register(ModuleName, 1127, "Object is being updated")
 	ErrObjectIsNotUpdating          = errors.Register(ModuleName, 1128, "Object is not being updated")
-	ErrObjectChecksumsMissing       = errors.Register(ModuleName, 1129, "Object checksums is missing")
+	ErrUpdatePaymentAccountFailed   = errors.Register(ModuleName, 1129, "Update payment account failed")
+	ErrObjectChecksumsMissing       = errors.Register(ModuleName, 1130, "Object checksums is missing")
 
 	ErrInvalidCrossChainPackage = errors.Register(ModuleName, 3000, "invalid cross chain package")
 	ErrAlreadyMirrored          = errors.Register(ModuleName, 3001, "resource is already mirrored")
