@@ -839,6 +839,7 @@ func (k msgServer) SetBucketFlowRateLimit(goCtx context.Context, msg *types.MsgS
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventSetBucketFlowRateLimit{
 		Operator:       operatorAddr.String(),
 		BucketName:     msg.BucketName,
+		BucketOwner:    bucketOwnerAddr.String(),
 		PaymentAddress: paymentAccountAddr.String(),
 		FlowRateLimit:  msg.FlowRateLimit,
 	}); err != nil {

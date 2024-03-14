@@ -639,6 +639,8 @@ message EventSetBucketFlowRateLimit {
   string bucket_name = 2;
   // payment_address define the payment address for the bucket
   string payment_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_owner define the intended owner of the bucket
+  string bucket_owner = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // flow_rate_limit define the flow rate limit of the bucket
   string flow_rate_limit = 5 [
     (cosmos_proto.scalar) = "cosmos.Int",
