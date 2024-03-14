@@ -338,9 +338,9 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	// CancelCreateObject
 	msgCancelCreateObject := storagetypes.NewMsgCancelCreateObject(user[2].GetAddr(), bucketName, objectName)
 	s.Require().NoError(err)
-	s.SendTxBlockWithExpectErrorString(msgCancelCreateObject, user[2], "Only allowed owner/creator to do cancel create object")
+	s.SendTxBlockWithExpectErrorString(msgCancelCreateObject, user[2], "has no DeleteObject permission")
 
-	// CancelCreateObject
+	// CancelCreateObject by creator
 	msgCancelCreateObject = storagetypes.NewMsgCancelCreateObject(user[1].GetAddr(), bucketName, objectName)
 	s.Require().NoError(err)
 	s.SendTxBlock(user[1], msgCancelCreateObject)

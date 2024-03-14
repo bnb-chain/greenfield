@@ -41,13 +41,13 @@ func TestParamsByTimestampQuery(t *testing.T) {
 	require.NoError(t, err)
 
 	response, err := keeper.ParamsByTimestamp(ctx, &types.QueryParamsByTimestampRequest{
-		Timestamp: before.Unix(),
+		Timestamp: before.Unix() + 1,
 	})
 	require.NoError(t, err)
 	require.True(t, newReserveTime != response.Params.VersionedParams.ReserveTime)
 
 	response, err = keeper.ParamsByTimestamp(ctx, &types.QueryParamsByTimestampRequest{
-		Timestamp: after.Unix(),
+		Timestamp: after.Unix() + 1,
 	})
 	require.NoError(t, err)
 	require.True(t, newReserveTime == response.Params.VersionedParams.ReserveTime)

@@ -67,13 +67,13 @@ func (s *TestSuite) TestQueryVersionedParams() {
 	err = s.storageKeeper.SetParams(s.ctx, params)
 	s.Require().NoError(err)
 
-	responseT1, err := s.storageKeeper.QueryParamsByTimestamp(s.ctx, &types.QueryParamsByTimestampRequest{Timestamp: blockTimeT1})
+	responseT1, err := s.storageKeeper.QueryParamsByTimestamp(s.ctx, &types.QueryParamsByTimestampRequest{Timestamp: blockTimeT1 + 1})
 	s.Require().NoError(err)
 	s.Require().Equal(&types.QueryParamsByTimestampResponse{Params: paramsT1}, responseT1)
 	getParams := responseT1.GetParams()
 	s.Require().Equal(getParams.GetMaxSegmentSize(), uint64(1))
 
-	responseT2, err := s.storageKeeper.QueryParamsByTimestamp(s.ctx, &types.QueryParamsByTimestampRequest{Timestamp: blockTimeT2})
+	responseT2, err := s.storageKeeper.QueryParamsByTimestamp(s.ctx, &types.QueryParamsByTimestampRequest{Timestamp: blockTimeT2 + 1})
 	s.Require().NoError(err)
 	s.Require().Equal(&types.QueryParamsByTimestampResponse{Params: paramsT2}, responseT2)
 	p := responseT2.GetParams()
