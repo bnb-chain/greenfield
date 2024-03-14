@@ -235,8 +235,9 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetQuotaKey(bucketInfo.Id))
 	store.Delete(types.GetInternalBucketInfoKey(bucketInfo.Id))
 	store.Delete(types.GetMigrationBucketKey(bucketInfo.Id))
-	store.Delete(types.GetLockedObjectCountKey(bucketInfo.Id))
-
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		store.Delete(types.GetLockedObjectCountKey(bucketInfo.Id))
+	}
 	err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id)
 	if err != nil {
 		return err
