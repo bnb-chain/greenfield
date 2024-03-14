@@ -150,6 +150,11 @@ service Query {
   rpc QueryGroupsExistById(QueryGroupsExistByIdRequest) returns (QueryGroupsExistResponse) {
     option (google.api.http).get = "/greenfield/storage/groups_exist_by_id/{group_ids}";
   }
+
+  // Queries the flow rate limit of a bucket for a payment account
+  rpc QueryPaymentAccountBucketFlowRateLimit(QueryPaymentAccountBucketFlowRateLimitRequest) returns (QueryPaymentAccountBucketFlowRateLimitResponse) {
+    option (google.api.http).get = "/greenfield/storage/payment_account_bucket_flow_rate_limit/{payment_account}/{bucket_name}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -183,6 +188,7 @@ message QueryHeadBucketByIdRequest {
 
 message QueryHeadBucketResponse {
   BucketInfo bucket_info = 1;
+  BucketExtraInfo extra_info = 2;
 }
 
 message QueryHeadObjectRequest {
@@ -415,4 +421,19 @@ message QueryGroupsExistByIdRequest {
 
 message QueryGroupsExistResponse {
   map<string, bool> exists = 1;
+}
+
+message QueryPaymentAccountBucketFlowRateLimitRequest {
+  string payment_account = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 3;
+}
+
+message QueryPaymentAccountBucketFlowRateLimitResponse {
+  bool is_set = 1;
+  string flow_rate_limit = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }

@@ -2632,6 +2632,15 @@ paths:
 
                       when a bucket is created, by default, this is false, means
                       SP is allowed to create object for delegator
+              extra_info:
+                type: object
+                properties:
+                  is_rate_limited:
+                    type: boolean
+                  flow_rate_limit:
+                    type: string
+                  current_flow_rate:
+                    type: string
         default:
           description: An unexpected error response.
           schema:
@@ -2764,6 +2773,15 @@ paths:
 
                       when a bucket is created, by default, this is false, means
                       SP is allowed to create object for delegator
+              extra_info:
+                type: object
+                properties:
+                  is_rate_limited:
+                    type: boolean
+                  flow_rate_limit:
+                    type: string
+                  current_flow_rate:
+                    type: string
         default:
           description: An unexpected error response.
           schema:
@@ -5087,6 +5105,57 @@ paths:
           required: true
           type: string
           format: int64
+      tags:
+        - Query
+  /greenfield/storage/payment_account_bucket_flow_rate_limit/{payment_account}/{bucket_name}:
+    get:
+      summary: Queries the flow rate limit of a bucket for a payment account
+      operationId: QueryPaymentAccountBucketFlowRateLimit
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              is_set:
+                type: boolean
+              flow_rate_limit:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: payment_account
+          in: path
+          required: true
+          type: string
+        - name: bucket_name
+          in: path
+          required: true
+          type: string
+        - name: bucket_owner
+          in: query
+          required: false
+          type: string
       tags:
         - Query
   /greenfield/storage/policy_by_id/{policy_id}:
@@ -34813,6 +34882,15 @@ definitions:
       - RESOURCE_TYPE_OBJECT
       - RESOURCE_TYPE_GROUP
     default: RESOURCE_TYPE_UNSPECIFIED
+  greenfield.storage.BucketExtraInfo:
+    type: object
+    properties:
+      is_rate_limited:
+        type: boolean
+      flow_rate_limit:
+        type: string
+      current_flow_rate:
+        type: string
   greenfield.storage.BucketInfo:
     type: object
     properties:
@@ -35605,6 +35683,15 @@ definitions:
 
               when a bucket is created, by default, this is false, means SP is
               allowed to create object for delegator
+      extra_info:
+        type: object
+        properties:
+          is_rate_limited:
+            type: boolean
+          flow_rate_limit:
+            type: string
+          current_flow_rate:
+            type: string
   greenfield.storage.QueryHeadGroupMemberResponse:
     type: object
     properties:
@@ -36525,6 +36612,13 @@ definitions:
               Relayer fee for the ACK or FAIL_ACK package of the mirror object
               tx to op chain
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  greenfield.storage.QueryPaymentAccountBucketFlowRateLimitResponse:
+    type: object
+    properties:
+      is_set:
+        type: boolean
+      flow_rate_limit:
+        type: string
   greenfield.storage.QueryPolicyByIdResponse:
     type: object
     properties:

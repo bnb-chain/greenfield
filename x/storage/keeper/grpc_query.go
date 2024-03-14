@@ -62,8 +62,13 @@ func (k Keeper) HeadBucket(goCtx context.Context, req *types.QueryHeadBucketRequ
 
 	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
 	if found {
+		extraInfo, err := k.GetBucketExtraInfo(ctx, bucketInfo)
+		if err != nil {
+			return nil, err
+		}
 		return &types.QueryHeadBucketResponse{
 			BucketInfo: bucketInfo,
+			ExtraInfo:  extraInfo,
 		}, nil
 	}
 	return nil, types.ErrNoSuchBucket
@@ -337,7 +342,7 @@ func (k Keeper) QueryLockFee(c context.Context, req *types.QueryLockFeeRequest) 
 		return nil, sptypes.ErrStorageProviderNotFound
 	}
 
-	amount, err := k.GetObjectLockFee(ctx, createAt, req.PayloadSize)
+	amount, _, err := k.GetObjectLockFee(ctx, createAt, req.PayloadSize)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -673,4 +678,34 @@ func (k Keeper) QueryGroupsExistById(goCtx context.Context, req *types.QueryGrou
 		exists[groupId] = found
 	}
 	return &types.QueryGroupsExistResponse{Exists: exists}, nil
+}
+
+func (k Keeper) QueryPaymentAccountBucketFlowRateLimit(goCtx context.Context, req *types.QueryPaymentAccountBucketFlowRateLimitRequest) (*types.QueryPaymentAccountBucketFlowRateLimitResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	paymentAcc, err := sdk.AccAddressFromHexUnsafe(req.PaymentAccount)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid payment account address")
+	}
+
+	bucketOwner, err := sdk.AccAddressFromHexUnsafe(req.BucketOwner)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid bucket owner address")
+	}
+
+	flowRateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAcc, bucketOwner, req.BucketName)
+	if !found {
+		return &types.QueryPaymentAccountBucketFlowRateLimitResponse{
+			IsSet: false,
+		}, nil
+	}
+
+	return &types.QueryPaymentAccountBucketFlowRateLimitResponse{
+		IsSet:         true,
+		FlowRateLimit: flowRateLimit.FlowRateLimit,
+	}, nil
 }

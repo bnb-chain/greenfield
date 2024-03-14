@@ -219,3 +219,17 @@ message ShadowObjectInfo {
   // version define the version of object
   int64 version = 7;
 }
+
+message BucketExtraInfo {
+  bool is_rate_limited = 1;
+  string flow_rate_limit = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string current_flow_rate = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}

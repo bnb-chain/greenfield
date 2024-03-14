@@ -28,6 +28,7 @@ func (s *TestSuite) TestCreateObject() {
 		BucketStatus:     types.BUCKET_STATUS_CREATED,
 	}
 
+	s.paymentKeeper.EXPECT().IsPaymentAccountOwner(gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 	// case 1: bucket does not exist
 	_, err := s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
 		objectName, 100, types.CreateObjectOptions{
