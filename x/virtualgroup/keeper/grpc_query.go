@@ -165,3 +165,76 @@ func (k Keeper) GVGStatistics(goCtx context.Context, req *types.QuerySPGVGStatis
 		GvgStats: stats,
 	}, nil
 }
+
+func (k Keeper) QuerySpAvailableGlobalVirtualGroupFamilies(goCtx context.Context, req *types.QuerySPAvailableGlobalVirtualGroupFamiliesRequest) (*types.QuerySPAvailableGlobalVirtualGroupFamiliesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	stats, found := k.GetGVGFamilyStatisticsWithinSP(ctx, req.GetSpId())
+	if !found {
+		return nil, types.ErrGVGFamilyStatisticsNotExist
+	}
+
+	availableFamilyIds := make([]uint32, 0)
+	for _, gvgfID := range stats.GlobalVirtualGroupFamilyIds {
+		gvgFamily, found := k.GetGVGFamily(ctx, gvgfID)
+		if !found {
+			return nil, types.ErrGVGFamilyNotExist
+		}
+		totalStakingSize, stored, err := k.GetGlobalVirtualFamilyTotalStakingAndStoredSize(ctx, gvgFamily)
+		if err != nil {
+			return nil, err
+		}
+		if float64(stored) < math.Min(float64(totalStakingSize), float64(k.MaxStoreSizePerFamily(ctx))) && uint32(len(gvgFamily.GlobalVirtualGroupIds)) < k.MaxGlobalVirtualGroupNumPerFamily(ctx) {
+			availableFamilyIds = append(availableFamilyIds, gvgfID)
+		}
+	}
+
+	return &types.QuerySPAvailableGlobalVirtualGroupFamiliesResponse{
+		GlobalVirtualGroupFamilyIds: availableFamilyIds,
+	}, nil
+}
+
+func (k Keeper) QuerySpOptimalGlobalVirtualGroupFamily(goCtx context.Context, req *types.QuerySpOptimalGlobalVirtualGroupFamilyRequest) (*types.QuerySpOptimalGlobalVirtualGroupFamilyResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	stats, found := k.GetGVGFamilyStatisticsWithinSP(ctx, req.GetSpId())
+	if !found {
+		return nil, types.ErrGVGFamilyStatisticsNotExist
+	}
+
+	var familyID uint32
+	var freeStoreSize float64
+	var currentFreeStoreSize float64
+	switch req.PickVgfStrategy {
+	case types.Strategy_Maximize_Free_Store_Size:
+		for _, gvgfID := range stats.GlobalVirtualGroupFamilyIds {
+			gvgFamily, found := k.GetGVGFamily(ctx, gvgfID)
+			if !found {
+				return nil, types.ErrGVGFamilyNotExist
+			}
+			totalStakingSize, stored, err := k.GetGlobalVirtualFamilyTotalStakingAndStoredSize(ctx, gvgFamily)
+			if err != nil {
+				return nil, err
+			}
+			if float64(stored) < math.Min(float64(totalStakingSize), float64(k.MaxStoreSizePerFamily(ctx))) && uint32(len(gvgFamily.GlobalVirtualGroupIds)) < k.MaxGlobalVirtualGroupNumPerFamily(ctx) {
+				currentFreeStoreSize = math.Min(float64(totalStakingSize), float64(k.MaxStoreSizePerFamily(ctx))) - float64(stored)
+				if currentFreeStoreSize > freeStoreSize {
+					familyID = gvgFamily.Id
+					freeStoreSize = currentFreeStoreSize
+				}
+			}
+		}
+	default:
+		return nil, status.Error(codes.InvalidArgument, "invalid pick vgf strategy")
+	}
+
+	return &types.QuerySpOptimalGlobalVirtualGroupFamilyResponse{
+		GlobalVirtualGroupFamilyId: familyID,
+	}, nil
+}

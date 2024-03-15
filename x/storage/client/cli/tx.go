@@ -41,6 +41,7 @@ func GetTxCmd() *cobra.Command {
 		CmdDiscontinueBucket(),
 		CmdMigrateBucket(),
 		CmdCancelMigrateBucket(),
+		CmdSetBucketFlowRateLimit(),
 	)
 
 	cmd.AddCommand(

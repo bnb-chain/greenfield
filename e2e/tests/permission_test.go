@@ -1115,7 +1115,8 @@ func (s *StorageTestSuite) TestStalePermissionForAccountGC() {
 
 	// bucket and object dont exist after deletion
 	headObjectReq := storagetypes.QueryHeadObjectRequest{
-		BucketName: objectName,
+		BucketName: bucketName,
+		ObjectName: objectName,
 	}
 	_, err = s.Client.HeadObject(ctx, &headObjectReq)
 	s.Require().Error(err)
@@ -1331,7 +1332,8 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 
 	// bucket and object dont exist after deletion
 	headObjectReq := storagetypes.QueryHeadObjectRequest{
-		BucketName: objectName,
+		BucketName: bucketName,
+		ObjectName: objectName,
 	}
 	_, err = s.Client.HeadObject(ctx, &headObjectReq)
 	s.Require().Error(err)

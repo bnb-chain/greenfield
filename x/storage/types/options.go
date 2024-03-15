@@ -3,6 +3,8 @@ package types
 import (
 	time "time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/bnb-chain/greenfield/types/common"
 )
 
@@ -34,6 +36,8 @@ type CreateObjectOptions struct {
 	Checksums         [][]byte
 	PrimarySpApproval *common.Approval
 	ApprovalMsgBytes  []byte
+	Delegated         bool
+	Creator           sdk.AccAddress
 }
 
 type CancelCreateObjectOptions struct {
@@ -90,4 +94,6 @@ type DeletePolicyOptions struct {
 type UpdateObjectOptions struct {
 	ContentType string
 	Checksums   [][]byte
+	Delegated   bool
+	Updater     sdk.AccAddress
 }

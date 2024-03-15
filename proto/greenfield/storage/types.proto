@@ -39,6 +39,9 @@ message BucketInfo {
   BucketStatus bucket_status = 10;
   // tags defines a list of tags the bucket has
   ResourceTags tags = 11;
+  // sp_as_delegated_agent_disabled indicates that whether bucket owner disable SP as the upload agent.
+  // when a bucket is created, by default, this is false, means SP is allowed to create object for delegator
+  bool sp_as_delegated_agent_disabled = 12;
 }
 
 message InternalBucketInfo {
@@ -215,4 +218,18 @@ message ShadowObjectInfo {
   int64 updated_at = 6;
   // version define the version of object
   int64 version = 7;
+}
+
+message BucketExtraInfo {
+  bool is_rate_limited = 1;
+  string flow_rate_limit = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string current_flow_rate = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }

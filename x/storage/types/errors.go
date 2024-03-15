@@ -35,6 +35,7 @@ var (
 	ErrObjectIsUpdating             = errors.Register(ModuleName, 1127, "Object is being updated")
 	ErrObjectIsNotUpdating          = errors.Register(ModuleName, 1128, "Object is not being updated")
 	ErrUpdatePaymentAccountFailed   = errors.Register(ModuleName, 1129, "Update payment account failed")
+	ErrObjectChecksumsMissing       = errors.Register(ModuleName, 1130, "Object checksums is missing")
 
 	ErrInvalidCrossChainPackage = errors.Register(ModuleName, 3000, "invalid cross chain package")
 	ErrAlreadyMirrored          = errors.Register(ModuleName, 3001, "resource is already mirrored")
@@ -53,4 +54,6 @@ var (
 	ErrMigrationBucketFailed     = errors.Register(ModuleName, 3202, "migrate bucket failed.")
 	ErrVirtualGroupOperateFailed = errors.Register(ModuleName, 3203, "operate virtual group failed.")
 	ErrInvalidBlsPubKey          = errors.Register(ModuleName, 3204, "invalid bls public key")
+
+	ErrInvalidBucketOwner = errors.Register(ModuleName, 3300, "invalid bucket owner")
 )
