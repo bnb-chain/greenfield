@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
 
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
-	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/common"
 )
 
 var _ sdk.CrossChainApplication = &ExecutorApp{}

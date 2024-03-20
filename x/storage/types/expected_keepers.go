@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"math/big"
 	time "time"
 
@@ -15,7 +16,6 @@ import (
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	"context"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
