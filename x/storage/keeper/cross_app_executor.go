@@ -64,25 +64,19 @@ func (app *ExecutorApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.Cross
 type MsgType uint8
 
 const (
-	MsgTypeCreatePaymentAccount  MsgType = 1
-	MsgTypeDeposit               MsgType = 2
-	MsgTypeDisableRefund         MsgType = 3
-	MsgWithdraw                  MsgType = 4
-	MsgMigrateBucket             MsgType = 5
-	MsgCancelMigrateBucket       MsgType = 6
-	MsgCompleteMigrateBucket     MsgType = 7
-	MsgRejectMigrateBucket       MsgType = 8
-	MsgUpdateBucketInfo          MsgType = 9
-	MsgToggleSPAsDelegatedAgent  MsgType = 10
-	MsgDiscontinueBucket         MsgType = 11
-	MsgSetBucketFlowRateLimit    MsgType = 12
-	MsgCopyObject                MsgType = 13
-	MsgDiscontinueObject         MsgType = 14
-	MsgUpdateObjectInfo          MsgType = 15
-	MsgLeaveGroup                MsgType = 16
-	MsgUpdateGroupExtra          MsgType = 17
-	MsgSetTag                    MsgType = 18
-	MsgCancelUpdateObjectContent MsgType = 19
+	MsgTypeCreatePaymentAccount MsgType = 1
+	MsgTypeDeposit              MsgType = 2
+	MsgTypeDisableRefund        MsgType = 3
+	MsgWithdraw                 MsgType = 4
+	MsgMigrateBucket            MsgType = 5
+	MsgCancelMigrateBucket      MsgType = 6
+	MsgUpdateBucketInfo         MsgType = 7
+	MsgToggleSPAsDelegatedAgent MsgType = 8
+	MsgSetBucketFlowRateLimit   MsgType = 9
+	MsgCopyObject               MsgType = 10
+	MsgUpdateObjectInfo         MsgType = 11
+	MsgUpdateGroupExtra         MsgType = 12
+	MsgSetTag                   MsgType = 13
 )
 
 func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsgStruct) error {
@@ -152,26 +146,6 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsgStruct) error
 			return fmt.Errorf("invalid msg sender")
 		}
 		_, err = app.sMsgServer.CancelMigrateBucket(sdk.WrapSDKContext(ctx), &gnfdMsg)
-	case MsgCompleteMigrateBucket:
-		var gnfdMsg types.MsgCompleteMigrateBucket
-		err = gnfdMsg.Unmarshal(msg.Data)
-		if err != nil {
-			return err
-		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
-		}
-		_, err = app.sMsgServer.CompleteMigrateBucket(sdk.WrapSDKContext(ctx), &gnfdMsg)
-	case MsgRejectMigrateBucket:
-		var gnfdMsg types.MsgRejectMigrateBucket
-		err = gnfdMsg.Unmarshal(msg.Data)
-		if err != nil {
-			return err
-		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
-		}
-		_, err = app.sMsgServer.RejectMigrateBucket(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgUpdateBucketInfo:
 		var gnfdMsg types.MsgUpdateBucketInfo
 		err = gnfdMsg.Unmarshal(msg.Data)
@@ -192,16 +166,6 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsgStruct) error
 			return fmt.Errorf("invalid msg sender")
 		}
 		_, err = app.sMsgServer.ToggleSPAsDelegatedAgent(sdk.WrapSDKContext(ctx), &gnfdMsg)
-	case MsgDiscontinueBucket:
-		var gnfdMsg types.MsgDiscontinueBucket
-		err = gnfdMsg.Unmarshal(msg.Data)
-		if err != nil {
-			return err
-		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
-		}
-		_, err = app.sMsgServer.DiscontinueBucket(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgSetBucketFlowRateLimit:
 		var gnfdMsg types.MsgSetBucketFlowRateLimit
 		err = gnfdMsg.Unmarshal(msg.Data)
@@ -222,16 +186,6 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsgStruct) error
 			return fmt.Errorf("invalid msg sender")
 		}
 		_, err = app.sMsgServer.CopyObject(sdk.WrapSDKContext(ctx), &gnfdMsg)
-	case MsgDiscontinueObject:
-		var gnfdMsg types.MsgDiscontinueObject
-		err = gnfdMsg.Unmarshal(msg.Data)
-		if err != nil {
-			return err
-		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
-		}
-		_, err = app.sMsgServer.DiscontinueObject(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgUpdateObjectInfo:
 		var gnfdMsg types.MsgUpdateObjectInfo
 		err = gnfdMsg.Unmarshal(msg.Data)
@@ -242,16 +196,6 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsgStruct) error
 			return fmt.Errorf("invalid msg sender")
 		}
 		_, err = app.sMsgServer.UpdateObjectInfo(sdk.WrapSDKContext(ctx), &gnfdMsg)
-	case MsgLeaveGroup:
-		var gnfdMsg types.MsgLeaveGroup
-		err = gnfdMsg.Unmarshal(msg.Data)
-		if err != nil {
-			return err
-		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
-		}
-		_, err = app.sMsgServer.LeaveGroup(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgUpdateGroupExtra:
 		var gnfdMsg types.MsgUpdateGroupExtra
 		err = gnfdMsg.Unmarshal(msg.Data)
@@ -272,16 +216,6 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsgStruct) error
 			return fmt.Errorf("invalid msg sender")
 		}
 		_, err = app.sMsgServer.SetTag(sdk.WrapSDKContext(ctx), &gnfdMsg)
-	case MsgCancelUpdateObjectContent:
-		var gnfdMsg types.MsgCancelUpdateObjectContent
-		err = gnfdMsg.Unmarshal(msg.Data)
-		if err != nil {
-			return err
-		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
-		}
-		_, err = app.sMsgServer.CancelUpdateObjectContent(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	default:
 		err = fmt.Errorf("invalid msg type")
 	}
