@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -29,14 +30,14 @@ func NewExecutorApp(storageKeeper types.StorageKeeper, storageMsgServer types.St
 }
 
 func (app *ExecutorApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
-	pack, err := deserializeSynPackage(payload)
+	pack, err := DeserializeSynPackage(payload)
 	if err != nil {
 		app.sKeeper.Logger(ctx).Error("deserialize executor syn package error", "payload", hex.EncodeToString(payload), "error", err.Error())
 		panic("deserialize executor syn package error")
 	}
 
-	for i, msgBz := range pack.Msgs {
-		msg, err := deserializeExecutorMsg(msgBz)
+	for i, msgBz := range pack {
+		msg, err := DeserializeExecutorMsg(msgBz)
 		if err != nil {
 			app.sKeeper.Logger(ctx).Error("deserialize executor msg error", "msg bytes", hex.EncodeToString(msgBz), "error", err.Error())
 			panic("deserialize executor msg error")
@@ -79,7 +80,7 @@ const (
 	MsgSetTag                   MsgType = 13
 )
 
-func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsgStruct) error {
+func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 	msgSender, err := sdk.AccAddressFromHexUnsafe(msg.Sender.String())
 	if err != nil {
 		return err
@@ -222,56 +223,52 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsgStruct) error
 	return err
 }
 
-type ExecutorSynPackageStruct struct {
-	Msgs [][]byte
-}
+type ExecutorSynPackage [][]byte
 
-type ExecutorMsgStruct struct {
+type ExecutorMsg struct {
 	Sender common.Address
 	Type   uint8
 	Data   []byte
 }
 
 var (
-	executorSynPackageStructType, _ = abi.NewType("bytes[]", "", nil)
+	executorSynPackageTypeDef = `[{"type": "bytes[]"}]`
 
-	executorSynPackageArgs = abi.Arguments{
-		{Type: executorSynPackageStructType},
-	}
-
-	executorMsgStructType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
-		{Name: "Sender", Type: "address"},
-		{Name: "Type", Type: "uint8"},
-		{Name: "Data", Type: "bytes"},
-	})
-
-	executorMsgArgs = abi.Arguments{
-		{Type: executorMsgStructType},
-	}
+	executorMsgTypeDef = `[{"type": "address"}, {"type": "uint8"}, {"type": "bytes"}]`
 )
 
-func deserializeSynPackage(payload []byte) (ExecutorSynPackageStruct, error) {
-	unpacked, err := executorSynPackageArgs.Unpack(payload)
+func DeserializeSynPackage(payload []byte) (ExecutorSynPackage, error) {
+	unpacked, err := abiDecode(executorSynPackageTypeDef, payload)
 	if err != nil {
-		return ExecutorSynPackageStruct{}, err
+		return ExecutorSynPackage{}, err
 	}
-	unpackedStruct := abi.ConvertType(unpacked[0], ExecutorSynPackageStruct{})
-	pkgStruct, ok := unpackedStruct.(ExecutorSynPackageStruct)
+
+	unpackedStruct := abi.ConvertType(unpacked[0], ExecutorSynPackage{})
+	pkgStruct, ok := unpackedStruct.(ExecutorSynPackage)
 	if !ok {
-		return ExecutorSynPackageStruct{}, err
+		return ExecutorSynPackage{}, err
 	}
 	return pkgStruct, nil
 }
 
-func deserializeExecutorMsg(msgBz []byte) (ExecutorMsgStruct, error) {
-	unpacked, err := executorMsgArgs.Unpack(msgBz)
+func DeserializeExecutorMsg(msgBz []byte) (ExecutorMsg, error) {
+	unpacked, err := abiDecode(executorMsgTypeDef, msgBz)
 	if err != nil {
-		return ExecutorMsgStruct{}, err
+		return ExecutorMsg{}, err
 	}
-	unpackedStruct := abi.ConvertType(unpacked[0], ExecutorMsgStruct{})
-	pkgStruct, ok := unpackedStruct.(ExecutorMsgStruct)
-	if !ok {
-		return ExecutorMsgStruct{}, err
+
+	var executorMsg ExecutorMsg
+	executorMsg.Sender = abi.ConvertType(unpacked[0], common.Address{}).(common.Address)
+	executorMsg.Type = abi.ConvertType(unpacked[1], uint8(0)).(uint8)
+	executorMsg.Data = abi.ConvertType(unpacked[2], []byte{}).([]byte)
+	return executorMsg, nil
+}
+
+func abiDecode(typeDef string, encodedBz []byte) ([]interface{}, error) {
+	outDef := fmt.Sprintf(`[{ "name" : "method", "type": "function", "outputs": %s}]`, typeDef)
+	outAbi, err := abi.JSON(strings.NewReader(outDef))
+	if err != nil {
+		return nil, err
 	}
-	return pkgStruct, nil
+	return outAbi.Unpack("method", encodedBz)
 }
