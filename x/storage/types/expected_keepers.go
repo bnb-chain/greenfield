@@ -135,46 +135,13 @@ type PaymentMsgServer interface {
 }
 
 type StorageMsgServer interface {
-	// basic operation of bucket
-	CreateBucket(context.Context, *MsgCreateBucket) (*MsgCreateBucketResponse, error)
-	DeleteBucket(context.Context, *MsgDeleteBucket) (*MsgDeleteBucketResponse, error)
 	UpdateBucketInfo(context.Context, *MsgUpdateBucketInfo) (*MsgUpdateBucketInfoResponse, error)
-	MirrorBucket(context.Context, *MsgMirrorBucket) (*MsgMirrorBucketResponse, error)
-	DiscontinueBucket(context.Context, *MsgDiscontinueBucket) (*MsgDiscontinueBucketResponse, error)
 	ToggleSPAsDelegatedAgent(context.Context, *MsgToggleSPAsDelegatedAgent) (*MsgToggleSPAsDelegatedAgentResponse, error)
-	// basic operation of object
-	CreateObject(context.Context, *MsgCreateObject) (*MsgCreateObjectResponse, error)
-	SealObject(context.Context, *MsgSealObject) (*MsgSealObjectResponse, error)
-	SealObjectV2(context.Context, *MsgSealObjectV2) (*MsgSealObjectV2Response, error)
-	RejectSealObject(context.Context, *MsgRejectSealObject) (*MsgRejectSealObjectResponse, error)
 	CopyObject(context.Context, *MsgCopyObject) (*MsgCopyObjectResponse, error)
-	DeleteObject(context.Context, *MsgDeleteObject) (*MsgDeleteObjectResponse, error)
-	CancelCreateObject(context.Context, *MsgCancelCreateObject) (*MsgCancelCreateObjectResponse, error)
-	MirrorObject(context.Context, *MsgMirrorObject) (*MsgMirrorObjectResponse, error)
-	DiscontinueObject(context.Context, *MsgDiscontinueObject) (*MsgDiscontinueObjectResponse, error)
 	UpdateObjectInfo(context.Context, *MsgUpdateObjectInfo) (*MsgUpdateObjectInfoResponse, error)
-	UpdateObjectContent(context.Context, *MsgUpdateObjectContent) (*MsgUpdateObjectContentResponse, error)
-	CancelUpdateObjectContent(context.Context, *MsgCancelUpdateObjectContent) (*MsgCancelUpdateObjectContentResponse, error)
-	DelegateCreateObject(context.Context, *MsgDelegateCreateObject) (*MsgDelegateCreateObjectResponse, error)
-	DelegateUpdateObjectContent(context.Context, *MsgDelegateUpdateObjectContent) (*MsgDelegateUpdateObjectContentResponse, error)
-	// basic operation of group
-	CreateGroup(context.Context, *MsgCreateGroup) (*MsgCreateGroupResponse, error)
-	DeleteGroup(context.Context, *MsgDeleteGroup) (*MsgDeleteGroupResponse, error)
-	UpdateGroupMember(context.Context, *MsgUpdateGroupMember) (*MsgUpdateGroupMemberResponse, error)
 	UpdateGroupExtra(context.Context, *MsgUpdateGroupExtra) (*MsgUpdateGroupExtraResponse, error)
-	LeaveGroup(context.Context, *MsgLeaveGroup) (*MsgLeaveGroupResponse, error)
-	MirrorGroup(context.Context, *MsgMirrorGroup) (*MsgMirrorGroupResponse, error)
-	RenewGroupMember(context.Context, *MsgRenewGroupMember) (*MsgRenewGroupMemberResponse, error)
-	// basic operation of policy
-	PutPolicy(context.Context, *MsgPutPolicy) (*MsgPutPolicyResponse, error)
-	DeletePolicy(context.Context, *MsgDeletePolicy) (*MsgDeletePolicyResponse, error)
-	// Since: cosmos-sdk 0.47
-	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	MigrateBucket(context.Context, *MsgMigrateBucket) (*MsgMigrateBucketResponse, error)
-	CompleteMigrateBucket(context.Context, *MsgCompleteMigrateBucket) (*MsgCompleteMigrateBucketResponse, error)
 	CancelMigrateBucket(context.Context, *MsgCancelMigrateBucket) (*MsgCancelMigrateBucketResponse, error)
-	RejectMigrateBucket(context.Context, *MsgRejectMigrateBucket) (*MsgRejectMigrateBucketResponse, error)
-	// Since: Manchurian upgrade
 	SetTag(context.Context, *MsgSetTag) (*MsgSetTagResponse, error)
 	SetBucketFlowRateLimit(context.Context, *MsgSetBucketFlowRateLimit) (*MsgSetBucketFlowRateLimitResponse, error)
 }
