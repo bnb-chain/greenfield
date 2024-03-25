@@ -113,8 +113,14 @@ func (k msgServer) ToggleSPAsDelegatedAgent(goCtx context.Context, msg *storaget
 	}
 	bucketInfo.SpAsDelegatedAgentDisabled = !bucketInfo.SpAsDelegatedAgentDisabled
 	k.SetBucketInfo(ctx, bucketInfo)
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventToggleSPAsDelegatedAgent{
+		BucketName:                 bucketInfo.BucketName,
+		BucketId:                   bucketInfo.Id,
+		SpAsDelegatedAgentDisabled: bucketInfo.SpAsDelegatedAgentDisabled,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgToggleSPAsDelegatedAgentResponse{}, nil
-
 }
 
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
