@@ -110,7 +110,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.pMsgServer.CreatePaymentAccount(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -120,7 +120,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.pMsgServer.Deposit(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -130,7 +130,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.pMsgServer.DisableRefund(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -140,7 +140,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.pMsgServer.Withdraw(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -150,7 +150,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.sMsgServer.MigrateBucket(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -160,7 +160,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.sMsgServer.CancelMigrateBucket(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -170,7 +170,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.sMsgServer.UpdateBucketInfo(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -180,7 +180,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.sMsgServer.ToggleSPAsDelegatedAgent(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -190,7 +190,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.sMsgServer.SetBucketFlowRateLimit(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -200,7 +200,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.sMsgServer.CopyObject(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -210,7 +210,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.sMsgServer.UpdateObjectInfo(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -220,7 +220,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.sMsgServer.UpdateGroupExtra(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -230,7 +230,7 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+		if err = checkMsg(msgSender, &gnfdMsg); err != nil {
 			return err
 		}
 		_, err = app.sMsgServer.SetTag(sdk.WrapSDKContext(ctx), &gnfdMsg)
@@ -290,7 +290,10 @@ func abiDecode(typeDef string, encodedBz []byte) ([]interface{}, error) {
 	return outAbi.Unpack("method", encodedBz)
 }
 
-func checkSigner(msgSender sdk.AccAddress, msg sdk.Msg) error {
+func checkMsg(msgSender sdk.AccAddress, msg sdk.Msg) error {
+	if err := msg.ValidateBasic(); err != nil {
+		return err
+	}
 	if len(msg.GetSigners()) != 1 {
 		return fmt.Errorf("invalid signers number")
 	}
