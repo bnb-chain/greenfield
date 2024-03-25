@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+	"runtime/debug"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,27 +30,43 @@ func NewExecutorApp(storageKeeper types.StorageKeeper, storageMsgServer types.St
 	}
 }
 
-func (app *ExecutorApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
+func (app *ExecutorApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) (result sdk.ExecuteResult) {
+	// This app will not have any ack/failAck package, so we should not panic.
+	defer func() {
+		if r := recover(); r != nil {
+			log := fmt.Sprintf("recovered: %v\nstack:\n%v", r, string(debug.Stack()))
+			app.sKeeper.Logger(ctx).Error("execute executor syn package panic", "error", log)
+			result.Err = fmt.Errorf("execute executor syn package panic: %v", r)
+		}
+	}()
+
 	pack, err := DeserializeSynPackage(payload)
 	if err != nil {
 		app.sKeeper.Logger(ctx).Error("deserialize executor syn package error", "payload", hex.EncodeToString(payload), "error", err.Error())
-		panic("deserialize executor syn package error")
+		return sdk.ExecuteResult{
+			Err: fmt.Errorf("deserialize executor syn package error: %v", err),
+		}
 	}
 
 	for i, msgBz := range pack {
 		msg, err := DeserializeExecutorMsg(msgBz)
 		if err != nil {
 			app.sKeeper.Logger(ctx).Error("deserialize executor msg error", "msg bytes", hex.EncodeToString(msgBz), "error", err.Error())
-			panic("deserialize executor msg error")
+			return sdk.ExecuteResult{
+				Err: fmt.Errorf("deserialize executor msg error: %v", err),
+			}
 		}
 
 		err = app.msgHandler(ctx, msg)
 		if err != nil {
-			app.sKeeper.Logger(ctx).Debug("executor msg error", "index", i, "data", msgBz, "error", err.Error())
+			app.sKeeper.Logger(ctx).Error("execute executor msg error", "index", i, "data", msgBz, "error", err.Error())
+			return sdk.ExecuteResult{
+				Err: fmt.Errorf("execute executor msg error: %v", err),
+			}
 		}
 	}
 
-	return sdk.ExecuteResult{}
+	return result
 }
 
 func (app *ExecutorApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
@@ -93,8 +110,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.pMsgServer.CreatePaymentAccount(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgTypeDeposit:
@@ -103,8 +120,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.pMsgServer.Deposit(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgTypeDisableRefund:
@@ -113,8 +130,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.pMsgServer.DisableRefund(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgWithdraw:
@@ -123,8 +140,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.pMsgServer.Withdraw(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgMigrateBucket:
@@ -133,8 +150,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.sMsgServer.MigrateBucket(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgCancelMigrateBucket:
@@ -143,8 +160,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.sMsgServer.CancelMigrateBucket(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgUpdateBucketInfo:
@@ -153,8 +170,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.sMsgServer.UpdateBucketInfo(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgToggleSPAsDelegatedAgent:
@@ -163,8 +180,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.sMsgServer.ToggleSPAsDelegatedAgent(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgSetBucketFlowRateLimit:
@@ -173,8 +190,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.sMsgServer.SetBucketFlowRateLimit(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgCopyObject:
@@ -183,8 +200,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.sMsgServer.CopyObject(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgUpdateObjectInfo:
@@ -193,8 +210,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.sMsgServer.UpdateObjectInfo(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgUpdateGroupExtra:
@@ -203,8 +220,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.sMsgServer.UpdateGroupExtra(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	case MsgSetTag:
@@ -213,8 +230,8 @@ func (app *ExecutorApp) msgHandler(ctx sdk.Context, msg ExecutorMsg) error {
 		if err != nil {
 			return err
 		}
-		if !gnfdMsg.GetSigners()[0].Equals(msgSender) {
-			return fmt.Errorf("invalid msg sender")
+		if err = checkSigner(msgSender, &gnfdMsg); err != nil {
+			return err
 		}
 		_, err = app.sMsgServer.SetTag(sdk.WrapSDKContext(ctx), &gnfdMsg)
 	default:
@@ -271,4 +288,14 @@ func abiDecode(typeDef string, encodedBz []byte) ([]interface{}, error) {
 		return nil, err
 	}
 	return outAbi.Unpack("method", encodedBz)
+}
+
+func checkSigner(msgSender sdk.AccAddress, msg sdk.Msg) error {
+	if len(msg.GetSigners()) != 1 {
+		return fmt.Errorf("invalid signers number")
+	}
+	if !msg.GetSigners()[0].Equals(msgSender) {
+		return fmt.Errorf("invalid msg sender")
+	}
+	return nil
 }
