@@ -654,6 +654,12 @@ message EventBucketFlowRateLimitStatus {
   string bucket_name = 1;
   // is_limited define the status of the bucket flow rate limit
   bool is_limited = 2;
+  // bucket_id is the unique u256 for bucket. Not global, only unique in buckets.
+  string bucket_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message EventToggleSPAsDelegatedAgent {

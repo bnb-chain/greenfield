@@ -365,7 +365,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 				ctx.Logger().Error("charge via bucket change failed", "bucket", bucketInfo.BucketName, "err", err.Error())
 				return err
 			}
-			k.deleteBucketFlowRateLimitStatus(ctx, bucketInfo.BucketName)
+			k.deleteBucketFlowRateLimitStatus(ctx, bucketInfo.BucketName, bucketInfo.Id)
 		} else {
 			err = k.ApplyBillChanges(ctx, &prevBill, &newBill)
 			if err != nil {
