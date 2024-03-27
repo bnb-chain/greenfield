@@ -18,11 +18,13 @@ const (
 	ObjectChannel     = "object"
 	GroupChannel      = "group"
 	PermissionChannel = "permission"
+	ExecutorChannel   = "executor"
 
 	BucketChannelId     sdk.ChannelID = 4
 	ObjectChannelId     sdk.ChannelID = 5
 	GroupChannelId      sdk.ChannelID = 6
 	PermissionChannelId sdk.ChannelID = 7
+	ExecutorChannelId   sdk.ChannelID = 9
 
 	// bucket operation types
 
@@ -1278,13 +1280,13 @@ func (p UpdateGroupMemberSynPackage) ValidateBasic() error {
 func DeserializeUpdateGroupMemberSynPackage(serializedPackage []byte) (interface{}, error) {
 	unpacked, err := updateGroupMemberSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize update group member sun package failed")
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize update group member syn package failed")
 	}
 
 	unpackedStruct := abi.ConvertType(unpacked[0], UpdateGroupMemberSynPackageStruct{})
 	pkgStruct, ok := unpackedStruct.(UpdateGroupMemberSynPackageStruct)
 	if !ok {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect update group member sun package failed")
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect update group member syn package failed")
 	}
 
 	totalMember := len(pkgStruct.Members)
