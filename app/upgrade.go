@@ -247,11 +247,6 @@ func (app *App) registerErdosUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Erdos,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
-			executorApp := storagemodulekeeper.NewExecutorApp(app.StorageKeeper, storagemodulekeeper.NewMsgServerImpl(app.StorageKeeper), paymentmodulekeeper.NewMsgServerImpl(app.PaymentKeeper))
-			err := app.CrossChainKeeper.RegisterChannel(storagemoduletypes.ExecutorChannel, storagemoduletypes.ExecutorChannelId, executorApp)
-			if err != nil {
-				panic(err)
-			}
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 
