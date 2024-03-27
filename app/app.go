@@ -733,12 +733,6 @@ func (app *App) initModules(ctx sdk.Context) {
 	app.initBridge()
 	app.initStorage()
 	app.initGov()
-
-	executorApp := storagemodulekeeper.NewExecutorApp(app.StorageKeeper, storagemodulekeeper.NewMsgServerImpl(app.StorageKeeper), paymentmodulekeeper.NewMsgServerImpl(app.PaymentKeeper))
-	err := app.CrossChainKeeper.RegisterChannel(storagemoduletypes.ExecutorChannel, storagemoduletypes.ExecutorChannelId, executorApp)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (app *App) initCrossChain() {
