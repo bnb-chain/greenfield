@@ -272,7 +272,7 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 
 	if ctx.IsUpgraded(upgradetypes.Serengeti) {
 		// delete bucket flow rate limit status
-		k.deleteBucketFlowRateLimitStatus(ctx, bucketInfo.BucketName)
+		k.deleteBucketFlowRateLimitStatus(ctx, bucketInfo.BucketName, bucketInfo.Id)
 	}
 	return nil
 }
