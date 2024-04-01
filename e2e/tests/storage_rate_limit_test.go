@@ -482,3 +482,36 @@ func (s *StorageTestSuite) TestQueryBucketRateLimit() {
 	s.Require().Equal(queryBucketRateLimitResponse.IsSet, true)
 	s.Require().Equal(queryBucketRateLimitResponse.FlowRateLimit, sdkmath.NewInt(100000000000000))
 }
+
+func (s *StorageTestSuite) TestSetBucketFlowRateLimit_Discontinue() {
+	sp, user, bucketName, _, _, _ := s.createObject()
+
+	// SetBucketRateLimit
+	msgSetBucketRateLimit := storagetypes.NewMsgSetBucketFlowRateLimit(user.GetAddr(), user.GetAddr(), user.GetAddr(), bucketName, sdkmath.NewInt(0))
+	s.SendTxBlock(user, msgSetBucketRateLimit)
+
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(context.Background(), &queryHeadBucketRequest)
+	s.Require().NoError(err)
+
+	s.Require().Equal(queryHeadBucketResponse.ExtraInfo.IsRateLimited, true)
+
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.GcKey.GetAddr(), bucketName, "test")
+	txRes1 := s.SendTxBlock(sp.GcKey, msgDiscontinueBucket)
+	deleteAt1 := filterDiscontinueBucketEventFromTx(txRes1).DeleteAt
+
+	for {
+		time.Sleep(200 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt1)
+
+		if blockTime >= deleteAt1 {
+			break
+		}
+	}
+}
