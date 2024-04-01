@@ -11,7 +11,6 @@ import (
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
-
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
