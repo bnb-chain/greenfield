@@ -435,23 +435,45 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 	userFlows.Flows = append(userFlows.Flows, newOutFlows...)
 
 	if ctx.IsUpgraded(upgradetypes.Serengeti) {
-		currentBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
-		if err != nil {
-			return nil, fmt.Errorf("get bucket bill failed: %s %w", bucketInfo.BucketName, err)
+		var shouldApplyFlowRate = true
+		forced, _ := ctx.Value(types.ForceUpdateStreamRecordKey).(bool)
+		if forced {
+			isRateLimited := k.IsBucketRateLimited(ctx, bucketInfo.BucketName)
+			if isRateLimited {
+				// if the bucket is rate limited, no need to apply the flow rate since
+				// the bucket is already uncharged
+				shouldApplyFlowRate = false
+			}
+		} else {
+			// we should only check the flow rate limit when is not forced
+			currentBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
+			if err != nil {
+				return nil, fmt.Errorf("get bucket bill failed: %s %w", bucketInfo.BucketName, err)
+			}
+
+			err = k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, currentBill)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		err = k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, currentBill)
+		if shouldApplyFlowRate {
+			err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
+			if err != nil {
+				ctx.Logger().Error("charge object store fee failed", "bucket", bucketInfo.BucketName,
+					"object", objectInfo.ObjectName, "err", err.Error())
+				return nil, err
+			}
+		}
+	} else {
+		err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
 		if err != nil {
+			ctx.Logger().Error("charge object store fee failed", "bucket", bucketInfo.BucketName,
+				"object", objectInfo.ObjectName, "err", err.Error())
 			return nil, err
 		}
 	}
 
-	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
-	if err != nil {
-		ctx.Logger().Error("charge object store fee failed", "bucket", bucketInfo.BucketName,
-			"object", objectInfo.ObjectName, "err", err.Error())
-		return nil, err
-	}
 	// merge outflows for early deletion usage
 	return k.paymentKeeper.MergeOutFlows(userFlows.Flows), nil
 }
