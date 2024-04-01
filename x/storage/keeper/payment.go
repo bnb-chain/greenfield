@@ -278,6 +278,13 @@ func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucket
 
 func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+	if ctx.IsUpgraded(upgradetypes.Serengeti) {
+		// if the bucket's flow rate limit is set to zero, no need to uncharge, since the bucket is already uncharged
+		if k.IsBucketRateLimited(ctx, bucketInfo.BucketName) {
+			return nil
+		}
+	}
+
 	chargeSize, err := k.GetObjectChargeSize(ctx, objectInfo.PayloadSize, objectInfo.GetLatestUpdatedTime())
 	if err != nil {
 		return fmt.Errorf("get charge size failed: %s %s %w", bucketInfo.BucketName, objectInfo.ObjectName, err)
