@@ -985,6 +985,29 @@ func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
 	s.Require().True(statusRes.SyncInfo.LatestBlockHeight > heightAfter)
 }
 
+func (s *StorageTestSuite) GetSecondarySP(sps ...*core.StorageProvider) ([]*core.StorageProvider, []uint32) {
+	var secondarySPs []*core.StorageProvider
+	var secondarySPIDs []uint32
+
+	for _, ssp := range s.StorageProviders {
+		isSecondSP := true
+		for _, sp := range sps {
+			if ssp.Info.Id == sp.Info.Id {
+				isSecondSP = false
+				break
+			}
+		}
+		if isSecondSP {
+			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+			secondarySPs = append(secondarySPs, ssp)
+		}
+		if len(secondarySPIDs) == 6 {
+			break
+		}
+	}
+	return secondarySPs, secondarySPIDs
+}
+
 // createObject with default VISIBILITY_TYPE_PRIVATE
 func (s *StorageTestSuite) createObject() (*core.StorageProvider, keys.KeyManager, string, storagetypes.Uint, string, storagetypes.Uint) {
 	return s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PRIVATE)
