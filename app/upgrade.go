@@ -31,6 +31,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerUralUpgradeHandler()
 	app.registerPawneeUpgradeHandler()
 	app.registerSerengetiUpgradeHandler()
+	app.registerErdosUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -227,7 +228,6 @@ func (app *App) registerSerengetiUpgradeHandler() {
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgDelegateCreateObject{}), 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgDelegateUpdateObjectContent{}), 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgSealObjectV2{}), 1.2e2))
-			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgSetBucketFlowRateLimit{}), 1.2e3))
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 
@@ -235,6 +235,23 @@ func (app *App) registerSerengetiUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Serengeti,
 		func() error {
 			app.Logger().Info("Init Serengeti upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerErdosUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Erdos,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgSetBucketFlowRateLimit{}), 1.2e3))
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Erdos,
+		func() error {
+			app.Logger().Info("Init Erdos upgrade")
 			return nil
 		})
 }
