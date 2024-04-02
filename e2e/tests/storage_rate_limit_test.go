@@ -18,12 +18,10 @@ import (
 
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/keys"
-	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-
 	types2 "github.com/bnb-chain/greenfield/sdk/types"
-
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (s *StorageTestSuite) enableMessage() {
@@ -87,8 +85,6 @@ func (s *StorageTestSuite) enableMessage() {
 }
 
 func (s *StorageTestSuite) TestSetBucketRateLimitToZero() {
-	s.enableMessage()
-
 	var err error
 	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -262,8 +258,6 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Object() {
 // 6. the payment account set the rate limit to a positive number
 // 7. user update the read quota to a positive number and it should pass
 func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Bucket() {
-	s.enableMessage()
-
 	var err error
 	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -358,8 +352,6 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Bucket() {
 // 6. the payment account set the rate limit to a positive number
 // 7. user update the payment account to another payment account, it should pass
 func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_BucketPaymentAccount() {
-	s.enableMessage()
-
 	var err error
 	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -443,8 +435,6 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_BucketPaymentAccount()
 }
 
 func (s *StorageTestSuite) TestQueryBucketRateLimit() {
-	s.enableMessage()
-
 	var err error
 	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -489,8 +479,6 @@ func (s *StorageTestSuite) TestQueryBucketRateLimit() {
 }
 
 func (s *StorageTestSuite) TestSetBucketFlowRateLimit_Discontinue() {
-	s.enableMessage()
-
 	sp, user, bucketName, _, _, _ := s.createObjectWithNewGvg(storagetypes.VISIBILITY_TYPE_PRIVATE)
 
 	// SetBucketRateLimit
