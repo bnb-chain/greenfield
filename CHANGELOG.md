@@ -1,5 +1,13 @@
 # Changelog
 
+## V1.6.0
+This release introduces the Serengeti upgrade.
+
+Features:
+* [#580](https://github.com/bnb-chain/greenfield/pull/580) feat: remove create object & bucket approval
+* [#581](https://github.com/bnb-chain/greenfield/pull/581) feat: allow SP to create/update object for delegator
+
+
 ## v1.5.0
 This release introduces the Pawnee upgrade to Testnet and Mainnet
 
