@@ -6,6 +6,14 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	types2 "github.com/bnb-chain/greenfield/types"
@@ -18,13 +26,6 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -242,8 +243,9 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetQuotaKey(bucketInfo.Id))
 	store.Delete(types.GetInternalBucketInfoKey(bucketInfo.Id))
 	store.Delete(types.GetMigrationBucketKey(bucketInfo.Id))
-	store.Delete(types.GetLockedObjectCountKey(bucketInfo.Id))
-
+	if ctx.IsUpgraded(upgradetypes.Pawnee) {
+		store.Delete(types.GetLockedObjectCountKey(bucketInfo.Id))
+	}
 	err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id)
 	if err != nil {
 		return err
@@ -268,8 +270,10 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 		}
 	}
 
-	// delete bucket flow rate limit status
-	k.deleteBucketFlowRateLimitStatus(ctx, bucketInfo.BucketName)
+	if ctx.IsUpgraded(upgradetypes.Erdos) {
+		// delete bucket flow rate limit status
+		k.deleteBucketFlowRateLimitStatus(ctx, bucketInfo.BucketName, bucketInfo.Id)
+	}
 	return nil
 }
 

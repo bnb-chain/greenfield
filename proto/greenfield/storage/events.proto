@@ -654,4 +654,23 @@ message EventBucketFlowRateLimitStatus {
   string bucket_name = 1;
   // is_limited define the status of the bucket flow rate limit
   bool is_limited = 2;
+  // bucket_id is the unique u256 for bucket. Not global, only unique in buckets.
+  string bucket_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventToggleSPAsDelegatedAgent {
+  // bucket_name define the name of the bucket
+  string bucket_name = 1;
+  // bucket_id is the unique u256 for bucket. Not global, only unique in buckets.
+  string bucket_id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // sp_as_delegated_agent_disabled indicates that whether bucket owner disable SP as the upload agent.
+  bool sp_as_delegated_agent_disabled = 3;
 }
