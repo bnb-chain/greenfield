@@ -81,7 +81,7 @@ func getTotalOutFlowRate(flows []paymenttypes.OutFlow) sdkmath.Int {
 
 // unChargeAndLimitBucket uncharges the bucket and limits the bucket
 func (k Keeper) unChargeAndLimitBucket(ctx sdk.Context, bucketInfo *types.BucketInfo, paymentAccount sdk.AccAddress, bucketName string) error {
-	k.setBucketFlowRateLimitStatus(ctx, bucketName, &types.BucketFlowRateLimitStatus{
+	k.setBucketFlowRateLimitStatus(ctx, bucketName, bucketInfo.Id, &types.BucketFlowRateLimitStatus{
 		IsBucketLimited: true,
 		PaymentAddress:  paymentAccount.String(),
 	})
@@ -120,7 +120,7 @@ func (k Keeper) setFlowRateLimit(ctx sdk.Context, bucketInfo *types.BucketInfo, 
 			if err != nil {
 				return fmt.Errorf("charge bucket failed: %s %s", bucketInfo.BucketName, err.Error())
 			}
-			k.deleteBucketFlowRateLimitStatus(ctx, bucketName)
+			k.deleteBucketFlowRateLimitStatus(ctx, bucketName, bucketInfo.Id)
 			return nil
 		}
 
@@ -165,7 +165,7 @@ func (k Keeper) setBucketFlowRateLimit(ctx sdk.Context, paymentAccount, bucketOw
 }
 
 // setBucketFlowRateLimitStatus sets the flow rate limit status of the bucket to the store
-func (k Keeper) setBucketFlowRateLimitStatus(ctx sdk.Context, bucketName string, status *types.BucketFlowRateLimitStatus) {
+func (k Keeper) setBucketFlowRateLimitStatus(ctx sdk.Context, bucketName string, bucketId sdkmath.Uint, status *types.BucketFlowRateLimitStatus) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := k.cdc.MustMarshal(status)
@@ -194,13 +194,14 @@ func (k Keeper) getBucketFlowRateLimitStatus(ctx sdk.Context, bucketName string)
 }
 
 // deleteBucketFlowRateLimitStatus deletes the flow rate limit status of the bucket from the store
-func (k Keeper) deleteBucketFlowRateLimitStatus(ctx sdk.Context, bucketName string) {
+func (k Keeper) deleteBucketFlowRateLimitStatus(ctx sdk.Context, bucketName string, bucketId sdkmath.Uint) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetBucketFlowRateLimitStatusKey(bucketName))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventBucketFlowRateLimitStatus{
 		BucketName: bucketName,
 		IsLimited:  false,
+		BucketId:   bucketId,
 	}); err != nil {
 		panic(err)
 	}
