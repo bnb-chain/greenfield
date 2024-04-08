@@ -9,7 +9,9 @@ import (
 
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
+	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	storagemodulekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmodule "github.com/bnb-chain/greenfield/x/virtualgroup"
 	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
@@ -244,7 +246,6 @@ func (app *App) registerErdosUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Erdos,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
-			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&storagemoduletypes.MsgSetBucketFlowRateLimit{}), 1.2e3))
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 
@@ -252,6 +253,11 @@ func (app *App) registerErdosUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Erdos,
 		func() error {
 			app.Logger().Info("Init Erdos upgrade")
+			executorApp := storagemodulekeeper.NewExecutorApp(app.StorageKeeper, storagemodulekeeper.NewMsgServerImpl(app.StorageKeeper), paymentmodulekeeper.NewMsgServerImpl(app.PaymentKeeper))
+			err := app.CrossChainKeeper.RegisterChannel(storagemoduletypes.ExecutorChannel, storagemoduletypes.ExecutorChannelId, executorApp)
+			if err != nil {
+				panic(err)
+			}
 			return nil
 		})
 }

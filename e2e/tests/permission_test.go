@@ -471,7 +471,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 	s.Require().Equal(queryPolicyForAccountResp.Policy.ResourceType, resource.RESOURCE_TYPE_BUCKET)
 	s.Require().Equal(queryPolicyForAccountResp.Policy.ResourceId, queryHeadBucketResponse.BucketInfo.Id)
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(6 * time.Second)
 	// CreateObject
 	objectName := storageutil.GenRandomObjectName()
 	// create test buffer

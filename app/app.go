@@ -704,7 +704,7 @@ func New(
 	}
 
 	if app.IsIavlStore() {
-		//enable diff for reconciliation
+		// enable diff for reconciliation
 		bankIavl, ok := ms.GetCommitStore(keys[banktypes.StoreKey]).(*iavl.Store)
 		if !ok {
 			tmos.Exit("cannot convert bank store to ival store")

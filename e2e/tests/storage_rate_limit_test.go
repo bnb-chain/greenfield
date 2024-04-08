@@ -258,6 +258,7 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Object() {
 // 6. the payment account set the rate limit to a positive number
 // 7. user update the read quota to a positive number and it should pass
 func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Bucket() {
+	s.enableMessage()
 	var err error
 	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()

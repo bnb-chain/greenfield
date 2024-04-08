@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"math/big"
 	time "time"
 
@@ -124,4 +125,23 @@ type StorageKeeper interface {
 
 	NormalizePrincipal(ctx sdk.Context, principal *permtypes.Principal)
 	ValidatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error
+}
+
+type PaymentMsgServer interface {
+	CreatePaymentAccount(context.Context, *paymenttypes.MsgCreatePaymentAccount) (*paymenttypes.MsgCreatePaymentAccountResponse, error)
+	Deposit(context.Context, *paymenttypes.MsgDeposit) (*paymenttypes.MsgDepositResponse, error)
+	Withdraw(context.Context, *paymenttypes.MsgWithdraw) (*paymenttypes.MsgWithdrawResponse, error)
+	DisableRefund(context.Context, *paymenttypes.MsgDisableRefund) (*paymenttypes.MsgDisableRefundResponse, error)
+}
+
+type StorageMsgServer interface {
+	UpdateBucketInfo(context.Context, *MsgUpdateBucketInfo) (*MsgUpdateBucketInfoResponse, error)
+	ToggleSPAsDelegatedAgent(context.Context, *MsgToggleSPAsDelegatedAgent) (*MsgToggleSPAsDelegatedAgentResponse, error)
+	CopyObject(context.Context, *MsgCopyObject) (*MsgCopyObjectResponse, error)
+	UpdateObjectInfo(context.Context, *MsgUpdateObjectInfo) (*MsgUpdateObjectInfoResponse, error)
+	UpdateGroupExtra(context.Context, *MsgUpdateGroupExtra) (*MsgUpdateGroupExtraResponse, error)
+	MigrateBucket(context.Context, *MsgMigrateBucket) (*MsgMigrateBucketResponse, error)
+	CancelMigrateBucket(context.Context, *MsgCancelMigrateBucket) (*MsgCancelMigrateBucketResponse, error)
+	SetTag(context.Context, *MsgSetTag) (*MsgSetTagResponse, error)
+	SetBucketFlowRateLimit(context.Context, *MsgSetBucketFlowRateLimit) (*MsgSetBucketFlowRateLimitResponse, error)
 }
