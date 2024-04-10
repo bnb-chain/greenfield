@@ -46,8 +46,16 @@ type (
 		groupSeq  sequence.Sequence[sdkmath.Uint]
 
 		authority string
+
+		// payment check config
+		cfg *paymentCheckConfig
 	}
 )
+
+type paymentCheckConfig struct {
+	Enabled  bool
+	Interval uint32
+}
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
@@ -72,6 +80,7 @@ func NewKeeper(
 		crossChainKeeper:   crossChainKeeper,
 		virtualGroupKeeper: virtualGroupKeeper,
 		authority:          authority,
+		cfg:                &paymentCheckConfig{Enabled: false, Interval: 0},
 	}
 
 	k.bucketSeq = sequence.NewSequence[sdkmath.Uint](types.BucketSequencePrefix)
@@ -82,6 +91,14 @@ func NewKeeper(
 
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+func (k Keeper) IsPaymentCheckEnabled() bool {
+	return k.cfg.Enabled
+}
+
+func (k Keeper) GetPaymentCheckInterval() uint32 {
+	return k.cfg.Interval
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

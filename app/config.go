@@ -8,6 +8,8 @@ type AppConfig struct {
 	serverconfig.Config
 
 	CrossChain CrossChainConfig `mapstructure:"cross-chain"`
+
+	PaymentCheck PaymentCheckConfig `mapstructure:"payment-check"`
 }
 
 type CrossChainConfig struct {
@@ -16,6 +18,11 @@ type CrossChainConfig struct {
 	DestBscChainId uint32 `mapstructure:"dest-bsc-chain-id"`
 
 	DestOpChainId uint32 `mapstructure:"dest-op-chain-id"`
+}
+
+type PaymentCheckConfig struct {
+	Enabled  bool   `mapstructure:"enabled"`
+	Interval uint32 `mapstructure:"interval"`
 }
 
 var CustomAppTemplate = serverconfig.DefaultConfigTemplate + `
@@ -29,6 +36,15 @@ src-chain-id = {{ .CrossChain.SrcChainId }}
 dest-bsc-chain-id = {{ .CrossChain.DestBscChainId }}
 # chain-id for op bnb destination chain
 dest-op-chain-id = {{ .CrossChain.DestOpChainId }}
+
+###############################################################################
+###                           PaymentCheck Config                           ###
+###############################################################################
+[payment-check]
+# enabled - the flag to enable/disable payment check
+enabled = {{ .PaymentCheck.Enabled }}
+# interval - the block interval run check payment
+interval = {{ .PaymentCheck.Interval }}
 `
 
 func NewDefaultAppConfig() *AppConfig {
@@ -53,6 +69,10 @@ func NewDefaultAppConfig() *AppConfig {
 			SrcChainId:     1,
 			DestBscChainId: 2,
 			DestOpChainId:  3,
+		},
+		PaymentCheck: PaymentCheckConfig{
+			Enabled:  false,
+			Interval: 100,
 		},
 	}
 }
