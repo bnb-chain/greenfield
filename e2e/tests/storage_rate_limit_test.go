@@ -5,84 +5,18 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"strconv"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/keys"
-	types2 "github.com/bnb-chain/greenfield/sdk/types"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
-
-func (s *StorageTestSuite) enableMessage() {
-	msgSetBucketFlowRateLimit := sdk.MsgTypeURL(&storagetypes.MsgSetBucketFlowRateLimit{})
-	msgMigrateBuketGasParams := gashubtypes.NewMsgGasParamsWithFixedGas(msgSetBucketFlowRateLimit, 1.2e3)
-
-	msgUpdateGasParams := gashubtypes.NewMsgSetMsgGasParams(authtypes.NewModuleAddress(govtypes.ModuleName).String(), []*gashubtypes.MsgGasParams{msgMigrateBuketGasParams}, nil)
-
-	var err error
-	validator := s.Validator.GetAddr()
-
-	ctx := context.Background()
-
-	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
-		[]sdk.Msg{msgUpdateGasParams},
-		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types2.NewIntFromInt64WithDecimal(100, types2.DecimalBNB))},
-		validator.String(),
-		"test", "test", "test",
-	)
-	s.Require().NoError(err)
-
-	txRes := s.SendTxBlock(s.Validator, msgProposal)
-	s.Require().Equal(txRes.Code, uint32(0))
-
-	// 3. query proposal and get proposal ID
-	var proposalId uint64
-	for _, event := range txRes.Logs[0].Events {
-		if event.Type == "submit_proposal" {
-			for _, attr := range event.Attributes {
-				if attr.Key == "proposal_id" {
-					proposalId, err = strconv.ParseUint(attr.Value, 10, 0)
-					s.Require().NoError(err)
-					break
-				}
-			}
-			break
-		}
-	}
-	s.Require().True(proposalId != 0)
-
-	queryProposal := &govtypesv1.QueryProposalRequest{ProposalId: proposalId}
-	_, err = s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
-	s.Require().NoError(err)
-
-	// 4. submit MsgVote and wait the proposal exec
-	msgVote := govtypesv1.NewMsgVote(validator, proposalId, govtypesv1.OptionYes, "test")
-	txRes = s.SendTxBlock(s.Validator, msgVote)
-	s.Require().Equal(txRes.Code, uint32(0))
-
-	queryVoteParamsReq := govtypesv1.QueryParamsRequest{ParamsType: "voting"}
-	queryVoteParamsResp, err := s.Client.GovQueryClientV1.Params(ctx, &queryVoteParamsReq)
-	s.Require().NoError(err)
-
-	// 5. wait a voting period and confirm that the proposal success.
-	s.T().Logf("voting period %s", *queryVoteParamsResp.Params.VotingPeriod)
-	time.Sleep(*queryVoteParamsResp.Params.VotingPeriod)
-	time.Sleep(1 * time.Second)
-	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
-	s.Require().NoError(err)
-	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
-}
 
 func (s *StorageTestSuite) TestSetBucketRateLimitToZero() {
 	var err error
@@ -164,8 +98,6 @@ func (s *StorageTestSuite) TestSetBucketRateLimitToZero() {
 // 6. the payment account set the rate limit to a positive number
 // 7. user create an object in the bucket and it should pass
 func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Object() {
-	s.enableMessage()
-
 	var err error
 	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -258,7 +190,6 @@ func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Object() {
 // 6. the payment account set the rate limit to a positive number
 // 7. user update the read quota to a positive number and it should pass
 func (s *StorageTestSuite) TestNotOwnerSetBucketRateLimit_Bucket() {
-	s.enableMessage()
 	var err error
 	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
