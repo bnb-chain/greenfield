@@ -6585,6 +6585,9 @@ paths:
           type: string
           enum:
             - Strategy_Maximize_Free_Store_Size
+            - Strategy_Minimal_Free_Store_Size
+            - Strategy_Oldest_Create_Time
+            - Strategy_Recentest_Create_Time
           default: Strategy_Maximize_Free_Store_Size
       tags:
         - Query
@@ -37383,6 +37386,9 @@ definitions:
     type: string
     enum:
       - Strategy_Maximize_Free_Store_Size
+      - Strategy_Minimal_Free_Store_Size
+      - Strategy_Oldest_Create_Time
+      - Strategy_Recentest_Create_Time
     default: Strategy_Maximize_Free_Store_Size
     title: >-
       PickVGFStrategy represents the method for selecting the best global
