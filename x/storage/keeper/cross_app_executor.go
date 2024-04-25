@@ -53,7 +53,7 @@ func (app *ExecutorApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChai
 		if err != nil {
 			app.sKeeper.Logger(ctx).Error("deserialize executor msg error", "msg bytes", hex.EncodeToString(msgBz), "error", err.Error())
 			return sdk.ExecuteResult{
-				Err: fmt.Errorf("deserialize executor msg error: %v", err),
+				Err: fmt.Errorf("deserialize executor msg error: %v, msg index: %d", err, i),
 			}
 		}
 
@@ -61,7 +61,7 @@ func (app *ExecutorApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChai
 		if err != nil {
 			app.sKeeper.Logger(ctx).Error("execute executor msg error", "index", i, "data", msgBz, "error", err.Error())
 			return sdk.ExecuteResult{
-				Err: fmt.Errorf("execute executor msg error: %v", err),
+				Err: fmt.Errorf("execute executor msg error: %v, msg index: %d", err, i),
 			}
 		}
 	}
