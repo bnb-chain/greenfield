@@ -1,5 +1,18 @@
 # Changelog
 
+## V1.7.0
+This release introduces the Erdos upgrade.
+
+Features:
+* [#595](https://github.com/bnb-chain/greenfield/pull/595) feat: add ExecutorApp
+* [#582](https://github.com/bnb-chain/greenfield/pull/595) feat: implement paymaster
+
+Fixes:
+* [#601](https://github.com/bnb-chain/greenfield/pull/601) fix: fix uncharge issue when force-deleting objects
+
+Chore:
+* [#597](https://github.com/bnb-chain/greenfield/pull/597) chore: upgrade deps for fixing vulnerabilities
+
 ## V1.6.0
 This release introduces the Serengeti upgrade.
 
