@@ -172,6 +172,7 @@ func (k Keeper) setBucketFlowRateLimitStatus(ctx sdk.Context, bucketName string,
 	store.Set(types.GetBucketFlowRateLimitStatusKey(bucketName), bz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventBucketFlowRateLimitStatus{
+		BucketId:   bucketId,
 		BucketName: bucketName,
 		IsLimited:  status.IsBucketLimited,
 	}); err != nil {
