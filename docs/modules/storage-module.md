@@ -1,8 +1,3 @@
----
-title: Storage Module
-order: 1
----
-
 # Storage Module
 
 ## Concepts

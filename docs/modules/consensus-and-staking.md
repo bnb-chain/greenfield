@@ -1,8 +1,3 @@
----
-title: Consensus and Staking
-order: 6
----
-
 # Consensus and Staking
 
 The BNB Greenfield blockchain places a strong emphasis on network security, 

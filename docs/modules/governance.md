@@ -1,14 +1,9 @@
----
-title: Governance
-order: 7
----
-
 # Governance
 
-:::info
-Since Greenfield Governance is derived from Cosmos, The majority of the content in this page is copied from the
+> [!NOTE]  
+> Since Greenfield Governance is derived from Cosmos, The majority of the content in this page is copied from the
 [Cosmos SDK](hhttps://hub.cosmos.network/main/governance/process.html).
-:::
+
 
 The Greenfield BlockChain utilizes on-chain governance, which achieved by steps listed below:
 

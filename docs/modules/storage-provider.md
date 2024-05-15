@@ -1,8 +1,3 @@
----
-title: Storage Provider
-order: 2
----
-
 # Storage Provider
 
 ## Abstract

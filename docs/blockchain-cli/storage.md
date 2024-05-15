@@ -1,8 +1,3 @@
----
-title: Storage Object
-order: 3
----
-
 # Storage
 
 ## Abstract
@@ -14,26 +9,18 @@ to complete such transactions and queries.
 
 The RPC addresses for mainnet and Testnet are listed below. In this tutorial, we are going to use Mainnet RPC address. 
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+- Mainnet
 
-<Tabs
-defaultValue="mainnet"
-values={[
-{label: 'Mainnet', value: 'mainnet'},
-{label: 'Testnet', value: 'testnet'},
-]}>
-<TabItem value="mainnet">
+    ```js
+    node = "https://greenfield-chain.bnbchain.org:443"
+    ```
+  
+- Testnet
 
-	node = "https://greenfield-chain.bnbchain.org:443"
+    ```js
+    node = "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
+    ```
 
-  </TabItem>
-  <TabItem value="testnet">
-
-	node = "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
-
-  </TabItem>
-</Tabs>
 
 ## HeadBucket
 

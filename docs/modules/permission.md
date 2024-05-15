@@ -1,8 +1,3 @@
----
-title: Permission
-order: 4
----
-
 # Permission
 
 The permission module serves as the foundation for basic permission control management in the Greenfield Storage Network.

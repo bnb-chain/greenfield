@@ -1,8 +1,3 @@
----
-title: Payment
-Order: 6
----
-
 # Payment
 
 ## Abstract
@@ -25,27 +20,17 @@ ${key} is the name of local key.
 
 ${node} is the rpc address of a Greenfield node.
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+- Mainnet
 
-<Tabs
-defaultValue="mainnet"
-values={[
-{label: 'Mainnet', value: 'mainnet'},
-{label: 'Testnet', value: 'testnet'},
-]}>
-<TabItem value="mainnet">
+    ```js
+    node = "https://greenfield-chain.bnbchain.org:443"
+    ```
 
-	node = "https://greenfield-chain.bnbchain.org:443"
+- Testnet
 
-  </TabItem>
-  <TabItem value="testnet">
-
-	node = "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
-
-  </TabItem>
-</Tabs>
-
+    ```js
+    node = "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
+    ```
 
 ### Query Payment Account
 

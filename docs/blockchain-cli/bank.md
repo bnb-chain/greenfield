@@ -1,11 +1,3 @@
----
-title: Account Balance
-order: 2
-category:
-  - cli
----
-
-
 # Account Balance
 
 ## Abstract
@@ -30,26 +22,18 @@ You can specify any valid address you want to query via ${receiver}.
 
 ${node} is the rpc address of a Greenfield node.
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+- Mainnet
 
-<Tabs
-defaultValue="mainnet"
-values={[
-{label: 'Mainnet', value: 'mainnet'},
-{label: 'Testnet', value: 'testnet'},
-]}>
-<TabItem value="mainnet">
+    ```js
+    node = "https://greenfield-chain.bnbchain.org:443"
+    ```
 
-	node = "https://greenfield-chain.bnbchain.org:443"
+- Testnet
 
-  </TabItem>
-  <TabItem value="testnet">
+    ```js
+    node = "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
+    ```
 
-	node = "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
-
-  </TabItem>
-</Tabs>
 
 ### Send
 

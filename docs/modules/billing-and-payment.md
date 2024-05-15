@@ -1,8 +1,3 @@
----
-title: Billing and Payment
-order: 3
----
-
 # Billing and Payment
 
 If you're interested in knowing the real-time pricing for storage and querying on Greenfield, we invite you to
@@ -653,9 +648,8 @@ The locked fee is calculated as below:
 
 The `ChargeSize` is calculated from the object's payload size, if the payload size is less than **128KB** then `ChargeSize` is **128KB**, otherwise `ChargeSize` is equal to payload size.
 
-:::note
-To optimize your cost, it is advisable to consolidate small files into payloads exceeding **128KB**. Failing to do so may result in higher charges.
-:::
+> [!NOTE]
+> To optimize your cost, it is advisable to consolidate small files into payloads exceeding **128KB**. Failing to do so may result in higher charges.
 
 ### Seal Object
 

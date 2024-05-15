@@ -1,8 +1,3 @@
----
-title: Data Availability Challenge
-order: 8
----
-
 # Data Availability Challenge
 
 Data availability refers to the correct storage and accessibility of data on storage providers for users.

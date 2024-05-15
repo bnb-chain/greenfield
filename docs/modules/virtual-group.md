@@ -1,8 +1,3 @@
----
-title: Virtual Group
-order: 9
----
-
 # Virtual Group 
 
 ## Abstract

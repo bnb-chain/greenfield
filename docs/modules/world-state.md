@@ -1,7 +1,3 @@
----
-title: World State
----
-
 # World State
 All Greenfield validators have access to up-to-date active data in full. Anyone can join the blockchain as a 
 full node and freely synchronize this data.
