@@ -514,6 +514,8 @@ message EventMigrationBucket {
   ];
   // The id of the destination primary sp
   uint32 dst_primary_sp_id = 4;
+  // status define the status of the bucket.
+  BucketStatus status = 5;
 }
 
 message EventCancelMigrationBucket {
@@ -528,6 +530,8 @@ message EventCancelMigrationBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // status define the status of the bucket.
+  BucketStatus status = 4;
 }
 
 message EventRejectMigrateBucket {
@@ -541,6 +545,8 @@ message EventRejectMigrateBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // status define the status of the bucket.
+  BucketStatus status = 4;
 }
 
 message EventCompleteMigrationBucket {
@@ -559,6 +565,8 @@ message EventCompleteMigrationBucket {
   uint32 global_virtual_group_family_id = 4;
   // The src_primary_sp_id defines the primary sp id of the bucket before migrate.
   uint32 src_primary_sp_id = 5;
+  // status define the status of the bucket.
+  BucketStatus status = 6;
 }
 
 message EventSetTag {
