@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -319,6 +320,8 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	if !found { // the bucket is already deleted
 		return true, 0, nil
 	}
+	ctx.Logger().Debug("ForceDeleteBucket", "bucket_id", bucketId.String())
+	fmt.Printf("ForceDeleteBucket, bucket_id %s\n", bucketId.String())
 
 	bucketDeleted := false
 
@@ -371,6 +374,8 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 			}
 		} else if objectStatus == types.OBJECT_STATUS_SEALED {
 			internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+			ctx.Logger().Info("UnChargeObjectStoreFee", "object_id", objectInfo.Id)
+			fmt.Printf("UnChargeObjectStoreFee, object_id %s\n", objectInfo.Id.String())
 			if err = k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, &objectInfo); err != nil {
 				ctx.Logger().Error("charge delete object error", "err", err)
 				return false, deleted, err
