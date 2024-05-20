@@ -17,6 +17,10 @@ func BeginBlocker(ctx sdk.Context, keeper Keeper) {
 }
 
 func EndBlocker(ctx sdk.Context, keeper Keeper) {
+	if ctx.BlockHeight() >= 1683901 {
+		return
+	}
+
 	deletionMax := keeper.DiscontinueDeletionMax(ctx)
 	if deletionMax == 0 {
 		return
