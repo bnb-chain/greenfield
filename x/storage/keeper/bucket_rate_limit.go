@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
@@ -237,25 +238,30 @@ func (k Keeper) shouldCheckRateLimit(ctx sdk.Context, paymentAccount, bucketOwne
 // isBucketFlowRateUnderLimitWithRate checks if the flow rate of the bucket is under the flow rate limit
 func (k Keeper) isBucketFlowRateUnderLimitWithRate(ctx sdk.Context, paymentAccount, bucketOwner sdk.AccAddress, bucketName string, rate sdkmath.Int) error {
 	// if the total net flow rate is zero, it should be allowed
+	fmt.Printf("isBucketFlowRateUnderLimitWithRate bucketNmae=%s, %s, %s\n", bucketName, bucketOwner, rate.String())
 	if rate.IsZero() {
 		return nil
 	}
 
 	rateLimit, found := k.getBucketFlowRateLimit(ctx, paymentAccount, bucketOwner, bucketName)
 	// if the rate limit is not set
+	fmt.Printf("getBucketFlowRateLimit found=%v\n", found)
+
 	if !found {
 		// if the bucket owner is owner of the payment account and the rate limit is not set, the flow rate is unlimited
 		if k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAccount, bucketOwner) {
 			return nil
 		}
-
 		return fmt.Errorf("the flow rate limit is not set for the bucket %s", bucketName)
 	}
+	fmt.Printf("getBucketFlowRateLimit ratelimit=%s\n", rateLimit.FlowRateLimit.String())
 
 	// check the flow rate is under the limit
 	if rate.GT(rateLimit.FlowRateLimit) {
+		fmt.Println("return 1")
 		return fmt.Errorf("the total flow rate of the bucket %s is greater than the flow rate limit", bucketName)
 	}
+	fmt.Println("return 2")
 	return nil
 }
 
