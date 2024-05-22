@@ -133,12 +133,6 @@ func (s *StorageTestSuite) TestSetBucketRateLimitToZeroAndDelete() {
 	msgSetBucketRateLimit := storagetypes.NewMsgSetBucketFlowRateLimit(s.User.GetAddr(), s.User.GetAddr(), s.User.GetAddr(), bucketName, sdkmath.NewInt(100000000000000000))
 	s.SendTxBlock(s.User, msgSetBucketRateLimit)
 
-	queryHeadBucketRequest = storagetypes.QueryHeadBucketRequest{
-		BucketName: bucketName,
-	}
-	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
-	s.Require().NoError(err)
-
 	// CreateObject
 	objectName := storageutils.GenRandomObjectName()
 	// create test buffer
