@@ -1087,6 +1087,7 @@ func (k Keeper) DeleteObject(
 	}
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
+	fmt.Printf("UnChargeObjectStoreFee %s\n", bucketName)
 	err := k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
 	if err != nil {
 		return err
