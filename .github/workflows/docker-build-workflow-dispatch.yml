@@ -1,0 +1,43 @@
+name: Docker-Invisible
+
+on: workflow_dispatch
+
+env:
+  IMAGE_NAME: ghcr.io/bnb-chain/greenfield-invisible
+  IMAGE_SOURCE: https://github.com/bnb-chain/greenfield
+
+jobs:
+  # Push image to GitHub Packages.
+  push:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build image
+        run: |
+          docker build . \
+          --label "org.opencontainers.image.source=${IMAGE_SOURCE}" \
+          --label "org.opencontainers.image.revision=$(git rev-parse HEAD)" \
+          --label "org.opencontainers.image.version=$(git describe --tags --abbrev=0)" \
+          --label "org.opencontainers.image.licenses=AGPL-3.0,GPL-3.0" \
+          -f ./Dockerfile -t "${IMAGE_NAME}"
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_ACCESS_SECRET }}
+
+      - name: Push image
+        run: |
+          VERSION=${GITHUB_SHA}
+          echo IMAGE_NAME=$IMAGE_NAME
+          echo VERSION=$VERSION
+          docker tag $IMAGE_NAME $IMAGE_NAME:$VERSION
+          docker tag $IMAGE_NAME $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:$VERSION
+          docker push $IMAGE_NAME:latest
