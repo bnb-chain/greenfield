@@ -5201,8 +5201,12 @@ paths:
                           When the type is an account, its value is
                           sdk.AccAddress().String();
 
-                          when the type is a group, its value is
-                          math.Uint().String()
+                          When the type is a group, its value can be in one of
+                          two formats:
+
+                          1. group id
+
+                          2. grn:g:ownerAddress:groupName
                     description: >-
                       Principal define the roles that can be grant permissions
                       to. Currently, it can be account or group.
@@ -5397,8 +5401,12 @@ paths:
                           When the type is an account, its value is
                           sdk.AccAddress().String();
 
-                          when the type is a group, its value is
-                          math.Uint().String()
+                          When the type is a group, its value can be in one of
+                          two formats:
+
+                          1. group id
+
+                          2. grn:g:ownerAddress:groupName
                     description: >-
                       Principal define the roles that can be grant permissions
                       to. Currently, it can be account or group.
@@ -5597,8 +5605,12 @@ paths:
                           When the type is an account, its value is
                           sdk.AccAddress().String();
 
-                          when the type is a group, its value is
-                          math.Uint().String()
+                          When the type is a group, its value can be in one of
+                          two formats:
+
+                          1. group id
+
+                          2. grn:g:ownerAddress:groupName
                     description: >-
                       Principal define the roles that can be grant permissions
                       to. Currently, it can be account or group.
@@ -34654,7 +34666,11 @@ definitions:
               When the type is an account, its value is
               sdk.AccAddress().String();
 
-              when the type is a group, its value is math.Uint().String()
+              When the type is a group, its value can be in one of two formats:
+
+              1. group id
+
+              2. grn:g:ownerAddress:groupName
         description: >-
           Principal define the roles that can be grant permissions to.
           Currently, it can be account or group.
@@ -34784,7 +34800,9 @@ definitions:
         type: string
         title: |-
           When the type is an account, its value is sdk.AccAddress().String();
-          when the type is a group, its value is math.Uint().String()
+          When the type is a group, its value can be in one of two formats:
+          1. group id
+          2. grn:g:ownerAddress:groupName
     description: >-
       Principal define the roles that can be grant permissions to. Currently, it
       can be account or group.
@@ -36657,7 +36675,12 @@ definitions:
                   When the type is an account, its value is
                   sdk.AccAddress().String();
 
-                  when the type is a group, its value is math.Uint().String()
+                  When the type is a group, its value can be in one of two
+                  formats:
+
+                  1. group id
+
+                  2. grn:g:ownerAddress:groupName
             description: >-
               Principal define the roles that can be grant permissions to.
               Currently, it can be account or group.
@@ -36811,7 +36834,12 @@ definitions:
                   When the type is an account, its value is
                   sdk.AccAddress().String();
 
-                  when the type is a group, its value is math.Uint().String()
+                  When the type is a group, its value can be in one of two
+                  formats:
+
+                  1. group id
+
+                  2. grn:g:ownerAddress:groupName
             description: >-
               Principal define the roles that can be grant permissions to.
               Currently, it can be account or group.
@@ -36965,7 +36993,12 @@ definitions:
                   When the type is an account, its value is
                   sdk.AccAddress().String();
 
-                  when the type is a group, its value is math.Uint().String()
+                  When the type is a group, its value can be in one of two
+                  formats:
+
+                  1. group id
+
+                  2. grn:g:ownerAddress:groupName
             description: >-
               Principal define the roles that can be grant permissions to.
               Currently, it can be account or group.
