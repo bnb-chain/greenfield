@@ -246,7 +246,9 @@ func (m *Statement) GetLimitSize() *common.UInt64Value {
 type Principal struct {
 	Type PrincipalType `protobuf:"varint,1,opt,name=type,proto3,enum=greenfield.permission.PrincipalType" json:"type,omitempty"`
 	// When the type is an account, its value is sdk.AccAddress().String();
-	// when the type is a group, its value is math.Uint().String()
+	// When the type is a group, its value can be in one of two formats:
+	// 1. group id
+	// 2. grn:g:ownerAddress:groupName
 	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 

@@ -79,6 +79,8 @@ enum PrincipalType {
 message Principal {
   PrincipalType type = 1;
   // When the type is an account, its value is sdk.AccAddress().String();
-  // when the type is a group, its value is math.Uint().String()
+  // When the type is a group, its value can be in one of two formats:
+  // 1. group id
+  // 2. grn:g:ownerAddress:groupName
   string value = 2;
 }
