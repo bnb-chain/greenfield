@@ -602,6 +602,11 @@ func (k Keeper) ChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetyp
 	}
 
 	if ctx.IsUpgraded(upgradetypes.Erdos) {
+		isRateLimited := k.IsBucketRateLimited(ctx, bucketInfo.BucketName)
+		if isRateLimited {
+			return fmt.Errorf("bucket is rate limited: %s", bucketInfo.BucketName)
+		}
+
 		err := k.isBucketFlowRateUnderLimit(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress), sdk.MustAccAddressFromHex(bucketInfo.Owner), bucketInfo.BucketName, bill)
 		if err != nil {
 			return err
