@@ -2142,6 +2142,13 @@ func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNa
 		return err
 	}
 
+	if ctx.IsUpgraded(upgradetypes.Erdos) {
+		isRateLimited := k.IsBucketRateLimited(ctx, bucketInfo.BucketName)
+		if isRateLimited {
+			return fmt.Errorf("bucket is rate limited: %s", bucketInfo.BucketName)
+		}
+	}
+
 	key := types.GetMigrationBucketKey(bucketInfo.Id)
 	if store.Has(key) {
 		panic("migration bucket key is existed.")
