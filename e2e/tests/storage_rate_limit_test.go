@@ -89,6 +89,103 @@ func (s *StorageTestSuite) TestSetBucketRateLimitToZero() {
 	s.SendTxBlockWithExpectErrorString(msgCreateObject, user, "greater than the flow rate limit")
 }
 
+func (s *StorageTestSuite) TestSetBucketRateLimitToZeroAndDelete() {
+	var err error
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	user := s.User
+	// CreateBucket
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateBucket)
+
+	// HeadBucket
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+
+	queryQuotaUpdateTimeResponse, err := s.Client.QueryQuotaUpdateTime(ctx, &storagetypes.QueryQuoteUpdateTimeRequest{
+		BucketName: bucketName,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.CreateAt, queryQuotaUpdateTimeResponse.UpdateAt)
+
+	fmt.Printf("User: %s\n", s.User.GetAddr().String())
+	fmt.Printf("queryHeadBucketResponse.BucketInfo.Owner: %s\n", queryHeadBucketResponse.BucketInfo.Owner)
+	fmt.Printf("queryHeadBucketResponse.BucketInfo.PaymentAccount: %s\n", queryHeadBucketResponse.BucketInfo.PaymentAddress)
+
+	// SetBucketRateLimit
+	msgSetBucketRateLimit := storagetypes.NewMsgSetBucketFlowRateLimit(s.User.GetAddr(), s.User.GetAddr(), s.User.GetAddr(), bucketName, sdkmath.NewInt(100000000000000000))
+	s.SendTxBlock(s.User, msgSetBucketRateLimit)
+
+	// CreateObject
+	objectName := storageutils.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(s.User, msgCreateObject)
+
+	// HeadObject
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+
+	// SealObject
+	gvgId := gvg.Id
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
+	secondarySigs := make([][]byte, 0)
+	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
+	// every secondary sp signs the checksums
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
+		s.Require().NoError(err)
+		secondarySigs = append(secondarySigs, sig)
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
+		s.Require().NoError(err)
+		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
+	}
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, blsSignHash, secondarySigs)
+	s.Require().NoError(err)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+	s.T().Logf("msg %s", msgSealObject.String())
+	s.SendTxBlock(sp.SealKey, msgSealObject)
+
+	msgSetBucketRateLimit = storagetypes.NewMsgSetBucketFlowRateLimit(s.User.GetAddr(), s.User.GetAddr(), s.User.GetAddr(), bucketName, sdkmath.NewInt(0))
+	s.SendTxBlock(s.User, msgSetBucketRateLimit)
+
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
+	s.SendTxBlockWithExpectErrorString(msgDeleteObject, user, "bucket is rate limited")
+}
+
 // TestNotOwnerSetBucketRateLimit_Object
 // 1. user create a bucket with 0 read quota
 // 2. the payment account set the rate limit

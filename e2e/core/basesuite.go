@@ -177,7 +177,7 @@ func (s *BaseSuite) SetupSuite() {
 			// Create a GVG for each sp by default
 			deposit := sdk.Coin{
 				Denom:  s.Config.Denom,
-				Amount: types.NewIntFromInt64WithDecimal(1, types.DecimalBNB),
+				Amount: types.NewIntFromInt64WithDecimal(1000, types.DecimalBNB),
 			}
 			var secondaryIDs []uint32
 			for _, ssp := range s.StorageProviders {
