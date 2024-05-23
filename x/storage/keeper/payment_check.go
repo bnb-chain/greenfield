@@ -115,7 +115,7 @@ Exit:
 			u256Seq := sequence.Sequence[sdkmath.Uint]{}
 			objectInfo, found := k.GetObjectInfoById(ctx, u256Seq.DecodeSequence(it.Value()))
 			if found && (objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED || objectInfo.IsUpdating) {
-				priceTime := objectInfo.CreateAt
+				priceTime := objectInfo.GetLatestUpdatedTime()
 				payloadSize := objectInfo.PayloadSize
 				if objectInfo.IsUpdating {
 					shadowObject, found := k.GetShadowObjectInfo(ctx, bucket.BucketName, objectInfo.ObjectName)
