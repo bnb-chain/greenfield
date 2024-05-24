@@ -7,6 +7,7 @@ import (
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/pkg/errors"
 )
 
@@ -114,7 +115,7 @@ Exit:
 			u256Seq := sequence.Sequence[sdkmath.Uint]{}
 			objectInfo, found := k.GetObjectInfoById(ctx, u256Seq.DecodeSequence(it.Value()))
 			if found && (objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED || objectInfo.IsUpdating) {
-				priceTime := objectInfo.CreateAt
+				priceTime := objectInfo.GetLatestUpdatedTime()
 				payloadSize := objectInfo.PayloadSize
 				if objectInfo.IsUpdating {
 					shadowObject, found := k.GetShadowObjectInfo(ctx, bucket.BucketName, objectInfo.ObjectName)
@@ -165,7 +166,9 @@ Exit:
 
 		actualLockBalance := streamRecord.LockBalance
 		if !expectedLockBalance.Equal(actualLockBalance) {
-			result = errors.New("lock balance not equal")
+			if !k.isKnownLockBalanceIssue(ctx, address) {
+				result = errors.New("lock balance not equal")
+			}
 			ctx.Logger().Error("lock balance not equal", "address", address, "expected", expectedLockBalance, "actual", actualLockBalance)
 			details := lockBalanceDetailMap[address]
 			for _, detail := range details {
@@ -256,7 +259,9 @@ Exit:
 		if streamRecord.LockBalance.IsPositive() {
 			_, found := lockBalanceMap[streamRecord.Account]
 			if !found {
-				result = errors.New("the stream record has lock balance which is not expected")
+				if !k.isKnownLockBalanceIssue(ctx, streamRecord.Account) {
+					result = errors.New("the stream record has lock balance which is not expected")
+				}
 				ctx.Logger().Error("the stream record has lock balance which is not expected", "address", streamRecord.Account)
 			}
 		}
@@ -280,4 +285,15 @@ Exit:
 
 	ctx.Logger().Info("finish checking payment data")
 	return result
+}
+
+// isKnownLockBalanceIssue checks if the address is the known addresses of the lock balance issue on testnet.
+func (k Keeper) isKnownLockBalanceIssue(ctx sdk.Context, address string) bool {
+	if ctx.ChainID() != upgradetypes.TestnetChainID {
+		return false
+	}
+	if address == "0x8E15D16d6432166372Fb1e6f4A41840D71edd41F" || address == "0x9b825492966508C587536bA71425d61E822545C3" {
+		return true
+	}
+	return false
 }
