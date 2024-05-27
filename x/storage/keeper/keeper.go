@@ -2129,8 +2129,10 @@ func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNa
 		return types.ErrInvalidBucketStatus.Wrapf("The bucket already been migrating")
 	}
 
-	if bucketInfo.BucketStatus == types.BUCKET_STATUS_DISCONTINUED {
-		return types.ErrInvalidBucketStatus.Wrapf("The discontinued bucket cannot be migrated")
+	if ctx.IsUpgraded(upgradetypes.Veld) {
+		if bucketInfo.BucketStatus == types.BUCKET_STATUS_DISCONTINUED {
+			return types.ErrInvalidBucketStatus.Wrapf("The discontinued bucket cannot be migrated")
+		}
 	}
 
 	srcSP := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
