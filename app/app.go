@@ -746,6 +746,8 @@ func (app *App) initBridge() {
 
 func (app *App) initStorage() {
 	storagemodulekeeper.RegisterCrossApps(app.StorageKeeper)
+	storagemodulekeeper.InitPaymentCheck(app.StorageKeeper, app.appConfig.PaymentCheck.Enabled,
+		app.appConfig.PaymentCheck.Interval)
 }
 
 func (app *App) initGov() {

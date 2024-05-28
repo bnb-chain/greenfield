@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -46,8 +47,16 @@ type (
 		groupSeq  sequence.Sequence[sdkmath.Uint]
 
 		authority string
+
+		// payment check config
+		cfg *paymentCheckConfig
 	}
 )
+
+type paymentCheckConfig struct {
+	Enabled  bool
+	Interval uint32
+}
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
@@ -72,6 +81,7 @@ func NewKeeper(
 		crossChainKeeper:   crossChainKeeper,
 		virtualGroupKeeper: virtualGroupKeeper,
 		authority:          authority,
+		cfg:                &paymentCheckConfig{Enabled: false, Interval: 0},
 	}
 
 	k.bucketSeq = sequence.NewSequence[sdkmath.Uint](types.BucketSequencePrefix)
@@ -82,6 +92,14 @@ func NewKeeper(
 
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+func (k Keeper) IsPaymentCheckEnabled() bool {
+	return k.cfg.Enabled
+}
+
+func (k Keeper) GetPaymentCheckInterval() uint32 {
+	return k.cfg.Interval
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
@@ -2112,6 +2130,12 @@ func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNa
 		return types.ErrInvalidBucketStatus.Wrapf("The bucket already been migrating")
 	}
 
+	if ctx.IsUpgraded(upgradetypes.Veld) {
+		if bucketInfo.BucketStatus == types.BUCKET_STATUS_DISCONTINUED {
+			return types.ErrInvalidBucketStatus.Wrapf("The discontinued bucket cannot be migrated")
+		}
+	}
+
 	srcSP := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 
 	dstSP, found := k.spKeeper.GetStorageProvider(ctx, dstPrimarySPID)
@@ -2172,6 +2196,7 @@ func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNa
 		BucketName:     bucketName,
 		BucketId:       bucketInfo.Id,
 		DstPrimarySpId: dstSP.Id,
+		Status:         bucketInfo.BucketStatus,
 	}); err != nil {
 		return err
 	}
@@ -2254,6 +2279,7 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 		BucketId:                   bucketInfo.Id,
 		GlobalVirtualGroupFamilyId: gvgFamilyID,
 		SrcPrimarySpId:             srcGvgFamily.PrimarySpId,
+		Status:                     bucketInfo.BucketStatus,
 	}); err != nil {
 		return err
 	}
@@ -2300,6 +2326,7 @@ func (k Keeper) CancelBucketMigration(ctx sdk.Context, operator sdk.AccAddress, 
 		Operator:   operator.String(),
 		BucketName: bucketName,
 		BucketId:   bucketInfo.Id,
+		Status:     bucketInfo.BucketStatus,
 	}); err != nil {
 		return err
 	}
@@ -2334,6 +2361,7 @@ func (k Keeper) RejectBucketMigration(ctx sdk.Context, operator sdk.AccAddress, 
 		Operator:   operator.String(),
 		BucketName: bucketName,
 		BucketId:   bucketInfo.Id,
+		Status:     bucketInfo.BucketStatus,
 	}); err != nil {
 		return err
 	}

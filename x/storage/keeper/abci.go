@@ -60,4 +60,13 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 
 	// Permission GC
 	keeper.GarbageCollectResourcesStalePolicy(ctx)
+
+	// Payment Data Check
+	interval := int64(keeper.GetPaymentCheckInterval())
+	if keeper.IsPaymentCheckEnabled() && interval > 0 && ctx.BlockHeight()%interval == 0 {
+		err = keeper.RunPaymentCheck(ctx)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
