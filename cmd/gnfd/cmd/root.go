@@ -352,7 +352,7 @@ func (a appCreator) newApp(
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 		a.encodingConfig,
-		&app.AppConfig{Config: *serverConfig, CrossChain: appConfig.CrossChain},
+		&app.AppConfig{Config: *serverConfig, CrossChain: appConfig.CrossChain, PaymentCheck: appConfig.PaymentCheck},
 		appOpts,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetEventing(cast.ToString(appOpts.Get(server.FlagEventing))),

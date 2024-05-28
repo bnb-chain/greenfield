@@ -104,7 +104,7 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.StreamRecord
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		val.Account = string(iterator.Key())
+		val.Account = sdk.AccAddress(iterator.Key()).String()
 		list = append(list, val)
 	}
 

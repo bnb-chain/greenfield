@@ -58,7 +58,7 @@ func NewTestApp(
 		app.DefaultNodeHome,
 		0,
 		encCfg,
-		&app.AppConfig{CrossChain: app.NewDefaultAppConfig().CrossChain},
+		&app.AppConfig{CrossChain: app.NewDefaultAppConfig().CrossChain, PaymentCheck: app.NewDefaultAppConfig().PaymentCheck},
 		simtestutil.EmptyAppOptions{},
 		options...,
 	)
