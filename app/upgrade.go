@@ -258,7 +258,7 @@ func (app *App) registerErdosUpgradeHandler() {
 			executorApp := storagemodulekeeper.NewExecutorApp(app.StorageKeeper, storagemodulekeeper.NewMsgServerImpl(app.StorageKeeper), paymentmodulekeeper.NewMsgServerImpl(app.PaymentKeeper))
 			err := app.CrossChainKeeper.RegisterChannel(storagemoduletypes.ExecutorChannel, storagemoduletypes.ExecutorChannelId, executorApp)
 			if err != nil {
-				panic(err)
+				app.Logger().Error("register channel error ", err.Error())
 			}
 			return nil
 		})
