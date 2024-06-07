@@ -104,7 +104,7 @@ And the following modules are in cosmos-sdk:
 - `x/staking`:  based on the Proof-of-Stake logic. The elected validators are responsible for the security of the Greenfield blockchain. 
 They get involved in the governance and staking of the blockchain.
 
-Refer to the [docs](https://github.com/bnb-chain/greenfield/tree/master/docs/modules) to dive deep into these modules.
+Refer to the [docs](https://github.com/bnb-chain/greenfield/blob/master/docs/modules/storage-module.md) to dive deep into these modules.
 
 ## Running node
 
