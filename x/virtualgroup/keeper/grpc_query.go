@@ -232,6 +232,7 @@ func (k Keeper) QuerySpOptimalGlobalVirtualGroupFamily(goCtx context.Context, re
 			}
 		}
 	case types.Strategy_Minimal_Free_Store_Size:
+		freeStoreSize = math.MaxFloat64
 		for _, gvgfID := range stats.GlobalVirtualGroupFamilyIds {
 			gvgFamily, found := k.GetGVGFamily(ctx, gvgfID)
 			if !found {
