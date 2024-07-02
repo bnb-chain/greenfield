@@ -1,5 +1,17 @@
 # Changelog
 
+## V1.8.0
+This release introduces the Veld upgrade.
+
+Fixes:
+* [#621](https://github.com/bnb-chain/greenfield/pull/621) fix: add bucket status to bucket migration related events
+* [#625](https://github.com/bnb-chain/greenfield/pull/625) fix: discontinued bucket can't be migrated
+* [#626](https://github.com/bnb-chain/greenfield/pull/626) fix: principal value supports group name
+* [#632](https://github.com/bnb-chain/greenfield/pull/632) fix: ingore register channel error
+
+Chore:
+* [#619](https://github.com/bnb-chain/greenfield/pull/619) docs: move greenfield cmd/module/api docs from docs.bnbchain.org to greenfield repo
+
 ## V1.7.0
 This release introduces the Erdos upgrade.
 
