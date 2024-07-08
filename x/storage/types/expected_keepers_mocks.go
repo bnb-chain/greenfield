@@ -1015,6 +1015,21 @@ func (mr *MockStorageKeeperMockRecorder) DeleteObject(ctx, operator, bucketName,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObject", reflect.TypeOf((*MockStorageKeeper)(nil).DeleteObject), ctx, operator, bucketName, objectName, opts)
 }
 
+// GetBucketInfo mocks base method.
+func (m *MockStorageKeeper) GetBucketInfo(ctx types3.Context, bucketName string) (*BucketInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBucketInfo", ctx, bucketName)
+	ret0, _ := ret[0].(*BucketInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetBucketInfo indicates an expected call of GetBucketInfo.
+func (mr *MockStorageKeeperMockRecorder) GetBucketInfo(ctx, bucketName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBucketInfo", reflect.TypeOf((*MockStorageKeeper)(nil).GetBucketInfo), ctx, bucketName)
+}
+
 // GetBucketInfoById mocks base method.
 func (m *MockStorageKeeper) GetBucketInfoById(ctx types3.Context, bucketId math.Uint) (*BucketInfo, bool) {
 	m.ctrl.T.Helper()
@@ -1058,6 +1073,21 @@ func (m *MockStorageKeeper) GetGroupInfoById(ctx types3.Context, groupId math.Ui
 func (mr *MockStorageKeeperMockRecorder) GetGroupInfoById(ctx, groupId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupInfoById", reflect.TypeOf((*MockStorageKeeper)(nil).GetGroupInfoById), ctx, groupId)
+}
+
+// GetObjectInfo mocks base method.
+func (m *MockStorageKeeper) GetObjectInfo(ctx types3.Context, bucketName, objectName string) (*ObjectInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetObjectInfo", ctx, bucketName, objectName)
+	ret0, _ := ret[0].(*ObjectInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetObjectInfo indicates an expected call of GetObjectInfo.
+func (mr *MockStorageKeeperMockRecorder) GetObjectInfo(ctx, bucketName, objectName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObjectInfo", reflect.TypeOf((*MockStorageKeeper)(nil).GetObjectInfo), ctx, bucketName, objectName)
 }
 
 // GetObjectInfoById mocks base method.

@@ -105,6 +105,8 @@ type VirtualGroupKeeper interface {
 type StorageKeeper interface {
 	Logger(ctx sdk.Context) log.Logger
 	GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*BucketInfo, bool)
+	GetBucketInfo(ctx sdk.Context, bucketName string) (*BucketInfo, bool)
+	GetObjectInfo(ctx sdk.Context, bucketName, objectName string) (*ObjectInfo, bool)
 	SetBucketInfo(ctx sdk.Context, bucketInfo *BucketInfo)
 	CreateBucket(
 		ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
