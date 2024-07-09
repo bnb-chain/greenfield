@@ -16,11 +16,11 @@ Local Virtual Group(LVG): Each bucket maintains a mapping from the local group I
 
 Local virtual groups are linked to their corresponding buckets, and each object needs to store the ID information of the local virtual group. Each local virtual group must correspond to one and only one global virtual group.
 
-![VirtualGroup Overview](../../../../static/asset/12-Greenfield-VirtualGroup.png)
+![VirtualGroup Overview](https://docs.bnbchain.org/bnb-greenfield/static/asset/12-Greenfield-VirtualGroup.png)
 
 In order to avoid all the data of a primary SP being transferred to one SP within a short period of time, we introduce the concept of "family". 
 
-![VirtualGroup Family](../../../../static/asset/13-Greenfield-VirtualGroupFamily.png)
+![VirtualGroup Family](https://docs.bnbchain.org/bnb-greenfield/static/asset/13-Greenfield-VirtualGroupFamily.png)
 
 A family can contain multiple GVG that the same SP creates. A bucket can only be served by the GVGs that are in the same family, cross family GVG is not allowed within one bucket. Once the total storage size of a family exceeds 64TB(TBD), the GVG inside the family can not server new buckets, the SP has to create a new family. By introducing family , the primary SP can exit at family level without breaking the one bucket, one primary SP rule.
 
@@ -61,7 +61,7 @@ This orderly exit process ensures a smooth transition of responsibilities and re
 
 ### Bucket Migration Workflow
 
-![Bucket Miragtion](../../../../static/asset/14-Greenfield-Bucket-Migration.png)
+![Bucket Miragtion](https://docs.bnbchain.org/bnb-greenfield/static/asset/14-Greenfield-Bucket-Migration.png)
 
 Below are the key workflow of Bucket Migration:
 
