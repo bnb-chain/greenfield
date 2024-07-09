@@ -88,7 +88,7 @@ deposit, several fields will be recorded for this stream account:
 
 *<span style={{color:'#FFDEAD'}}>Buffer Balance</span> = - Netflow Rate \* pre-configured ReserveTime if Netflow Rate is negative*
 
-![funds-flow](../../../../static/asset/04-Funds-Flow.jpg)
+![funds-flow](https://docs.bnbchain.org/bnb-greenfield/static/asset/04-Funds-Flow.jpg)
 
 <div style={{textAlign:'center'}}><i>How a User Receives Inflow and Outflow of Funds</i></div>
 
