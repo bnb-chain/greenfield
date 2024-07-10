@@ -78,19 +78,21 @@ func (s *TestSuite) TestSynCreatePolicyByMsgErr() {
 	storageKeeper := storageTypes.NewMockStorageKeeper(ctrl)
 	permissionKeeper := storageTypes.NewMockPermissionKeeper(ctrl)
 
-	//resourceIds := []math.Uint{math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64())}
+	resourceIds := []math.Uint{math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64())}
 	// policy without expiry
 	op := sample.RandAccAddress()
-	resource := types2.NewBucketGRN("test-bucket").String()
-	policy := storageTypes.MsgPutPolicy{
+	policy := types.CrossChainPolicy{
 		Principal: &types.Principal{
-			Type:  types.PRINCIPAL_TYPE_GNFD_GROUP,
+			Type:  types.PRINCIPAL_TYPE_GNFD_ACCOUNT,
 			Value: sample.RandAccAddressHex(),
 		},
-		Operator:       op.String(),
-		Resource:       resource,
+		ResourceType:   1,
+		ResourceId:     resourceIds[0],
 		Statements:     nil,
 		ExpirationTime: nil,
+		XResourceGRN: &types.CrossChainPolicy_ResourceGRN{
+			ResourceGRN: types2.NewBucketGRN("test-bucket").String(),
+		},
 	}
 
 	app := keeper.NewPermissionApp(storageKeeper, permissionKeeper)
@@ -106,7 +108,7 @@ func (s *TestSuite) TestSynCreatePolicyByMsgErr() {
 	serializedSynPackage = append([]byte{storageTypes.OperationCreatePolicy}, serializedSynPackage...)
 
 	// case 1: bucket not found
-	storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Any()).Return(nil, false)
+	storageKeeper.EXPECT().GetResourceOwnerAndIdFromGRN(gomock.Any(), gomock.Any()).Return(op, resourceIds[0], storageTypes.ErrNoSuchBucket.Wrapf("bucketName: test-bucket")).AnyTimes()
 	res := app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().ErrorIs(res.Err, storageTypes.ErrNoSuchBucket)
 }
@@ -116,19 +118,21 @@ func (s *TestSuite) TestSynCreatePolicyByMsg() {
 	storageKeeper := storageTypes.NewMockStorageKeeper(ctrl)
 	permissionKeeper := storageTypes.NewMockPermissionKeeper(ctrl)
 
-	//resourceIds := []math.Uint{math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64())}
+	resourceIds := []math.Uint{math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64())}
 	// policy without expiry
 	op := sample.RandAccAddress()
-	resource := types2.NewBucketGRN("test-bucket").String()
-	policy := storageTypes.MsgPutPolicy{
+	policy := types.CrossChainPolicy{
 		Principal: &types.Principal{
-			Type:  types.PRINCIPAL_TYPE_GNFD_GROUP,
+			Type:  types.PRINCIPAL_TYPE_GNFD_ACCOUNT,
 			Value: sample.RandAccAddressHex(),
 		},
-		Operator:       op.String(),
-		Resource:       resource,
+		ResourceType:   1,
+		ResourceId:     resourceIds[0],
 		Statements:     nil,
 		ExpirationTime: nil,
+		XResourceGRN: &types.CrossChainPolicy_ResourceGRN{
+			ResourceGRN: types2.NewBucketGRN("test-bucket").String(),
+		},
 	}
 
 	app := keeper.NewPermissionApp(storageKeeper, permissionKeeper)
@@ -143,15 +147,15 @@ func (s *TestSuite) TestSynCreatePolicyByMsg() {
 	serializedSynPackage := synPackage.MustSerialize()
 	serializedSynPackage = append([]byte{storageTypes.OperationCreatePolicy}, serializedSynPackage...)
 
-	// case 1: bucket not found
-	storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Any()).Return(&storageTypes.BucketInfo{
-		Owner:      op.String(),
-		BucketName: "test-bucket",
-	}, true)
-	storageKeeper.EXPECT().GetBucketInfoById(gomock.Any(), gomock.Any()).Return(&storageTypes.BucketInfo{
-		Owner:      op.String(),
-		BucketName: "test-bucket",
-	}, true)
+	storageKeeper.EXPECT().GetResourceOwnerAndIdFromGRN(gomock.Any(), gomock.Any()).Return(op, resourceIds[0], nil).AnyTimes()
+	//storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Any()).Return(&storageTypes.BucketInfo{
+	//	Owner:      op.String(),
+	//	BucketName: "test-bucket",
+	//}, true)
+	//storageKeeper.EXPECT().GetBucketInfoById(gomock.Any(), gomock.Any()).Return(&storageTypes.BucketInfo{
+	//	Owner:      op.String(),
+	//	BucketName: "test-bucket",
+	//}, true)
 	storageKeeper.EXPECT().NormalizePrincipal(gomock.Any(), gomock.Any()).Return().AnyTimes()
 	storageKeeper.EXPECT().ValidatePrincipal(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	permissionKeeper.EXPECT().PutPolicy(gomock.Any(), gomock.Any()).Return(math.NewUint(1), nil).AnyTimes()

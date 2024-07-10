@@ -2,13 +2,12 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	gnfdresource "github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 var _ sdk.CrossChainApplication = &PermissionApp{}
@@ -146,92 +145,10 @@ func (app *PermissionApp) handleCreatePolicySynPackage(ctx sdk.Context, createPo
 		}
 	}
 
+	var crossChainPolicy permtypes.CrossChainPolicy
 	var policy permtypes.Policy
 	var grn types2.GRN
-	err = policy.Unmarshal(createPolicyPackage.Data)
-	if err != nil {
-		var msgPutPolicy types.MsgPutPolicy
-		err = msgPutPolicy.Unmarshal(createPolicyPackage.Data)
-		if err != nil {
-			return sdk.ExecuteResult{
-				Payload: types.CreatePolicyAckPackage{
-					Status:    types.StatusFail,
-					Creator:   createPolicyPackage.Operator,
-					ExtraData: createPolicyPackage.ExtraData,
-				}.MustSerialize(),
-				Err: err,
-			}
-		}
-		if msgPutPolicy.GetOperator() != createPolicyPackage.Operator.String() {
-			return sdk.ExecuteResult{
-				Payload: types.CreatePolicyAckPackage{
-					Status:    types.StatusFail,
-					Creator:   createPolicyPackage.Operator,
-					ExtraData: createPolicyPackage.ExtraData,
-				}.MustSerialize(),
-				Err: types.ErrAccessDenied.Wrapf(
-					"Only resource owner can put policy, operator (%s)",
-					msgPutPolicy.GetOperator()),
-			}
-		}
-
-		err = grn.ParseFromString(msgPutPolicy.Resource, true)
-		if err != nil {
-			return sdk.ExecuteResult{
-				Payload: types.CreatePolicyAckPackage{
-					Status:    types.StatusFail,
-					Creator:   createPolicyPackage.Operator,
-					ExtraData: createPolicyPackage.ExtraData,
-				}.MustSerialize(),
-				Err: err,
-			}
-		}
-
-		if msgPutPolicy.ExpirationTime != nil && msgPutPolicy.ExpirationTime.Before(ctx.BlockTime()) {
-			return sdk.ExecuteResult{
-				Payload: types.CreatePolicyAckPackage{
-					Status:    types.StatusFail,
-					Creator:   createPolicyPackage.Operator,
-					ExtraData: createPolicyPackage.ExtraData,
-				}.MustSerialize(),
-				Err: permtypes.ErrPermissionExpired.Wrapf("The specified policy expiration time is less than the current block time, block time: %s", ctx.BlockTime().String()),
-			}
-		}
-
-		for _, s := range msgPutPolicy.Statements {
-			if s.ExpirationTime != nil && s.ExpirationTime.Before(ctx.BlockTime()) {
-				return sdk.ExecuteResult{
-					Payload: types.CreatePolicyAckPackage{
-						Status:    types.StatusFail,
-						Creator:   createPolicyPackage.Operator,
-						ExtraData: createPolicyPackage.ExtraData,
-					}.MustSerialize(),
-					Err: permtypes.ErrPermissionExpired.Wrapf("The specified statement expiration time is less than the current block time, block time: %s", ctx.BlockTime().String()),
-				}
-			}
-		}
-
-		policy = permtypes.Policy{
-			ResourceType:   grn.ResourceType(),
-			Principal:      msgPutPolicy.Principal,
-			Statements:     msgPutPolicy.Statements,
-			ExpirationTime: msgPutPolicy.ExpirationTime,
-		}
-		_, resID, err := app.getResourceOwnerAndIdFromGRN(ctx, grn)
-		if err != nil {
-			return sdk.ExecuteResult{
-				Payload: types.CreatePolicyAckPackage{
-					Status:    types.StatusFail,
-					Creator:   createPolicyPackage.Operator,
-					ExtraData: createPolicyPackage.ExtraData,
-				}.MustSerialize(),
-				Err: err,
-			}
-		}
-		policy.ResourceId = resID
-	}
-
-	resOwner, err := app.getResourceOwner(ctx, &policy)
+	err = crossChainPolicy.Unmarshal(createPolicyPackage.Data)
 	if err != nil {
 		return sdk.ExecuteResult{
 			Payload: types.CreatePolicyAckPackage{
@@ -243,16 +160,50 @@ func (app *PermissionApp) handleCreatePolicySynPackage(ctx sdk.Context, createPo
 		}
 	}
 
-	if !createPolicyPackage.Operator.Equals(resOwner) {
-		return sdk.ExecuteResult{
-			Payload: types.CreatePolicyAckPackage{
-				Status:    types.StatusFail,
-				Creator:   createPolicyPackage.Operator,
-				ExtraData: createPolicyPackage.ExtraData,
-			}.MustSerialize(),
-			Err: types.ErrAccessDenied.Wrapf(
-				"Only resource owner can put policy, operator (%s), owner(%s)",
-				createPolicyPackage.Operator.String(), resOwner.String()),
+	policy.Id = crossChainPolicy.Id
+	policy.Principal = crossChainPolicy.Principal
+	policy.ExpirationTime = crossChainPolicy.ExpirationTime
+	policy.Statements = crossChainPolicy.Statements
+	var resOwner sdk.AccAddress
+	var resId math.Uint
+	if crossChainPolicy.GetResourceGRN() != "" {
+		err = grn.ParseFromString(crossChainPolicy.GetResourceGRN(), true)
+		if err != nil {
+			return sdk.ExecuteResult{
+				Payload: types.CreatePolicyAckPackage{
+					Status:    types.StatusFail,
+					Creator:   createPolicyPackage.Operator,
+					ExtraData: createPolicyPackage.ExtraData,
+				}.MustSerialize(),
+				Err: err,
+			}
+		}
+		resOwner, resId, err = app.storageKeeper.GetResourceOwnerAndIdFromGRN(ctx, grn)
+		policy.ResourceId = resId
+		if err != nil {
+			return sdk.ExecuteResult{
+				Payload: types.CreatePolicyAckPackage{
+					Status:    types.StatusFail,
+					Creator:   createPolicyPackage.Operator,
+					ExtraData: createPolicyPackage.ExtraData,
+				}.MustSerialize(),
+				Err: err,
+			}
+		}
+		policy.ResourceType = grn.ResourceType()
+	} else {
+		policy.ResourceId = crossChainPolicy.ResourceId
+		policy.ResourceType = crossChainPolicy.ResourceType
+		resOwner, err = app.getResourceOwner(ctx, &policy)
+		if err != nil {
+			return sdk.ExecuteResult{
+				Payload: types.CreatePolicyAckPackage{
+					Status:    types.StatusFail,
+					Creator:   createPolicyPackage.Operator,
+					ExtraData: createPolicyPackage.ExtraData,
+				}.MustSerialize(),
+				Err: err,
+			}
 		}
 	}
 
@@ -315,46 +266,4 @@ func (app *PermissionApp) getResourceOwner(ctx sdk.Context, policy *permtypes.Po
 		return resOwner, gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
 	}
 	return resOwner, nil
-}
-
-func (app *PermissionApp) getResourceOwnerAndIdFromGRN(ctx sdk.Context, grn types2.GRN) (resOwner sdk.AccAddress, resID math.Uint, err error) {
-	switch grn.ResourceType() {
-	case gnfdresource.RESOURCE_TYPE_BUCKET:
-		bucketName, grnErr := grn.GetBucketName()
-		if grnErr != nil {
-			return resOwner, resID, grnErr
-		}
-		bucketInfo, found := app.storageKeeper.GetBucketInfo(ctx, bucketName)
-		if !found {
-			return resOwner, resID, types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
-		}
-		resOwner = sdk.MustAccAddressFromHex(bucketInfo.Owner)
-		resID = bucketInfo.Id
-	case gnfdresource.RESOURCE_TYPE_OBJECT:
-		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
-		if grnErr != nil {
-			return resOwner, resID, grnErr
-		}
-		objectInfo, found := app.storageKeeper.GetObjectInfo(ctx, bucketName, objectName)
-		if !found {
-			return resOwner, resID, types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
-		}
-		resOwner = sdk.MustAccAddressFromHex(objectInfo.Owner)
-		resID = objectInfo.Id
-	case gnfdresource.RESOURCE_TYPE_GROUP:
-		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
-		if grnErr != nil {
-			return resOwner, resID, grnErr
-		}
-		groupInfo, found := app.storageKeeper.GetGroupInfo(ctx, groupOwner, groupName)
-		if !found {
-			return resOwner, resID, types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
-		}
-		resOwner = sdk.MustAccAddressFromHex(groupInfo.Owner)
-		resID = groupInfo.Id
-	default:
-		return resOwner, resID, gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
-	}
-
-	return resOwner, resID, nil
 }
