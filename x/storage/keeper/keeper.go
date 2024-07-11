@@ -221,8 +221,13 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	if !found {
 		return types.ErrNoSuchBucket
 	}
-	if bucketInfo.SourceType != types.SOURCE_TYPE_ORIGIN && bucketInfo.SourceType != opts.SourceType {
-		return types.ErrSourceTypeMismatch
+
+	if bucketInfo.SourceType != opts.SourceType {
+		if !ctx.IsUpgraded(upgradetypes.Mongolian) {
+			return types.ErrSourceTypeMismatch
+		} else if bucketInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
+			return types.ErrSourceTypeMismatch
+		}
 	}
 
 	// check permission
@@ -416,6 +421,10 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return types.ErrNoSuchBucket
+	}
+	// check bucket source
+	if bucketInfo.SourceType != opts.SourceType && !ctx.IsUpgraded(upgradetypes.Mongolian) {
+		return types.ErrSourceTypeMismatch
 	}
 
 	if ctx.IsUpgraded(upgradetypes.Hulunbeier) {
@@ -983,6 +992,10 @@ func (k Keeper) CancelCreateObject(
 		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
+	if objectInfo.SourceType != opts.SourceType && !ctx.IsUpgraded(upgradetypes.Mongolian) {
+		return types.ErrSourceTypeMismatch
+	}
+
 	var creator sdk.AccAddress
 	owner := sdk.MustAccAddressFromHex(objectInfo.Owner)
 	if objectInfo.Creator != "" {
@@ -1048,8 +1061,12 @@ func (k Keeper) DeleteObject(
 			objectInfo.ObjectName)
 	}
 
-	if objectInfo.SourceType != types.SOURCE_TYPE_ORIGIN && objectInfo.SourceType != opts.SourceType {
-		return types.ErrSourceTypeMismatch
+	if objectInfo.SourceType != opts.SourceType {
+		if !ctx.IsUpgraded(upgradetypes.Mongolian) {
+			return types.ErrSourceTypeMismatch
+		} else if objectInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
+			return types.ErrSourceTypeMismatch
+		}
 	}
 
 	if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
@@ -1201,6 +1218,10 @@ func (k Keeper) CopyObject(
 	srcObjectInfo, found := k.GetObjectInfo(ctx, srcBucketName, srcObjectName)
 	if !found {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrNoSuchObject, "src object name (%s)", srcObjectName)
+	}
+
+	if srcObjectInfo.SourceType != opts.SourceType && !ctx.IsUpgraded(upgradetypes.Mongolian) {
+		return sdkmath.ZeroUint(), types.ErrSourceTypeMismatch
 	}
 
 	if srcObjectInfo.IsUpdating {
@@ -1540,8 +1561,12 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 	if !found {
 		return types.ErrNoSuchGroup
 	}
-	if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN && groupInfo.SourceType != opts.SourceType {
-		return types.ErrSourceTypeMismatch
+	if groupInfo.SourceType != opts.SourceType {
+		if !ctx.IsUpgraded(upgradetypes.Mongolian) {
+			return types.ErrSourceTypeMismatch
+		} else if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
+			return types.ErrSourceTypeMismatch
+		}
 	}
 	// check permission
 	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_DELETE_GROUP)
@@ -1576,8 +1601,13 @@ func (k Keeper) LeaveGroup(
 	if !found {
 		return types.ErrNoSuchGroup
 	}
-	if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN && groupInfo.SourceType != opts.SourceType {
-		return types.ErrSourceTypeMismatch
+
+	if groupInfo.SourceType != opts.SourceType {
+		if !ctx.IsUpgraded(upgradetypes.Mongolian) {
+			return types.ErrSourceTypeMismatch
+		} else if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
+			return types.ErrSourceTypeMismatch
+		}
 	}
 
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
@@ -1598,8 +1628,12 @@ func (k Keeper) LeaveGroup(
 }
 
 func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts types.UpdateGroupMemberOptions) error {
-	if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN && groupInfo.SourceType != opts.SourceType {
-		return types.ErrSourceTypeMismatch
+	if groupInfo.SourceType != opts.SourceType {
+		if !ctx.IsUpgraded(upgradetypes.Mongolian) {
+			return types.ErrSourceTypeMismatch
+		} else if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
+			return types.ErrSourceTypeMismatch
+		}
 	}
 
 	// check permission
@@ -1653,8 +1687,12 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 }
 
 func (k Keeper) RenewGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts types.RenewGroupMemberOptions) error {
-	if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN && groupInfo.SourceType != opts.SourceType {
-		return types.ErrSourceTypeMismatch
+	if groupInfo.SourceType != opts.SourceType {
+		if !ctx.IsUpgraded(upgradetypes.Mongolian) {
+			return types.ErrSourceTypeMismatch
+		} else if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
+			return types.ErrSourceTypeMismatch
+		}
 	}
 
 	// check permission
