@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
@@ -167,7 +169,7 @@ func (app *PermissionApp) handleCreatePolicySynPackage(ctx sdk.Context, createPo
 	policy.Statements = crossChainPolicy.Statements
 	var resOwner sdk.AccAddress
 	var resId math.Uint
-	if crossChainPolicy.GetResourceGRN() != "" {
+	if ctx.IsUpgraded(upgradetypes.Mongolian) && crossChainPolicy.GetResourceGRN() != "" {
 		err = grn.ParseFromString(crossChainPolicy.GetResourceGRN(), true)
 		if err != nil {
 			return sdk.ExecuteResult{

@@ -148,14 +148,6 @@ func (s *TestSuite) TestSynCreatePolicyByMsg() {
 	serializedSynPackage = append([]byte{storageTypes.OperationCreatePolicy}, serializedSynPackage...)
 
 	storageKeeper.EXPECT().GetResourceOwnerAndIdFromGRN(gomock.Any(), gomock.Any()).Return(op, resourceIds[0], nil).AnyTimes()
-	//storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Any()).Return(&storageTypes.BucketInfo{
-	//	Owner:      op.String(),
-	//	BucketName: "test-bucket",
-	//}, true)
-	//storageKeeper.EXPECT().GetBucketInfoById(gomock.Any(), gomock.Any()).Return(&storageTypes.BucketInfo{
-	//	Owner:      op.String(),
-	//	BucketName: "test-bucket",
-	//}, true)
 	storageKeeper.EXPECT().NormalizePrincipal(gomock.Any(), gomock.Any()).Return().AnyTimes()
 	storageKeeper.EXPECT().ValidatePrincipal(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	permissionKeeper.EXPECT().PutPolicy(gomock.Any(), gomock.Any()).Return(math.NewUint(1), nil).AnyTimes()
