@@ -108,6 +108,10 @@ func (s *TestSuite) TestSynCreatePolicyByMsgErr() {
 	serializedSynPackage = append([]byte{storageTypes.OperationCreatePolicy}, serializedSynPackage...)
 
 	// case 1: bucket not found
+	storageKeeper.EXPECT().GetBucketInfoById(gomock.Any(), gomock.Any()).Return(&storageTypes.BucketInfo{
+		Owner:      op.String(),
+		BucketName: "test-bucket",
+	}, false).AnyTimes()
 	storageKeeper.EXPECT().GetResourceOwnerAndIdFromGRN(gomock.Any(), gomock.Any()).Return(op, resourceIds[0], storageTypes.ErrNoSuchBucket.Wrapf("bucketName: test-bucket")).AnyTimes()
 	res := app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().ErrorIs(res.Err, storageTypes.ErrNoSuchBucket)
@@ -146,7 +150,10 @@ func (s *TestSuite) TestSynCreatePolicyByMsg() {
 	}
 	serializedSynPackage := synPackage.MustSerialize()
 	serializedSynPackage = append([]byte{storageTypes.OperationCreatePolicy}, serializedSynPackage...)
-
+	storageKeeper.EXPECT().GetBucketInfoById(gomock.Any(), gomock.Any()).Return(&storageTypes.BucketInfo{
+		Owner:      op.String(),
+		BucketName: "test-bucket",
+	}, true)
 	storageKeeper.EXPECT().GetResourceOwnerAndIdFromGRN(gomock.Any(), gomock.Any()).Return(op, resourceIds[0], nil).AnyTimes()
 	storageKeeper.EXPECT().NormalizePrincipal(gomock.Any(), gomock.Any()).Return().AnyTimes()
 	storageKeeper.EXPECT().ValidatePrincipal(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
