@@ -2,8 +2,11 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
+	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	gnfdresource "github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
@@ -145,8 +148,10 @@ func (app *PermissionApp) handleCreatePolicySynPackage(ctx sdk.Context, createPo
 		}
 	}
 
+	var crossChainPolicy permtypes.CrossChainPolicy
 	var policy permtypes.Policy
-	err = policy.Unmarshal(createPolicyPackage.Data)
+	var grn types2.GRN
+	err = crossChainPolicy.Unmarshal(createPolicyPackage.Data)
 	if err != nil {
 		return sdk.ExecuteResult{
 			Payload: types.CreatePolicyAckPackage{
@@ -158,28 +163,50 @@ func (app *PermissionApp) handleCreatePolicySynPackage(ctx sdk.Context, createPo
 		}
 	}
 
-	resOwner, err := app.getResourceOwner(ctx, &policy)
-	if err != nil {
-		return sdk.ExecuteResult{
-			Payload: types.CreatePolicyAckPackage{
-				Status:    types.StatusFail,
-				Creator:   createPolicyPackage.Operator,
-				ExtraData: createPolicyPackage.ExtraData,
-			}.MustSerialize(),
-			Err: err,
+	policy.Id = crossChainPolicy.Id
+	policy.Principal = crossChainPolicy.Principal
+	policy.ExpirationTime = crossChainPolicy.ExpirationTime
+	policy.Statements = crossChainPolicy.Statements
+	var resOwner sdk.AccAddress
+	var resId math.Uint
+	if ctx.IsUpgraded(upgradetypes.Mongolian) && crossChainPolicy.GetResourceGRN() != "" {
+		err = grn.ParseFromString(crossChainPolicy.GetResourceGRN(), true)
+		if err != nil {
+			return sdk.ExecuteResult{
+				Payload: types.CreatePolicyAckPackage{
+					Status:    types.StatusFail,
+					Creator:   createPolicyPackage.Operator,
+					ExtraData: createPolicyPackage.ExtraData,
+				}.MustSerialize(),
+				Err: err,
+			}
 		}
-	}
-
-	if !createPolicyPackage.Operator.Equals(resOwner) {
-		return sdk.ExecuteResult{
-			Payload: types.CreatePolicyAckPackage{
-				Status:    types.StatusFail,
-				Creator:   createPolicyPackage.Operator,
-				ExtraData: createPolicyPackage.ExtraData,
-			}.MustSerialize(),
-			Err: types.ErrAccessDenied.Wrapf(
-				"Only resource owner can put policy, operator (%s), owner(%s)",
-				createPolicyPackage.Operator.String(), resOwner.String()),
+		resOwner, resId, err = app.storageKeeper.GetResourceOwnerAndIdFromGRN(ctx, grn)
+		policy.ResourceId = resId
+		if err != nil {
+			return sdk.ExecuteResult{
+				Payload: types.CreatePolicyAckPackage{
+					Status:    types.StatusFail,
+					Creator:   createPolicyPackage.Operator,
+					ExtraData: createPolicyPackage.ExtraData,
+				}.MustSerialize(),
+				Err: err,
+			}
+		}
+		policy.ResourceType = grn.ResourceType()
+	} else {
+		policy.ResourceId = crossChainPolicy.ResourceId
+		policy.ResourceType = crossChainPolicy.ResourceType
+		resOwner, err = app.getResourceOwner(ctx, &policy)
+		if err != nil {
+			return sdk.ExecuteResult{
+				Payload: types.CreatePolicyAckPackage{
+					Status:    types.StatusFail,
+					Creator:   createPolicyPackage.Operator,
+					ExtraData: createPolicyPackage.ExtraData,
+				}.MustSerialize(),
+				Err: err,
+			}
 		}
 	}
 

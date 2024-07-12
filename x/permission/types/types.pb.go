@@ -106,6 +106,119 @@ func (m *Policy) GetExpirationTime() *time.Time {
 	return nil
 }
 
+type CrossChainPolicy struct {
+	// id is an unique u256 sequence for each policy. It also be used as NFT tokenID
+	Id Uint `protobuf:"bytes,1,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// principal defines the accounts/group which the permission grants to
+	Principal *Principal `protobuf:"bytes,2,opt,name=principal,proto3" json:"principal,omitempty"`
+	// resource_type defines the type of resource that grants permission for
+	ResourceType resource.ResourceType `protobuf:"varint,3,opt,name=resource_type,json=resourceType,proto3,enum=greenfield.resource.ResourceType" json:"resource_type,omitempty"`
+	// resource_id defines the bucket/object/group id of the resource that grants permission for
+	ResourceId Uint `protobuf:"bytes,4,opt,name=resource_id,json=resourceId,proto3,customtype=Uint" json:"resource_id"`
+	// statements defines the details content of the permission, including effect/actions/sub-resources
+	Statements []*Statement `protobuf:"bytes,5,rep,name=statements,proto3" json:"statements,omitempty"`
+	// expiration_time defines the whole expiration time of all the statements.
+	// Notices: Its priority is higher than the expiration time inside the Statement
+	ExpirationTime *time.Time `protobuf:"bytes,6,opt,name=expiration_time,json=expirationTime,proto3,stdtime" json:"expiration_time,omitempty"`
+	// Types that are valid to be assigned to XResourceGRN:
+	//	*CrossChainPolicy_ResourceGRN
+	XResourceGRN isCrossChainPolicy_XResourceGRN `protobuf_oneof:"_resourceGRN"`
+}
+
+func (m *CrossChainPolicy) Reset()         { *m = CrossChainPolicy{} }
+func (m *CrossChainPolicy) String() string { return proto.CompactTextString(m) }
+func (*CrossChainPolicy) ProtoMessage()    {}
+func (*CrossChainPolicy) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0d2afeea9f743f03, []int{1}
+}
+func (m *CrossChainPolicy) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CrossChainPolicy) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CrossChainPolicy.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CrossChainPolicy) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CrossChainPolicy.Merge(m, src)
+}
+func (m *CrossChainPolicy) XXX_Size() int {
+	return m.Size()
+}
+func (m *CrossChainPolicy) XXX_DiscardUnknown() {
+	xxx_messageInfo_CrossChainPolicy.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CrossChainPolicy proto.InternalMessageInfo
+
+type isCrossChainPolicy_XResourceGRN interface {
+	isCrossChainPolicy_XResourceGRN()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type CrossChainPolicy_ResourceGRN struct {
+	ResourceGRN string `protobuf:"bytes,7,opt,name=resourceGRN,proto3,oneof" json:"resourceGRN,omitempty"`
+}
+
+func (*CrossChainPolicy_ResourceGRN) isCrossChainPolicy_XResourceGRN() {}
+
+func (m *CrossChainPolicy) GetXResourceGRN() isCrossChainPolicy_XResourceGRN {
+	if m != nil {
+		return m.XResourceGRN
+	}
+	return nil
+}
+
+func (m *CrossChainPolicy) GetPrincipal() *Principal {
+	if m != nil {
+		return m.Principal
+	}
+	return nil
+}
+
+func (m *CrossChainPolicy) GetResourceType() resource.ResourceType {
+	if m != nil {
+		return m.ResourceType
+	}
+	return resource.RESOURCE_TYPE_UNSPECIFIED
+}
+
+func (m *CrossChainPolicy) GetStatements() []*Statement {
+	if m != nil {
+		return m.Statements
+	}
+	return nil
+}
+
+func (m *CrossChainPolicy) GetExpirationTime() *time.Time {
+	if m != nil {
+		return m.ExpirationTime
+	}
+	return nil
+}
+
+func (m *CrossChainPolicy) GetResourceGRN() string {
+	if x, ok := m.GetXResourceGRN().(*CrossChainPolicy_ResourceGRN); ok {
+		return x.ResourceGRN
+	}
+	return ""
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*CrossChainPolicy) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*CrossChainPolicy_ResourceGRN)(nil),
+	}
+}
+
 // PolicyGroup refers to a group of policies which grant permission to Group, which is limited to MaxGroupNum (default 10).
 // This means that a single resource can only grant permission to 10 groups. The reason for
 // this is to enable on-chain determination of whether an operator has permission within a limited time.
@@ -118,7 +231,7 @@ func (m *PolicyGroup) Reset()         { *m = PolicyGroup{} }
 func (m *PolicyGroup) String() string { return proto.CompactTextString(m) }
 func (*PolicyGroup) ProtoMessage()    {}
 func (*PolicyGroup) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0d2afeea9f743f03, []int{1}
+	return fileDescriptor_0d2afeea9f743f03, []int{2}
 }
 func (m *PolicyGroup) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -163,7 +276,7 @@ func (m *PolicyGroup_Item) Reset()         { *m = PolicyGroup_Item{} }
 func (m *PolicyGroup_Item) String() string { return proto.CompactTextString(m) }
 func (*PolicyGroup_Item) ProtoMessage()    {}
 func (*PolicyGroup_Item) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0d2afeea9f743f03, []int{1, 0}
+	return fileDescriptor_0d2afeea9f743f03, []int{2, 0}
 }
 func (m *PolicyGroup_Item) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -207,7 +320,7 @@ func (m *GroupMember) Reset()         { *m = GroupMember{} }
 func (m *GroupMember) String() string { return proto.CompactTextString(m) }
 func (*GroupMember) ProtoMessage()    {}
 func (*GroupMember) Descriptor() ([]byte, []int) {
-	return fileDescriptor_0d2afeea9f743f03, []int{2}
+	return fileDescriptor_0d2afeea9f743f03, []int{3}
 }
 func (m *GroupMember) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -252,6 +365,7 @@ func (m *GroupMember) GetExpirationTime() *time.Time {
 
 func init() {
 	proto.RegisterType((*Policy)(nil), "greenfield.permission.Policy")
+	proto.RegisterType((*CrossChainPolicy)(nil), "greenfield.permission.CrossChainPolicy")
 	proto.RegisterType((*PolicyGroup)(nil), "greenfield.permission.PolicyGroup")
 	proto.RegisterType((*PolicyGroup_Item)(nil), "greenfield.permission.PolicyGroup.Item")
 	proto.RegisterType((*GroupMember)(nil), "greenfield.permission.GroupMember")
@@ -260,41 +374,44 @@ func init() {
 func init() { proto.RegisterFile("greenfield/permission/types.proto", fileDescriptor_0d2afeea9f743f03) }
 
 var fileDescriptor_0d2afeea9f743f03 = []byte{
-	// 532 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0x4f, 0x6b, 0x13, 0x41,
-	0x18, 0xc6, 0x33, 0x49, 0x1a, 0x93, 0x89, 0x56, 0x18, 0x2a, 0xac, 0x11, 0x36, 0x69, 0x2e, 0x06,
-	0x24, 0xbb, 0x12, 0x41, 0x3c, 0xa8, 0x68, 0x0e, 0x4a, 0xc0, 0x42, 0xd9, 0xd6, 0x8b, 0x97, 0x90,
-	0xdd, 0x9d, 0x6e, 0x07, 0x32, 0x7f, 0x98, 0x99, 0x40, 0xf2, 0x1d, 0x3c, 0xf4, 0xc3, 0xf4, 0x33,
-	0x48, 0x8e, 0xa5, 0x27, 0xf1, 0x10, 0x25, 0xf9, 0x00, 0x7e, 0x05, 0xd9, 0xd9, 0xdd, 0xee, 0x42,
-	0xa3, 0x51, 0x6f, 0xf3, 0x4e, 0x7e, 0xcf, 0xfb, 0x3e, 0x33, 0xcf, 0x64, 0xe1, 0x61, 0x24, 0x31,
-	0x66, 0x67, 0x04, 0x4f, 0x43, 0x57, 0x60, 0x49, 0x89, 0x52, 0x84, 0x33, 0x57, 0x2f, 0x04, 0x56,
-	0x8e, 0x90, 0x5c, 0x73, 0xf4, 0x20, 0x47, 0x9c, 0x1c, 0x69, 0x3d, 0x0c, 0xb8, 0xa2, 0x5c, 0x8d,
-	0x0d, 0xe4, 0x26, 0x45, 0xa2, 0x68, 0x1d, 0x44, 0x3c, 0xe2, 0xc9, 0x7e, 0xbc, 0x4a, 0x77, 0xdb,
-	0x11, 0xe7, 0xd1, 0x14, 0xbb, 0xa6, 0xf2, 0x67, 0x67, 0xae, 0x26, 0x14, 0x2b, 0x3d, 0xa1, 0x22,
-	0x05, 0xba, 0xdb, 0xbd, 0x04, 0x9c, 0x52, 0xce, 0x6e, 0x9a, 0xe4, 0x8c, 0xc4, 0x8a, 0xcf, 0x64,
-	0x80, 0x8b, 0x6e, 0xbb, 0x9f, 0x2b, 0xb0, 0x76, 0xcc, 0xa7, 0x24, 0x58, 0xa0, 0x27, 0xb0, 0x4c,
-	0x42, 0x0b, 0x74, 0x40, 0xaf, 0x31, 0x7c, 0xb4, 0x5c, 0xb5, 0x4b, 0xdf, 0x56, 0xed, 0xea, 0x47,
-	0xc2, 0xf4, 0xf5, 0x65, 0xbf, 0x99, 0x1a, 0x8e, 0x4b, 0xaf, 0x4c, 0x42, 0xf4, 0x1a, 0x36, 0x84,
-	0x24, 0x2c, 0x20, 0x62, 0x32, 0xb5, 0xca, 0x1d, 0xd0, 0x6b, 0x0e, 0x3a, 0xce, 0xd6, 0x93, 0x3b,
-	0xc7, 0x19, 0xe7, 0xe5, 0x12, 0xf4, 0x0e, 0xde, 0xcb, 0xfc, 0x8c, 0x63, 0x3f, 0x56, 0xa5, 0x03,
-	0x7a, 0xfb, 0x83, 0xc3, 0x62, 0x8f, 0x0c, 0x70, 0xbc, 0x74, 0x71, 0xba, 0x10, 0xd8, 0xbb, 0x2b,
-	0x0b, 0x15, 0x7a, 0x09, 0x9b, 0x37, 0x7d, 0x48, 0x68, 0x55, 0x77, 0xbb, 0x87, 0x19, 0x3f, 0x0a,
-	0xd1, 0x1b, 0x08, 0x95, 0x9e, 0x68, 0x4c, 0x31, 0xd3, 0xca, 0xda, 0xeb, 0x54, 0xfe, 0x70, 0x8c,
-	0x93, 0x0c, 0xf4, 0x0a, 0x1a, 0x74, 0x04, 0xef, 0xe3, 0xb9, 0x20, 0x72, 0xa2, 0x09, 0x67, 0xe3,
-	0x38, 0x22, 0xab, 0x66, 0x6e, 0xa3, 0xe5, 0x24, 0xf9, 0x39, 0x59, 0x7e, 0xce, 0x69, 0x96, 0xdf,
-	0xb0, 0xbe, 0x5c, 0xb5, 0xc1, 0xc5, 0xf7, 0x36, 0xf0, 0xf6, 0x73, 0x71, 0xfc, 0x73, 0xf7, 0x0b,
-	0x80, 0xcd, 0x24, 0x8e, 0xf7, 0x92, 0xcf, 0x04, 0x7a, 0x05, 0xf7, 0x88, 0xc6, 0x54, 0x59, 0xc0,
-	0x78, 0x7b, 0xfc, 0xbb, 0x2b, 0xce, 0x25, 0xce, 0x48, 0x63, 0xea, 0x25, 0xaa, 0xd6, 0x1c, 0x56,
-	0xe3, 0x12, 0xbd, 0x80, 0x0d, 0x61, 0x90, 0xf1, 0xdf, 0x25, 0x5c, 0x4f, 0xe8, 0x51, 0x88, 0x9e,
-	0xc3, 0x7a, 0x14, 0xb7, 0x8d, 0x85, 0xe5, 0xdd, 0xc2, 0x3b, 0x06, 0x1e, 0x85, 0xdd, 0x9f, 0x00,
-	0x36, 0x8d, 0x9f, 0x23, 0x4c, 0x7d, 0x2c, 0xff, 0xed, 0x71, 0xfd, 0xe7, 0x50, 0xf4, 0x14, 0xd6,
-	0xa8, 0x19, 0x67, 0x5e, 0x53, 0x63, 0x68, 0x5d, 0x5f, 0xf6, 0x0f, 0x52, 0xf2, 0x6d, 0x18, 0x4a,
-	0xac, 0xd4, 0x89, 0x96, 0x84, 0x45, 0x5e, 0xca, 0xa1, 0xd1, 0xed, 0xf8, 0xaa, 0x3b, 0xe3, 0xab,
-	0x6e, 0x8b, 0x6e, 0xf8, 0x61, 0xb9, 0xb6, 0xc1, 0xd5, 0xda, 0x06, 0x3f, 0xd6, 0x36, 0xb8, 0xd8,
-	0xd8, 0xa5, 0xab, 0x8d, 0x5d, 0xfa, 0xba, 0xb1, 0x4b, 0x9f, 0x06, 0x11, 0xd1, 0xe7, 0x33, 0xdf,
-	0x09, 0x38, 0x75, 0x7d, 0xe6, 0xf7, 0x83, 0xf3, 0x09, 0x61, 0x6e, 0xe1, 0x9f, 0x39, 0xbf, 0xf5,
-	0x2d, 0xf1, 0x6b, 0x66, 0xee, 0xb3, 0x5f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xd6, 0x27, 0x84, 0xb6,
-	0x71, 0x04, 0x00, 0x00,
+	// 580 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x95, 0xc1, 0x6a, 0x13, 0x41,
+	0x18, 0xc7, 0x33, 0x49, 0x9a, 0x26, 0x93, 0x1a, 0x65, 0xa8, 0xb0, 0x46, 0xd8, 0xa4, 0x01, 0x31,
+	0x20, 0xd9, 0x95, 0x08, 0xe2, 0x41, 0x45, 0x53, 0xb0, 0x06, 0xac, 0x94, 0x6d, 0xbd, 0x78, 0x09,
+	0xd9, 0xdd, 0xe9, 0x76, 0x20, 0xb3, 0xb3, 0xcc, 0x4c, 0x20, 0x79, 0x03, 0x0f, 0x1e, 0xfa, 0x30,
+	0x7d, 0x06, 0xc9, 0x45, 0x28, 0x3d, 0x89, 0x87, 0x28, 0xc9, 0x03, 0xf8, 0x0a, 0xb2, 0xb3, 0xbb,
+	0xdd, 0x85, 0x46, 0xa3, 0x9e, 0x3c, 0xf4, 0xb6, 0xdf, 0x97, 0xdf, 0xff, 0x9b, 0xff, 0x97, 0xff,
+	0x24, 0x0b, 0x77, 0x3c, 0x8e, 0xb1, 0x7f, 0x4c, 0xf0, 0xc8, 0x35, 0x03, 0xcc, 0x29, 0x11, 0x82,
+	0x30, 0xdf, 0x94, 0xd3, 0x00, 0x0b, 0x23, 0xe0, 0x4c, 0x32, 0x74, 0x3b, 0x45, 0x8c, 0x14, 0xa9,
+	0xdf, 0x71, 0x98, 0xa0, 0x4c, 0x0c, 0x14, 0x64, 0x46, 0x45, 0xa4, 0xa8, 0x6f, 0x7b, 0xcc, 0x63,
+	0x51, 0x3f, 0x7c, 0x8a, 0xbb, 0x0d, 0x8f, 0x31, 0x6f, 0x84, 0x4d, 0x55, 0xd9, 0xe3, 0x63, 0x53,
+	0x12, 0x8a, 0x85, 0x1c, 0xd2, 0x20, 0x06, 0x5a, 0xab, 0xbd, 0x38, 0x8c, 0x52, 0xe6, 0x5f, 0x0e,
+	0x49, 0x19, 0x8e, 0x05, 0x1b, 0x73, 0x07, 0x67, 0xdd, 0xb6, 0x3e, 0x16, 0x60, 0xe9, 0x80, 0x8d,
+	0x88, 0x33, 0x45, 0x0f, 0x60, 0x9e, 0xb8, 0x1a, 0x68, 0x82, 0x76, 0xa5, 0x77, 0x77, 0x36, 0x6f,
+	0xe4, 0xbe, 0xce, 0x1b, 0xc5, 0x77, 0xc4, 0x97, 0x17, 0x67, 0x9d, 0x6a, 0x6c, 0x38, 0x2c, 0xad,
+	0x3c, 0x71, 0xd1, 0x73, 0x58, 0x09, 0x38, 0xf1, 0x1d, 0x12, 0x0c, 0x47, 0x5a, 0xbe, 0x09, 0xda,
+	0xd5, 0x6e, 0xd3, 0x58, 0xb9, 0xb9, 0x71, 0x90, 0x70, 0x56, 0x2a, 0x41, 0xaf, 0xe0, 0x8d, 0xc4,
+	0xcf, 0x20, 0xf4, 0xa3, 0x15, 0x9a, 0xa0, 0x5d, 0xeb, 0xee, 0x64, 0x67, 0x24, 0x80, 0x61, 0xc5,
+	0x0f, 0x47, 0xd3, 0x00, 0x5b, 0x5b, 0x3c, 0x53, 0xa1, 0xa7, 0xb0, 0x7a, 0x39, 0x87, 0xb8, 0x5a,
+	0x71, 0xbd, 0x7b, 0x98, 0xf0, 0x7d, 0x17, 0xbd, 0x80, 0x50, 0xc8, 0xa1, 0xc4, 0x14, 0xfb, 0x52,
+	0x68, 0x1b, 0xcd, 0xc2, 0x6f, 0xd6, 0x38, 0x4c, 0x40, 0x2b, 0xa3, 0x41, 0xfb, 0xf0, 0x26, 0x9e,
+	0x04, 0x84, 0x0f, 0x25, 0x61, 0xfe, 0x20, 0x8c, 0x48, 0x2b, 0xa9, 0x6f, 0xa3, 0x6e, 0x44, 0xf9,
+	0x19, 0x49, 0x7e, 0xc6, 0x51, 0x92, 0x5f, 0xaf, 0x3c, 0x9b, 0x37, 0xc0, 0xe9, 0xb7, 0x06, 0xb0,
+	0x6a, 0xa9, 0x38, 0xfc, 0xb8, 0xf5, 0xb9, 0x00, 0x6f, 0xed, 0x72, 0x26, 0xc4, 0xee, 0xc9, 0x90,
+	0xf8, 0xd7, 0xc1, 0xfc, 0x2f, 0xc1, 0xa0, 0x7b, 0xe9, 0x3a, 0x7b, 0xd6, 0x5b, 0x6d, 0x33, 0x5c,
+	0xe7, 0x75, 0xce, 0xca, 0x36, 0x3f, 0x00, 0xd0, 0xab, 0xc1, 0xad, 0x41, 0xa6, 0xd5, 0xfa, 0x04,
+	0x60, 0x35, 0x4a, 0x71, 0x8f, 0xb3, 0x71, 0x80, 0x9e, 0xc1, 0x0d, 0x22, 0x31, 0x15, 0x1a, 0x50,
+	0x2b, 0xdd, 0xff, 0x55, 0x32, 0xa9, 0xc4, 0xe8, 0x4b, 0x4c, 0xad, 0x48, 0x55, 0x9f, 0xc0, 0x62,
+	0x58, 0xa2, 0x27, 0xb0, 0x12, 0x28, 0x64, 0xf0, 0x67, 0x17, 0xa3, 0x1c, 0xd1, 0x7d, 0x17, 0x3d,
+	0x86, 0x65, 0x2f, 0x1c, 0x1b, 0x0a, 0xf3, 0xeb, 0x85, 0x9b, 0x0a, 0xee, 0xbb, 0xad, 0x1f, 0x00,
+	0x56, 0x95, 0x9f, 0x7d, 0x4c, 0x6d, 0xcc, 0xff, 0xee, 0x4e, 0xfe, 0xe3, 0xa1, 0xe8, 0x21, 0x2c,
+	0x51, 0x75, 0x9c, 0xba, 0x84, 0x95, 0x9e, 0x76, 0x71, 0xd6, 0xd9, 0x8e, 0xc9, 0x97, 0xae, 0xcb,
+	0xb1, 0x10, 0x87, 0x92, 0x13, 0xdf, 0xb3, 0x62, 0x0e, 0xf5, 0xaf, 0xa6, 0x5e, 0x5c, 0x9b, 0x7a,
+	0x71, 0x55, 0xe2, 0xbd, 0x37, 0xb3, 0x85, 0x0e, 0xce, 0x17, 0x3a, 0xf8, 0xbe, 0xd0, 0xc1, 0xe9,
+	0x52, 0xcf, 0x9d, 0x2f, 0xf5, 0xdc, 0x97, 0xa5, 0x9e, 0x7b, 0xdf, 0xf5, 0x88, 0x3c, 0x19, 0xdb,
+	0x86, 0xc3, 0xa8, 0x69, 0xfb, 0x76, 0xc7, 0x09, 0x7f, 0xab, 0x66, 0xe6, 0x9f, 0x76, 0x72, 0xe5,
+	0xdd, 0x60, 0x97, 0xd4, 0xb9, 0x8f, 0x7e, 0x06, 0x00, 0x00, 0xff, 0xff, 0x75, 0x35, 0x21, 0xda,
+	0x41, 0x06, 0x00, 0x00,
 }
 
 func (m *Policy) Marshal() (dAtA []byte, err error) {
@@ -381,6 +498,113 @@ func (m *Policy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *CrossChainPolicy) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CrossChainPolicy) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CrossChainPolicy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XResourceGRN != nil {
+		{
+			size := m.XResourceGRN.Size()
+			i -= size
+			if _, err := m.XResourceGRN.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	if m.ExpirationTime != nil {
+		n3, err3 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(*m.ExpirationTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.ExpirationTime):])
+		if err3 != nil {
+			return 0, err3
+		}
+		i -= n3
+		i = encodeVarintTypes(dAtA, i, uint64(n3))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.Statements) > 0 {
+		for iNdEx := len(m.Statements) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Statements[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTypes(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	{
+		size := m.ResourceId.Size()
+		i -= size
+		if _, err := m.ResourceId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if m.ResourceType != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.ResourceType))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Principal != nil {
+		{
+			size, err := m.Principal.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTypes(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	{
+		size := m.Id.Size()
+		i -= size
+		if _, err := m.Id.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *CrossChainPolicy_ResourceGRN) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CrossChainPolicy_ResourceGRN) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	i -= len(m.ResourceGRN)
+	copy(dAtA[i:], m.ResourceGRN)
+	i = encodeVarintTypes(dAtA, i, uint64(len(m.ResourceGRN)))
+	i--
+	dAtA[i] = 0x3a
+	return len(dAtA) - i, nil
+}
 func (m *PolicyGroup) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -482,12 +706,12 @@ func (m *GroupMember) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	if m.ExpirationTime != nil {
-		n3, err3 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(*m.ExpirationTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.ExpirationTime):])
-		if err3 != nil {
-			return 0, err3
+		n5, err5 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(*m.ExpirationTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.ExpirationTime):])
+		if err5 != nil {
+			return 0, err5
 		}
-		i -= n3
-		i = encodeVarintTypes(dAtA, i, uint64(n3))
+		i -= n5
+		i = encodeVarintTypes(dAtA, i, uint64(n5))
 		i--
 		dAtA[i] = 0x22
 	}
@@ -562,6 +786,49 @@ func (m *Policy) Size() (n int) {
 	return n
 }
 
+func (m *CrossChainPolicy) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Id.Size()
+	n += 1 + l + sovTypes(uint64(l))
+	if m.Principal != nil {
+		l = m.Principal.Size()
+		n += 1 + l + sovTypes(uint64(l))
+	}
+	if m.ResourceType != 0 {
+		n += 1 + sovTypes(uint64(m.ResourceType))
+	}
+	l = m.ResourceId.Size()
+	n += 1 + l + sovTypes(uint64(l))
+	if len(m.Statements) > 0 {
+		for _, e := range m.Statements {
+			l = e.Size()
+			n += 1 + l + sovTypes(uint64(l))
+		}
+	}
+	if m.ExpirationTime != nil {
+		l = github_com_cosmos_gogoproto_types.SizeOfStdTime(*m.ExpirationTime)
+		n += 1 + l + sovTypes(uint64(l))
+	}
+	if m.XResourceGRN != nil {
+		n += m.XResourceGRN.Size()
+	}
+	return n
+}
+
+func (m *CrossChainPolicy_ResourceGRN) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ResourceGRN)
+	n += 1 + l + sovTypes(uint64(l))
+	return n
+}
 func (m *PolicyGroup) Size() (n int) {
 	if m == nil {
 		return 0
@@ -838,6 +1105,281 @@ func (m *Policy) Unmarshal(dAtA []byte) error {
 			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(m.ExpirationTime, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CrossChainPolicy) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CrossChainPolicy: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CrossChainPolicy: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Id.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Principal", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Principal == nil {
+				m.Principal = &Principal{}
+			}
+			if err := m.Principal.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ResourceType", wireType)
+			}
+			m.ResourceType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ResourceType |= resource.ResourceType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ResourceId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ResourceId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Statements", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Statements = append(m.Statements, &Statement{})
+			if err := m.Statements[len(m.Statements)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExpirationTime", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.ExpirationTime == nil {
+				m.ExpirationTime = new(time.Time)
+			}
+			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(m.ExpirationTime, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ResourceGRN", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XResourceGRN = &CrossChainPolicy_ResourceGRN{string(dAtA[iNdEx:postIndex])}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

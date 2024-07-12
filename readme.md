@@ -53,7 +53,7 @@ through decentralized applications known as BNB Greenfield dApps. These dApps pr
 interacting with the platform, enabling users to create and manipulate data in a secure and decentralized environment.
 
 ## Documentation
-Visit our official [documentation site](https://docs.bnbchain.org/greenfield-docs/docs/guide/introduction/overview) for more info.
+Visit our official [documentation site](https://docs.bnbchain.org/bnb-greenfield/introduction/) for more info.
 
 ## Quick Started
 
@@ -83,7 +83,7 @@ $ bash ./deployment/localup/localup.sh stop
 bash ./deployment/localup/localup.sh start 3 3
 ```
 
-More advanced script and command line usage, please refer to the [Tutorial](https://docs.bnbchain.org/greenfield-docs/docs/api/blockchain-cli).
+More advanced script and command line usage, please refer to the [Tutorial](https://docs.bnbchain.org/bnb-greenfield/greenfield-blockchain/gnfd-cli/).
 
 ## Key Modules
 
@@ -104,14 +104,14 @@ And the following modules are in cosmos-sdk:
 - `x/staking`:  based on the Proof-of-Stake logic. The elected validators are responsible for the security of the Greenfield blockchain. 
 They get involved in the governance and staking of the blockchain.
 
-Refer to the [docs](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/modules/storage-module) to dive deep into these modules.
+Refer to the [docs](https://github.com/bnb-chain/greenfield/blob/master/docs/modules/storage-module.md) to dive deep into these modules.
 
 ## Running node
 
-- [Interacting with the Node](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node/interact-node)
-- [Run Local Network](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node/run-local-network)
-- [Run Node](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node)
-- [Become Validator](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node/become-validator)
+- [Interacting with the Node](https://docs.bnbchain.org/bnb-greenfield/greenfield-blockchain/interact-node/)
+- [Run Local Network](https://docs.bnbchain.org/bnb-greenfield/greenfield-blockchain/run-node/run-node/)
+- [Run Node](https://docs.bnbchain.org/bnb-greenfield/greenfield-blockchain/run-node/run-node/)
+- [Become Validator](https://docs.bnbchain.org/bnb-greenfield/greenfield-blockchain/run-node/become-validator/)
 
 ## Related Projects
 - [Greenfield-Contract](https://github.com/bnb-chain/greenfield-contracts): the cross chain contract for Greenfield that deployed on BSC network.

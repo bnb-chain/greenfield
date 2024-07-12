@@ -188,7 +188,7 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 }
 
 func (k Keeper) GetPolicy(ctx sdk.Context, grn types2.GRN, principal *permtypes.Principal) (*permtypes.Policy, error) {
-	_, resID, err := k.getResourceOwnerAndIdFromGRN(ctx, grn)
+	_, resID, err := k.GetResourceOwnerAndIdFromGRN(ctx, grn)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +213,7 @@ func (k Keeper) GetPolicy(ctx sdk.Context, grn types2.GRN, principal *permtypes.
 func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 	policy *permtypes.Policy,
 ) (math.Uint, error) {
-	resOwner, resID, err := k.getResourceOwnerAndIdFromGRN(ctx, grn)
+	resOwner, resID, err := k.GetResourceOwnerAndIdFromGRN(ctx, grn)
 	if err != nil {
 		return math.ZeroUint(), err
 	}
@@ -235,7 +235,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.G
 func (k Keeper) DeletePolicy(
 	ctx sdk.Context, operator sdk.AccAddress, principal *permtypes.Principal, grn types2.GRN,
 ) (math.Uint, error) {
-	resOwner, resID, err := k.getResourceOwnerAndIdFromGRN(ctx, grn)
+	resOwner, resID, err := k.GetResourceOwnerAndIdFromGRN(ctx, grn)
 	if err != nil {
 		return math.ZeroUint(), err
 	}
@@ -292,7 +292,7 @@ func (k Keeper) ValidatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, prin
 	return nil
 }
 
-func (k Keeper) getResourceOwnerAndIdFromGRN(ctx sdk.Context, grn types2.GRN) (resOwner sdk.AccAddress, resID math.Uint, err error) {
+func (k Keeper) GetResourceOwnerAndIdFromGRN(ctx sdk.Context, grn types2.GRN) (resOwner sdk.AccAddress, resID math.Uint, err error) {
 	switch grn.ResourceType() {
 	case gnfdresource.RESOURCE_TYPE_BUCKET:
 		bucketName, grnErr := grn.GetBucketName()
