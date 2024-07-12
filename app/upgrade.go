@@ -35,6 +35,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerSerengetiUpgradeHandler()
 	app.registerErdosUpgradeHandler()
 	app.registerVeldUpgradeHandler()
+	app.registerMongolianUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -274,6 +275,22 @@ func (app *App) registerVeldUpgradeHandler() {
 
 	// Register the upgrade initializer
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Veld,
+		func() error {
+			app.Logger().Info("Init Veld upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerMongolianUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Mongolian,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Mongolian,
 		func() error {
 			app.Logger().Info("Init Veld upgrade")
 			return nil

@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
+	types2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/resource"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
@@ -105,6 +106,8 @@ type VirtualGroupKeeper interface {
 type StorageKeeper interface {
 	Logger(ctx sdk.Context) log.Logger
 	GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*BucketInfo, bool)
+	GetBucketInfo(ctx sdk.Context, bucketName string) (*BucketInfo, bool)
+	GetObjectInfo(ctx sdk.Context, bucketName, objectName string) (*ObjectInfo, bool)
 	SetBucketInfo(ctx sdk.Context, bucketInfo *BucketInfo)
 	CreateBucket(
 		ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
@@ -127,6 +130,8 @@ type StorageKeeper interface {
 
 	NormalizePrincipal(ctx sdk.Context, principal *permtypes.Principal)
 	ValidatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error
+
+	GetResourceOwnerAndIdFromGRN(ctx sdk.Context, grn types2.GRN) (resOwner sdk.AccAddress, resID math.Uint, err error)
 }
 
 type PaymentMsgServer interface {

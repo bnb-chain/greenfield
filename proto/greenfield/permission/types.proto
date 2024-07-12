@@ -36,6 +36,34 @@ message Policy {
   ];
 }
 
+message CrossChainPolicy {
+  // id is an unique u256 sequence for each policy. It also be used as NFT tokenID
+  string id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // principal defines the accounts/group which the permission grants to
+  Principal principal = 2;
+  // resource_type defines the type of resource that grants permission for
+  resource.ResourceType resource_type = 3;
+  // resource_id defines the bucket/object/group id of the resource that grants permission for
+  string resource_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // statements defines the details content of the permission, including effect/actions/sub-resources
+  repeated Statement statements = 5;
+  // expiration_time defines the whole expiration time of all the statements.
+  // Notices: Its priority is higher than the expiration time inside the Statement
+  google.protobuf.Timestamp expiration_time = 6 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = true
+  ];
+  optional string resourceGRN = 7;
+}
+
 // PolicyGroup refers to a group of policies which grant permission to Group, which is limited to MaxGroupNum (default 10).
 // This means that a single resource can only grant permission to 10 groups. The reason for
 // this is to enable on-chain determination of whether an operator has permission within a limited time.
