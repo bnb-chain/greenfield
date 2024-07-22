@@ -292,7 +292,7 @@ func (app *App) registerMongolianUpgradeHandler() {
 	// Register the upgrade initializer
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Mongolian,
 		func() error {
-			app.Logger().Info("Init Veld upgrade")
+			app.Logger().Info("Init Mongolian upgrade")
 			return nil
 		})
 }
