@@ -27,7 +27,9 @@ import (
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/app"
@@ -251,7 +253,14 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	msgTypes, signDoc, err := tx.GetMsgTypes(signerData, txBuilder.GetTx(), big.NewInt(9000))
 	suite.Require().NoError(err)
 
-	typedData, err := tx.WrapTxToTypedData(9000, signDoc, msgTypes)
+	typedDataDomain := apitypes.TypedDataDomain{
+		Name:              "Greenfield Tx",
+		Version:           "1.0.0",
+		ChainId:           math.NewHexOrDecimal256(int64(9000)),
+		VerifyingContract: "0x71e835aff094655dEF897fbc85534186DbeaB75d",
+		Salt:              "0",
+	}
+	typedData, err := tx.WrapTxToTypedData(signDoc, msgTypes, typedDataDomain)
 	suite.Require().NoError(err)
 
 	typedDataJson, _ := json.MarshalIndent(typedData, "", "  ")

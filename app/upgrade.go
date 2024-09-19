@@ -36,6 +36,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerErdosUpgradeHandler()
 	app.registerVeldUpgradeHandler()
 	app.registerMongolianUpgradeHandler()
+	app.registerAltaiUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -293,6 +294,22 @@ func (app *App) registerMongolianUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Mongolian,
 		func() error {
 			app.Logger().Info("Init Mongolian upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerAltaiUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Altai,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Altai,
+		func() error {
+			app.Logger().Info("Init Altai upgrade")
 			return nil
 		})
 }

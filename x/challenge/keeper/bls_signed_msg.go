@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	"cosmossdk.io/errors"
 	"github.com/bits-and-blooms/bitset"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,18 +39,18 @@ func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg, validat
 		signedChallengers = append(signedChallengers, val.ChallengerAddress)
 		votePubKey, err := bls.PublicKeyFromBytes(val.BlsKey)
 		if err != nil {
-			return nil, errors.Wrapf(types.ErrInvalidBlsPubKey, fmt.Sprintf("BLS public key converts failed: %v", err))
+			return nil, errors.Wrapf(types.ErrInvalidBlsPubKey, "BLS public key converts failed: %v", err)
 		}
 		votedPubKeys = append(votedPubKeys, votePubKey)
 	}
 
 	if len(votedPubKeys) <= len(validators)*2/3 {
-		return nil, errors.Wrapf(types.ErrNotEnoughVotes, fmt.Sprintf("Not enough validators voted, need: %d, voted: %d", len(validators)*2/3, len(votedPubKeys)))
+		return nil, errors.Wrapf(types.ErrNotEnoughVotes, "Not enough validators voted, need: %d, voted: %d", len(validators)*2/3, len(votedPubKeys))
 	}
 
 	aggSig, err := bls.SignatureFromBytes(signedMsg.GetVoteAggSignature())
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidVoteAggSignature, fmt.Sprintf("BLS signature converts failed: %v", err))
+		return nil, errors.Wrapf(types.ErrInvalidVoteAggSignature, "BLS signature converts failed: %v", err)
 	}
 
 	if !aggSig.FastAggregateVerify(votedPubKeys, signedMsg.GetBlsSignBytes(ctx.ChainID())) {
