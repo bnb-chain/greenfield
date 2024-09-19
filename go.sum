@@ -1222,8 +1222,8 @@ github.com/prysmaticlabs/prombbolt v0.0.0-20210126082820-9b7adba6db7c/go.mod h1:
 github.com/prysmaticlabs/protoc-gen-go-cast v0.0.0-20211014160335-757fae4f38c6/go.mod h1:ZVEbRdnMkGhp/pu35zq4SXxtvUwWK0J1MATtekZpH2Y=
 github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b h1:XULhE6PdzCYSe5OEVFhuixNqL3mYVOq/3M+SUGnKr1Y=
 github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b/go.mod h1:bFzDfaj4xtisRey9RPkMJOhOJVwmtH3FChV7NPKV1Nk=
-github.com/pythonberg1997/greenfield-cosmos-sdk v0.0.0-20240919070357-5163ee3107dd h1:Bw+Kbmu+Yn44auGnhZW97eKhAlZapS2mzrH6vM8NfoI=
-github.com/pythonberg1997/greenfield-cosmos-sdk v0.0.0-20240919070357-5163ee3107dd/go.mod h1:2bwmwdXYBISnQoMwgAcZTVGt21lMsHZSeeeMByTvDlQ=
+github.com/pythonberg1997/greenfield-cosmos-sdk v0.0.0-20240919073846-d7afa95b99b7 h1:m+oR+BTIXSv7TDYIAeRmQx1GgXx6UQ460vzEbEmPGHA=
+github.com/pythonberg1997/greenfield-cosmos-sdk v0.0.0-20240919073846-d7afa95b99b7/go.mod h1:2bwmwdXYBISnQoMwgAcZTVGt21lMsHZSeeeMByTvDlQ=
 github.com/r3labs/sse v0.0.0-20210224172625-26fe804710bc/go.mod h1:S8xSOnV3CgpNrWd0GQ/OoQfMtlg2uPRSuTzcSGrzwK8=
 github.com/rakyll/statik v0.1.7 h1:OF3QCZUuyPxuGEP7B4ypUa7sB/iHtqOTDYZXGM8KOdQ=
 github.com/rakyll/statik v0.1.7/go.mod h1:AlZONWzMtEnMs7W4e/1LURLiI49pIMmp6V9Unghqrcc=
