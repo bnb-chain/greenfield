@@ -55,7 +55,7 @@ func (msg *MsgTransferOut) ValidateBasic() error {
 	}
 
 	if !msg.Amount.IsValid() {
-		return errors.Wrapf(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errors.Wrapf(sdkerrors.ErrInvalidCoins, "%v%s", msg.Amount.Amount, msg.Amount.Denom)
 	}
 
 	if !msg.Amount.IsPositive() {

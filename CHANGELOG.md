@@ -1,5 +1,10 @@
 # Changelog
 
+## V1.9.1
+This release introduces the Altai upgrade.
+
+* [#645] https://github.com/bnb-chain/greenfield/pull/645 feat: fix the EIP712 signing issue and introduce a new hardfork Altai
+
 ## V1.9.0
 This release introduces the Mongolian upgrade.
 
