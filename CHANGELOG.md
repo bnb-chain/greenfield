@@ -1,5 +1,23 @@
 # Changelog
 
+## V1.9.1
+This release introduces the Altai upgrade.
+
+* [#645] https://github.com/bnb-chain/greenfield/pull/645 feat: fix the EIP712 signing issue and introduce a new hardfork Altai
+
+## V1.9.0
+This release introduces the Mongolian upgrade.
+
+Features:
+* [#639] https://github.com/bnb-chain/greenfield/pull/639 feat: Support msg to create policy by cross chain
+
+Fixes:
+* [#638] https://github.com/bnb-chain/greenfield/pull/638 fix: initial val for min value comparison should be large enough
+* [#640] https://github.com/bnb-chain/greenfield/pull/640 fix: broken links reroute from local repo to bnbchain docs
+
+Docs:
+* [#633] https://github.com/bnb-chain/greenfield/pull/633 docs: replace docs link
+
 ## V1.8.0
 This release introduces the Veld upgrade.
 
