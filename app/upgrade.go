@@ -37,6 +37,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerVeldUpgradeHandler()
 	app.registerMongolianUpgradeHandler()
 	app.registerAltaiUpgradeHandler()
+	app.registerSavannaUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -310,6 +311,22 @@ func (app *App) registerAltaiUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Altai,
 		func() error {
 			app.Logger().Info("Init Altai upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerSavannaUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Savanna,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Savanna,
+		func() error {
+			app.Logger().Info("Init Savanna upgrade")
 			return nil
 		})
 }
