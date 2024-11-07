@@ -376,6 +376,8 @@ func (s *PaymentTestSuite) TestDeposit_ActiveAccount() {
 		Add(paymentAccountStreamRecordAfter.BufferBalance.Sub(paymentAccountStreamRecord.BufferBalance))
 	s.Require().Equal(settledBalance.Add(paymentBalanceChange).Int64(), paymentAccountBNBNeeded.Int64())
 	s.Require().Equal(paymentAccountBNBNeeded.MulRaw(3), settledBalance.Add(paymentAccountStreamRecordAfter.StaticBalance.Add(paymentAccountStreamRecordAfter.BufferBalance)))
+
+	_ = s.deleteBucket(user, bucketName)
 }
 
 func (s *PaymentTestSuite) TestDeposit_FromBankAccount() {
@@ -2291,11 +2293,15 @@ func (s *PaymentTestSuite) TestDeposit_FrozenAccount_NetflowIsZero() {
 	s.Require().True(streamRecordsAfter.User.SettleTimestamp == 0)
 
 	// create bucket with quota again
-	_ = s.createBucket(sp, gvg, user, 100)
+	bucketName = s.createBucket(sp, gvg, user, 100)
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	s.Require().True(streamRecordsAfter.User.StaticBalance.LT(sdk.NewInt(1e18)))
 	s.Require().True(streamRecordsAfter.User.BufferBalance.GT(sdk.NewInt(0)))
 	s.Require().True(streamRecordsAfter.User.SettleTimestamp > 0)
+
+	// delete bucket
+	err = s.deleteBucket(user, bucketName)
+	s.Require().Error(err)
 }
 
 func TestPaymentTestSuite(t *testing.T) {
