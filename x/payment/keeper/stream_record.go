@@ -380,8 +380,18 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 	reserveTime := params.VersionedParams.ReserveTime
 	forcedSettleTime := params.ForcedSettleTime
 
+	now := ctx.BlockTime().Unix()
 	totalRate := streamRecord.NetflowRate.Add(streamRecord.FrozenNetflowRate)
 	streamRecord.StaticBalance = streamRecord.StaticBalance.Add(depositBalance)
+
+	if totalRate.IsZero() && ctx.IsUpgraded(upgradetypes.Savanna) {
+		streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
+		streamRecord.CrudTimestamp = now
+		streamRecord.SettleTimestamp = 0
+		k.SetStreamRecord(ctx, streamRecord)
+		return nil
+	}
+
 	expectedBalanceToResume := totalRate.Neg().Mul(sdkmath.NewIntFromUint64(reserveTime))
 	if streamRecord.StaticBalance.LT(expectedBalanceToResume) {
 		// deposit balance is not enough to resume, only add static balance
@@ -389,7 +399,6 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 		return nil
 	}
 
-	now := ctx.BlockTime().Unix()
 	prevSettleTime := streamRecord.SettleTimestamp
 	streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(totalRate.Abs()).Int64() - int64(forcedSettleTime)
 	streamRecord.BufferBalance = expectedBalanceToResume

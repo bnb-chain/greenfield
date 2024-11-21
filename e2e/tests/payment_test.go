@@ -376,6 +376,8 @@ func (s *PaymentTestSuite) TestDeposit_ActiveAccount() {
 		Add(paymentAccountStreamRecordAfter.BufferBalance.Sub(paymentAccountStreamRecord.BufferBalance))
 	s.Require().Equal(settledBalance.Add(paymentBalanceChange).Int64(), paymentAccountBNBNeeded.Int64())
 	s.Require().Equal(paymentAccountBNBNeeded.MulRaw(3), settledBalance.Add(paymentAccountStreamRecordAfter.StaticBalance.Add(paymentAccountStreamRecordAfter.BufferBalance)))
+
+	_ = s.deleteBucket(user, bucketName)
 }
 
 func (s *PaymentTestSuite) TestDeposit_FromBankAccount() {
@@ -2168,6 +2170,138 @@ func (s *PaymentTestSuite) TestDiscontinue_MultiBuckets() {
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
 	s.Require().True(streamRecordsAfter.User.LockBalance.IsZero())
+}
+
+func (s *PaymentTestSuite) TestDeposit_FrozenAccount_NetflowIsZero() {
+	defer s.revertParams()
+
+	ctx := context.Background()
+	sp := s.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
+		FamilyId: gvg.FamilyId,
+	})
+	s.Require().NoError(err)
+	family := queryFamilyResponse.GlobalVirtualGroupFamily
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	streamAddresses := []string{
+		user.GetAddr().String(),
+		family.VirtualPaymentAddress,
+		gvg.VirtualPaymentAddress,
+		paymenttypes.ValidatorTaxPoolAddress.String(),
+	}
+
+	// update params
+	params := s.queryParams()
+	params.VersionedParams.ReserveTime = 8
+	params.ForcedSettleTime = 5
+	s.updateParams(params)
+
+	// create bucket
+	bucketName := s.createBucket(sp, gvg, user, 0)
+
+	//  create & seal objects
+	for i := 0; i < 2; i++ {
+		_, _, objectName1, objectId1, checksums1, _ := s.createObject(user, bucketName, false)
+		s.sealObject(sp, gvg, bucketName, objectName1, objectId1, checksums1)
+		queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+			BucketName: bucketName,
+			ObjectName: objectName1,
+		}
+		queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+		s.Require().NoError(err)
+		s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+		time.Sleep(200 * time.Millisecond)
+	}
+
+	// transfer out all balance
+	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: user.GetAddr().String()}
+	queryBalanceResponse, err := s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	s.Require().NoError(err)
+
+	msgSend := banktypes.NewMsgSend(user.GetAddr(), core.GenRandomAddr(), sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.SubRaw(5*types.DecimalGwei)),
+	))
+
+	simulateResponse := s.SimulateTx(msgSend, user)
+	gasLimit := simulateResponse.GasInfo.GetGasUsed()
+	gasPrice, err := sdk.ParseCoinNormalized(simulateResponse.GasInfo.GetMinGasPrice())
+	s.Require().NoError(err)
+
+	msgSend.Amount = sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.Sub(gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit))))),
+	)
+	s.SendTxBlock(user, msgSend)
+	queryBalanceResponse, err = s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(int64(0), queryBalanceResponse.Balance.Amount.Int64())
+
+	// wait account to be frozen
+	time.Sleep(8 * time.Second)
+	streamRecord := s.getStreamRecord(user.GetAddr().String())
+	s.Require().True(streamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN)
+	s.Require().True(streamRecord.NetflowRate.IsZero())
+	s.Require().True(streamRecord.FrozenNetflowRate.IsNegative())
+
+	// force delete bucket
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.GcKey.GetAddr(), bucketName, "test")
+	txRes := s.SendTxBlock(sp.GcKey, msgDiscontinueBucket)
+	deleteAt := filterDiscontinueBucketEventFromTx(txRes).DeleteAt
+
+	for {
+		time.Sleep(200 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+
+		if blockTime > deleteAt {
+			break
+		}
+	}
+
+	_, err = s.Client.HeadBucket(ctx, &storagetypes.QueryHeadBucketRequest{BucketName: bucketName})
+	s.Require().ErrorContains(err, "No such bucket")
+	streamRecordsAfter := s.getStreamRecords(streamAddresses)
+	s.Require().True(streamRecordsAfter.User.NetflowRate.IsZero())
+	s.Require().True(streamRecordsAfter.User.FrozenNetflowRate.IsZero())
+	s.Require().True(streamRecordsAfter.User.LockBalance.IsZero())
+	s.Require().True(streamRecordsAfter.User.StaticBalance.IsZero())
+	s.Require().True(streamRecordsAfter.User.BufferBalance.IsZero())
+
+	// deposit payment account
+	helper := s.GenAndChargeAccounts(1, 1000000)[0]
+	msgSend = banktypes.NewMsgSend(helper.GetAddr(), user.GetAddr(), sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, sdk.NewInt(2e18)),
+	))
+	s.SendTxBlock(helper, msgSend)
+	_, err = s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	s.Require().NoError(err)
+
+	msgDeposit := &paymenttypes.MsgDeposit{
+		Creator: user.GetAddr().String(),
+		To:      user.GetAddr().String(),
+		Amount:  sdk.NewInt(1e18),
+	}
+	_ = s.SendTxBlock(user, msgDeposit)
+	streamRecordsAfter = s.getStreamRecords(streamAddresses)
+	s.Require().True(streamRecordsAfter.User.Status == paymenttypes.STREAM_ACCOUNT_STATUS_ACTIVE)
+	s.Require().True(streamRecordsAfter.User.StaticBalance.Equal(sdk.NewInt(1e18)))
+	s.Require().True(streamRecordsAfter.User.SettleTimestamp == 0)
+
+	// create bucket with quota again
+	bucketName = s.createBucket(sp, gvg, user, 100)
+	streamRecordsAfter = s.getStreamRecords(streamAddresses)
+	s.Require().True(streamRecordsAfter.User.StaticBalance.LT(sdk.NewInt(1e18)))
+	s.Require().True(streamRecordsAfter.User.BufferBalance.GT(sdk.NewInt(0)))
+	s.Require().True(streamRecordsAfter.User.SettleTimestamp > 0)
+
+	// delete bucket
+	err = s.deleteBucket(user, bucketName)
+	s.Require().Error(err)
 }
 
 func TestPaymentTestSuite(t *testing.T) {
