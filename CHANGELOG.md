@@ -1,5 +1,11 @@
 # Changelog
 
+## V1.10.0
+This release introduces the Savanna upgrade.
+
+Fixes:
+* [#647] https://github.com/bnb-chain/greenfield/pull/647 fix: fail to resume frozen payment account when netflow is zero
+
 ## V1.9.1
 This release introduces the Altai upgrade.
 
