@@ -36,7 +36,7 @@ jobs:
 
       - name: Push image
         run: |
-          VERSION=pr-$(echo "${{ github.event.number }}")
+          VERSION=gvg-param-rule-update
           echo IMAGE_NAME=$IMAGE_NAME
           echo VERSION=$VERSION
           docker tag $IMAGE_NAME $IMAGE_NAME:$VERSION
