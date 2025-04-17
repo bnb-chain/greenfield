@@ -1,5 +1,11 @@
 # Changelog
 
+## V1.10.1
+This release contains 1 new feature
+
+Features:
+* [#655] https://github.com/bnb-chain/greenfield/pull/655 feat: allow change GvgStakingPerBytes for gvg updateParams
+
 ## V1.10.0
 This release introduces the Savanna upgrade.
 
