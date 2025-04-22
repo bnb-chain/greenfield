@@ -1439,6 +1439,7 @@ func _Query_QuerySpOptimalGlobalVirtualGroupFamily_Handler(srv interface{}, ctx 
 	return interceptor(ctx, in, info, handler)
 }
 
+var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "greenfield.virtualgroup.Query",
 	HandlerType: (*QueryServer)(nil),

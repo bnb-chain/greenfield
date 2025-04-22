@@ -14,7 +14,7 @@ jobs:
     name: golangci-lint
     strategy:
       matrix:
-        go-version: [1.20.x]
+        go-version: [1.21.x]
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     env:
