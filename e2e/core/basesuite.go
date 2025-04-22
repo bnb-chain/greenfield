@@ -338,7 +338,7 @@ func (s *BaseSuite) CheckTxCode(txHash string, expectedCode uint32) error {
 	}
 
 	if res.TxResponse.Code != expectedCode {
-		return fmt.Errorf("expected code %d, got %d,res:%v", expectedCode, res.TxResponse.Code)
+		return fmt.Errorf("expected code %d, got %d,res:%v", expectedCode)
 	}
 
 	return nil
