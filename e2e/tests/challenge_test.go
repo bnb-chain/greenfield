@@ -565,9 +565,12 @@ func (s *ChallengeTestSuite) TestUpdateChallengerParams() {
 	proposalID := 0
 	txResp, err := s.WaitForTx(txBroadCastResp.TxResponse.TxHash)
 	s.Require().NoError(err)
+	s.T().Log("Debug", "txResp.Code", txResp.Code, "txResp.Height", txResp.Height)
 	if txResp.Code == 0 && txResp.Height > 0 {
 		for _, event := range txResp.Events {
+			s.T().Log("Debug", "eventType", event.Type)
 			if event.Type == "submit_proposal" {
+				s.T().Log("Debug", "value", event.GetAttributes()[0].Value)
 				proposalID, err = strconv.Atoi(event.GetAttributes()[0].Value)
 				s.Require().NoError(err)
 			}
