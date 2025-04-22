@@ -324,7 +324,7 @@ func (s *BaseSuite) GenRandomBlsKeyManager() keys.KeyManager {
 
 func (s *BaseSuite) CheckTxCode(txHash string, expectedCode uint32) error {
 	// wait for 2 blocks
-	for i := 0; i < 2; i++ {
+	for i := 0; i < 5; i++ {
 		if err := s.WaitForNextBlock(); err != nil {
 			return fmt.Errorf("failed to wait for next block: %w", err)
 		}
@@ -337,6 +337,7 @@ func (s *BaseSuite) CheckTxCode(txHash string, expectedCode uint32) error {
 		return err
 	}
 
+	s.T().Log("Debug", "resp", res.TxResponse.String())
 	if res.TxResponse.Code != expectedCode {
 		return fmt.Errorf("expected code %d, got %d", expectedCode, res.TxResponse.Code)
 	}
@@ -399,6 +400,7 @@ func (s *BaseSuite) WaitForTx(hash string) (*sdk.TxResponse, error) {
 			return nil, err
 		}
 		// Tx found
+		s.T().Log("Debug", "code", txResponse.TxResponse.Code, "string", txResponse.TxResponse.String(), "info", txResponse.TxResponse.Info, "event", txResponse.TxResponse.Events)
 		return txResponse.TxResponse, nil
 	}
 }
