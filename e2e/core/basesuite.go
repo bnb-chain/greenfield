@@ -250,6 +250,7 @@ func (s *BaseSuite) SimulateTx(msg sdk.Msg, from keys.KeyManager) (txRes *tx.Sim
 	s.Client.SetKeyManager(from)
 	response, err := s.Client.SimulateTx(context.Background(), []sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
+	s.T().Log("Debug", "GasInfo", response.GasInfo)
 	return response
 }
 
@@ -260,7 +261,9 @@ func (s *BaseSuite) SendTxBlockWithoutCheck(msg sdk.Msg, from keys.KeyManager) (
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	return s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
+	resp, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
+	s.T().Log("Debug", "want", resp.TxResponse.GasWanted, "used", resp.TxResponse.GasUsed)
+	return resp, err
 }
 
 func (s *BaseSuite) SendTxBlockWithoutCheckWithTxOpt(msg sdk.Msg, from keys.KeyManager, txOpt *types.TxOption) (*tx.BroadcastTxResponse, error) {

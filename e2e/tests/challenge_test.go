@@ -559,7 +559,7 @@ func (s *ChallengeTestSuite) TestUpdateChallengerParams() {
 	s.Require().NoError(err)
 	txBroadCastResp, err := s.SendTxBlockWithoutCheck(proposal, s.Validator)
 	s.Require().NoError(err)
-	s.T().Log("create proposal tx hash: ", txBroadCastResp.TxResponse.TxHash)
+	s.T().Log("create proposal tx hash: ", txBroadCastResp.TxResponse.TxHash, "gasLimit", txBroadCastResp.TxResponse.GasWanted, "gasUsed", txBroadCastResp.TxResponse.GasUsed)
 
 	// get proposal id
 	proposalID := 0
