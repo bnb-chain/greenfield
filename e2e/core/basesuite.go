@@ -250,7 +250,6 @@ func (s *BaseSuite) SimulateTx(msg sdk.Msg, from keys.KeyManager) (txRes *tx.Sim
 	s.Client.SetKeyManager(from)
 	response, err := s.Client.SimulateTx(context.Background(), []sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
-	s.T().Log("Debug", "GasInfo", response.GasInfo)
 	return response
 }
 
@@ -262,7 +261,6 @@ func (s *BaseSuite) SendTxBlockWithoutCheck(msg sdk.Msg, from keys.KeyManager) (
 	}
 	s.Client.SetKeyManager(from)
 	resp, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
-	s.T().Log("Debug", "want", resp.TxResponse.GasWanted, "used", resp.TxResponse.GasUsed)
 	return resp, err
 }
 
@@ -340,7 +338,6 @@ func (s *BaseSuite) CheckTxCode(txHash string, expectedCode uint32) error {
 		return err
 	}
 
-	s.T().Log("Debug", "resp", res.TxResponse.String())
 	if res.TxResponse.Code != expectedCode {
 		return fmt.Errorf("expected code %d, got %d", expectedCode, res.TxResponse.Code)
 	}
@@ -403,7 +400,6 @@ func (s *BaseSuite) WaitForTx(hash string) (*sdk.TxResponse, error) {
 			return nil, err
 		}
 		// Tx found
-		s.T().Log("Debug", "code", txResponse.TxResponse.Code, "string", txResponse.TxResponse.String(), "info", txResponse.TxResponse.Info, "event", txResponse.TxResponse.Events)
 		return txResponse.TxResponse, nil
 	}
 }
