@@ -25,7 +25,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
+	"github.com/prysmaticlabs/prysm/v5/crypto/bls"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/exp/slices"
@@ -260,7 +260,8 @@ func (s *BaseSuite) SendTxBlockWithoutCheck(msg sdk.Msg, from keys.KeyManager) (
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	return s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
+	resp, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
+	return resp, err
 }
 
 func (s *BaseSuite) SendTxBlockWithoutCheckWithTxOpt(msg sdk.Msg, from keys.KeyManager, txOpt *types.TxOption) (*tx.BroadcastTxResponse, error) {
@@ -338,6 +339,7 @@ func (s *BaseSuite) CheckTxCode(txHash string, expectedCode uint32) error {
 	}
 
 	if res.TxResponse.Code != expectedCode {
+		s.T().Log("Debug", "code", res.TxResponse.Code, "string", res.TxResponse.String())
 		return fmt.Errorf("expected code %d, got %d", expectedCode, res.TxResponse.Code)
 	}
 

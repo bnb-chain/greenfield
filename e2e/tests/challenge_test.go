@@ -20,7 +20,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
+	"github.com/prysmaticlabs/prysm/v5/crypto/bls"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
@@ -559,15 +559,18 @@ func (s *ChallengeTestSuite) TestUpdateChallengerParams() {
 	s.Require().NoError(err)
 	txBroadCastResp, err := s.SendTxBlockWithoutCheck(proposal, s.Validator)
 	s.Require().NoError(err)
-	s.T().Log("create proposal tx hash: ", txBroadCastResp.TxResponse.TxHash)
+	s.T().Log("create proposal tx hash: ", txBroadCastResp.TxResponse.TxHash, "gasLimit", txBroadCastResp.TxResponse.GasWanted, "gasUsed", txBroadCastResp.TxResponse.GasUsed)
 
 	// get proposal id
 	proposalID := 0
 	txResp, err := s.WaitForTx(txBroadCastResp.TxResponse.TxHash)
 	s.Require().NoError(err)
+	s.T().Log("Debug", "txResp.Code", txResp.Code, "txResp.Height", txResp.Height)
 	if txResp.Code == 0 && txResp.Height > 0 {
 		for _, event := range txResp.Events {
+			s.T().Log("Debug", "eventType", event.Type)
 			if event.Type == "submit_proposal" {
+				s.T().Log("Debug", "value", event.GetAttributes()[0].Value)
 				proposalID, err = strconv.Atoi(event.GetAttributes()[0].Value)
 				s.Require().NoError(err)
 			}
