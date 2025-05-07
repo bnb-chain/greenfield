@@ -5,7 +5,7 @@ import (
 	"github.com/bits-and-blooms/bitset"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
+	"github.com/prysmaticlabs/prysm/v5/crypto/bls"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
