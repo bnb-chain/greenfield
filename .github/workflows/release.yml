@@ -46,20 +46,20 @@ jobs:
       - name: Build Binary for ${{matrix.os}}
         run: |
           make build
-          
+
       # ==============================
       #       Upload artifacts
       # ==============================
 
       - name: Upload Linux Build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.os == 'ubuntu-latest'
         with:
           name: linux
           path: ./build/bin/gnfd
 
       - name: Upload MacOS Build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.os == 'macos-latest'
         with:
           name: macos
@@ -81,17 +81,17 @@ jobs:
       # ==============================
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: linux
           path: ./linux
-      
+
       - name: Download Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: macos
           path: ./macos
-      
+
       # Prepare assets
       - run: |
           mv ./linux/gnfd ./linux/linux
