@@ -48,7 +48,7 @@ jobs:
           make build
 
       # ==============================
-      #       Upload artifacts
+      #       Upload Artifacts
       # ==============================
 
       - name: Upload Linux Build
