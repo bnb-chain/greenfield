@@ -294,6 +294,9 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 		return nil, err
 	}
 
+	gvg.TotalDeposit = gvg.TotalDeposit.Sub(withdrawTokens)
+	k.SetGVG(ctx, gvg)
+
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroup{
 		Id:           req.GlobalVirtualGroupId,
 		StoreSize:    gvg.StoredSize,
