@@ -7,7 +7,7 @@ import (
 
 	"github.com/cometbft/cometbft/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
+	"github.com/prysmaticlabs/prysm/v5/crypto/bls"
 	"sigs.k8s.io/yaml"
 
 	"github.com/bnb-chain/greenfield/sdk/keys"

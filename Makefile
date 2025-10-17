@@ -22,9 +22,11 @@ tools:
 	go install github.com/cosmos/gogoproto/protoc-gen-gocosmos
 	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 	go install github.com/golang/mock/mockgen@v1.6.0
+	echo "Tools installed"
 
 proto-gen:
 	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x  && cp -r github.com/bnb-chain/greenfield/types/* ../types  && rm -rf github.com && go mod tidy
+	echo "proto-gen done"
 
 proto-swagger-gen:
 	bash ./scripts/protoc-swagger-gen.sh

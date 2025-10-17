@@ -663,6 +663,7 @@ func _Query_InturnAttestationSubmitter_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+var Query_serviceDesc = _Query_serviceDesc
 var _Query_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "greenfield.challenge.Query",
 	HandlerType: (*QueryServer)(nil),
