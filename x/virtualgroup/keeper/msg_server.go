@@ -300,9 +300,11 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroup{
-		Id:           req.GlobalVirtualGroupId,
-		StoreSize:    gvg.StoredSize,
-		TotalDeposit: gvg.TotalDeposit,
+		Id:             req.GlobalVirtualGroupId,
+		PrimarySpId:    gvg.PrimarySpId,
+		StoreSize:      gvg.StoredSize,
+		TotalDeposit:   gvg.TotalDeposit,
+		SecondarySpIds: gvg.SecondarySpIds,
 	}); err != nil {
 		return nil, err
 	}

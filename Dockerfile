@@ -24,7 +24,7 @@ ARG USER_GID=1000
 ENV CGO_CFLAGS="-O -D__BLST_PORTABLE__"
 ENV CGO_CFLAGS_ALLOW="-O -D__BLST_PORTABLE__"
 
-ENV PACKAGES ca-certificates libstdc++
+ENV PACKAGES ca-certificates libstdc++ curl jq bash
 ENV WORKDIR=/app
 
 RUN apk add --no-cache $PACKAGES \
