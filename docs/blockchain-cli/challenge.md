@@ -184,4 +184,4 @@ However, be noted, the result is not kept forever, and only the latest `attestat
 gnfd query challenge latest-attested-challenges --node https://greenfield-chain.bnbchain.org:443 
 ```
 
-The result of the challenge can be queried by the above query commands, or using the the `AttestedChallenge`, `LatestAttestedChallenges` methods through [GRPC swagger](https://greenfield-chain.bnbchain.org/openapi).
+The result of the challenge can be queried by the above query commands, or using the `AttestedChallenge`, `LatestAttestedChallenges` methods through [GRPC swagger](https://greenfield-chain.bnbchain.org/openapi).
