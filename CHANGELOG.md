@@ -1,5 +1,17 @@
 # Changelog
 
+## V1.10.5
+This release contains 2 new feature
+
+Features:
+* [#659] https://github.com/bnb-chain/greenfield/pull/659 feat: dep update
+* [#668] https://github.com/bnb-chain/greenfield/pull/668 feat: modify gvg withdraw and dockerfile and prepare for v1.10.5
+
+
+## V1.10.4
+This release introduces the Tundra upgrade.
+* [#661] https://github.com/bnb-chain/greenfield/pull/661 fix: fix a data issue in virtual group
+
 ## V1.10.1
 This release contains 1 new feature
 
