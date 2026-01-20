@@ -1388,7 +1388,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	s.Require().Equal(streamRecordsAfterCopy.Tax.NetflowRate.Sub(streamRecordsAfter.Tax.NetflowRate), taxRate)
 }
 
-// TestStorageBill_CopyObject_WithoutPriceChange
+// TestStorageBill_CopyObject_WithPriceChange
 func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	var err error
 	ctx := context.Background()

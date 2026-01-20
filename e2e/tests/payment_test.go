@@ -118,7 +118,7 @@ func (s *PaymentTestSuite) TestCreatePaymentAccount() {
 	s.Require().Equal(false, paymentAccount.PaymentAccount.Refundable)
 }
 
-// TestVersionedParams_SealAfterReserveTimeChange will cover the following case:
+// TestVersionedParams_SealObjectAfterReserveTimeChange will cover the following case:
 // create an object, increase the reserve time, seal the object without error.
 func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange() {
 	defer s.revertParams()
@@ -160,7 +160,7 @@ func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange(
 	s.SendTxBlock(user, msgDeleteBucket)
 }
 
-// TestVersionedParams_DeleteAfterValidatorTaxRateChange will cover the following case:
+// TestVersionedParams_DeleteBucketAfterValidatorTaxRateChange will cover the following case:
 // create a bucket with non-zero read quota, change the validator tax rate, delete the bucket.
 // The rate of the validator tax address should be correct.
 func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRateChange() {
