@@ -2,6 +2,7 @@ package keys
 
 import (
 	"encoding/hex"
+	"fmt"
 	"testing"
 
 	"github.com/prysmaticlabs/prysm/v5/crypto/bls"
@@ -33,4 +34,16 @@ func TestCreateBlsKeyManagerFromPrivateKeyHex(t *testing.T) {
 	km, err := NewBlsPrivateKeyManager(hex.EncodeToString(blsPrivKey.Marshal()))
 	assert.NoError(t, err)
 	assert.Equal(t, blsPubKey, hex.EncodeToString(km.PubKey().Bytes()))
+}
+
+func TestStringDoesNotLeakMnemonic(t *testing.T) {
+	mnemonic := "dragon shy author wave swamp avoid lens hen please series heavy squeeze alley castle crazy action peasant green vague camp mirror amount person legal"
+	km, err := NewMnemonicKeyManager(mnemonic)
+	assert.NoError(t, err)
+	assert.NotContains(t, fmt.Sprintf("%v", km), mnemonic)
+
+	blsMnemonic := "dragon shy author wave swamp avoid lens hen please series heavy squeeze alley castle crazy action peasant green vague camp mirror amount person legal"
+	blsKm, err := NewBlsMnemonicKeyManager(blsMnemonic)
+	assert.NoError(t, err)
+	assert.NotContains(t, fmt.Sprintf("%v", blsKm), blsMnemonic)
 }
