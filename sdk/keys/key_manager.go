@@ -24,8 +24,8 @@ type KeyManager interface {
 }
 
 type keyManager struct {
-	privKey  ctypes.PrivKey
-	addr     types.AccAddress
+	privKey ctypes.PrivKey
+	addr    types.AccAddress
 }
 
 // TODO: NewKeyStoreKeyManager to be implemented
@@ -155,5 +155,5 @@ func (km *keyManager) String() string {
 	}
 	return "KeyManager{uninitialized}"
 }
-func (km *keyManager) ProtoMessage()  {}
-func (km *keyManager) Reset()         { *km = keyManager{} }
+func (km *keyManager) ProtoMessage() {}
+func (km *keyManager) Reset()        { *km = keyManager{} }
