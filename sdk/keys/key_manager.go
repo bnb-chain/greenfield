@@ -24,9 +24,8 @@ type KeyManager interface {
 }
 
 type keyManager struct {
-	privKey  ctypes.PrivKey
-	mnemonic string
-	addr     types.AccAddress
+	privKey ctypes.PrivKey
+	addr    types.AccAddress
 }
 
 // TODO: NewKeyStoreKeyManager to be implemented
@@ -88,7 +87,6 @@ func (km *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
 	}
 	priKey := hd.EthSecp256k1.Generate()(derivedPriv[:]).(*ethsecp256k1.PrivKey)
 	km.privKey = priKey
-	km.mnemonic = mnemonic
 	km.addr = types.AccAddress(km.privKey.PubKey().Address())
 	return nil
 }
@@ -123,7 +121,6 @@ func (km *keyManager) recoveryBlsFromMnemonic(mnemonic, keyPath string) error {
 
 	priKey := hd.EthBLS.Generate()(derivedPriv)
 	km.privKey = priKey
-	km.mnemonic = mnemonic
 	km.addr = types.AccAddress(km.privKey.PubKey().Address())
 	return nil
 }
@@ -152,6 +149,11 @@ func (km *keyManager) GetAddr() types.AccAddress {
 	return km.addr
 }
 
-func (km *keyManager) String() string { return km.mnemonic }
-func (km *keyManager) ProtoMessage()  {}
-func (km *keyManager) Reset()         { *km = keyManager{} }
+func (km *keyManager) String() string {
+	if km.addr != nil {
+		return fmt.Sprintf("KeyManager{addr:%s}", km.addr.String())
+	}
+	return "KeyManager{uninitialized}"
+}
+func (km *keyManager) ProtoMessage() {}
+func (km *keyManager) Reset()        { *km = keyManager{} }
