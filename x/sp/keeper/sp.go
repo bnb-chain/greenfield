@@ -150,6 +150,26 @@ func (k Keeper) SetStorageProviderByBlsKey(ctx sdk.Context, sp *types.StoragePro
 	store.Set(types.GetStorageProviderByBlsKeyKey(blsPk), k.spSequence.EncodeSequence(sp.Id))
 }
 
+func (k Keeper) DeleteStorageProviderBySealAddr(ctx sdk.Context, sp *types.StorageProvider) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetStorageProviderBySealAddrKey(sp.GetSealAccAddress()))
+}
+
+func (k Keeper) DeleteStorageProviderByApprovalAddr(ctx sdk.Context, sp *types.StorageProvider) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetStorageProviderByApprovalAddrKey(sp.GetApprovalAccAddress()))
+}
+
+func (k Keeper) DeleteStorageProviderByGcAddr(ctx sdk.Context, sp *types.StorageProvider) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetStorageProviderByGcAddrKey(sp.GetGcAccAddress()))
+}
+
+func (k Keeper) DeleteStorageProviderByBlsKey(ctx sdk.Context, sp *types.StorageProvider) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetStorageProviderByBlsKeyKey(sp.GetBlsKey()))
+}
+
 func (k Keeper) GetStorageProviderByBlsKey(ctx sdk.Context, blsPk []byte) (sp *types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	id := store.Get(types.GetStorageProviderByBlsKeyKey(blsPk))

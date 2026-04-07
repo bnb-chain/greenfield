@@ -208,18 +208,27 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 
 	if msg.SealAddress != "" {
 		sealAcc := sdk.MustAccAddressFromHex(msg.SealAddress)
+		if ctx.IsUpgraded(upgradetypes.Prairie) {
+			k.DeleteStorageProviderBySealAddr(ctx, sp)
+		}
 		sp.SealAddress = sealAcc.String()
 		changed = true
 	}
 
 	if msg.ApprovalAddress != "" {
 		approvalAcc := sdk.MustAccAddressFromHex(msg.ApprovalAddress)
+		if ctx.IsUpgraded(upgradetypes.Prairie) {
+			k.DeleteStorageProviderByApprovalAddr(ctx, sp)
+		}
 		sp.ApprovalAddress = approvalAcc.String()
 		changed = true
 	}
 
 	if msg.GcAddress != "" {
 		gcAcc := sdk.MustAccAddressFromHex(msg.GcAddress)
+		if ctx.IsUpgraded(upgradetypes.Prairie) {
+			k.DeleteStorageProviderByGcAddr(ctx, sp)
+		}
 		sp.GcAddress = gcAcc.String()
 		changed = true
 	}
@@ -235,6 +244,9 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		}
 		if err = k.checkBlsProof(blsPk, msg.BlsProof); err != nil {
 			return nil, err
+		}
+		if ctx.IsUpgraded(upgradetypes.Prairie) {
+			k.DeleteStorageProviderByBlsKey(ctx, sp)
 		}
 		sp.BlsKey = blsPk
 		changed = true

@@ -106,6 +106,16 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, err
 	}
 
+	// Verify the family belongs to the calling SP
+	if ctx.IsUpgraded(upgradetypes.Prairie) {
+		if req.FamilyId != types.NoSpecifiedFamilyId && gvgFamily.PrimarySpId != sp.Id {
+			return nil, errors.ErrInvalidParameter.Wrapf(
+				"family(id=%d) belongs to primary sp(id=%d), caller sp(id=%d) cannot append a new gvg",
+				gvgFamily.Id, gvgFamily.PrimarySpId, sp.Id,
+			)
+		}
+	}
+
 	if ctx.IsUpgraded(upgradetypes.Manchurian) {
 		for _, gvgID := range gvgFamily.GlobalVirtualGroupIds {
 			gvg, found := k.GetGVG(ctx, gvgID)
