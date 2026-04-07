@@ -1,5 +1,12 @@
 # Changelog
 
+## V1.10.6
+This release contains 1 new feature
+
+Features:
+* [#671] https://github.com/bnb-chain/greenfield/pull/671 feat: update km
+* [#672] https://github.com/bnb-chain/greenfield/pull/672 feat: introduce hardfork of Prairie
+
 ## V1.10.5
 This release contains 2 new feature
 
