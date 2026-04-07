@@ -120,12 +120,44 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 		return types.ErrGVGNotExist
 	}
 
+	// Verify the caller is the GVG's primary SP
+	if ctx.IsUpgraded(upgradetypes.Prairie) {
+		if gvg.PrimarySpId != primarySp.Id {
+			return types.ErrWithdrawFailed.Wrapf(
+				"only primary sp(id=%d) can delete gvg, caller sp(id=%d)",
+				gvg.PrimarySpId, primarySp.Id,
+			)
+		}
+	}
+
 	if gvg.StoredSize != 0 {
 		return types.ErrGVGNotEmpty
 	}
 
 	if !k.paymentKeeper.IsEmptyNetFlow(ctx, sdk.MustAccAddressFromHex(gvg.VirtualPaymentAddress)) {
 		return types.ErrGVGNotEmpty.Wrap("The virtual payment account still not empty")
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Prairie) {
+		// Settle any remaining balance before deletion to prevent fund lockup
+		gvgPaymentAddr := sdk.MustAccAddressFromHex(gvg.VirtualPaymentAddress)
+		balance, err := k.paymentKeeper.QueryDynamicBalance(ctx, gvgPaymentAddr)
+		if err != nil {
+			return err
+		}
+		if balance.IsPositive() {
+			if err := k.SettleAndDistributeGVG(ctx, gvg); err != nil {
+				return err
+			}
+			// Re-check balance after settlement
+			balance, err = k.paymentKeeper.QueryDynamicBalance(ctx, gvgPaymentAddr)
+			if err != nil {
+				return err
+			}
+			if balance.IsPositive() {
+				return types.ErrGVGNotEmpty.Wrap("GVG still has undistributed balance after settlement")
+			}
+		}
 	}
 
 	if !gvg.TotalDeposit.IsZero() {
@@ -263,7 +295,11 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, prim
 			return nil, types.ErrGVGFamilyNotExist
 		}
 		k.cdc.MustUnmarshal(bz, &gvgFamily)
-
+		if ctx.IsUpgraded(upgradetypes.Prairie) {
+			if gvgFamily.PrimarySpId != primarySPID {
+				return nil, types.ErrGVGFamilyNotExist.Wrapf("family belongs to sp %d, not sp %d", gvgFamily.PrimarySpId, primarySPID)
+			}
+		}
 		return &gvgFamily, nil
 	}
 }
