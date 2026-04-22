@@ -40,6 +40,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerSavannaUpgradeHandler()
 	app.registerTundraUpgradeHandler()
 	app.registerPrairieUpgradeHandler()
+	app.registerTaigaUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -361,6 +362,22 @@ func (app *App) registerPrairieUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Prairie,
 		func() error {
 			app.Logger().Info("Init Prairie upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerTaigaUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Taiga,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Taiga,
+		func() error {
+			app.Logger().Info("Init Taiga upgrade")
 			return nil
 		})
 }

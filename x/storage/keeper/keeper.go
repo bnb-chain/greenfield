@@ -2653,7 +2653,11 @@ func (k Keeper) UpdateObjectContent(
 
 	if payloadSize == 0 {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-		err := k.UnChargeObjectStoreFee(ctx, bucketInfo, k.MustGetInternalBucketInfo(ctx, bucketInfo.Id), objectInfo)
+		if ctx.IsUpgraded(upgradetypes.Taiga) {
+			err = k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
+		} else {
+			err = k.UnChargeObjectStoreFee(ctx, bucketInfo, k.MustGetInternalBucketInfo(ctx, bucketInfo.Id), objectInfo)
+		}
 		if err != nil {
 			return err
 		}
