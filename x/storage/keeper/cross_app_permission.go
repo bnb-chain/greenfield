@@ -210,6 +210,21 @@ func (app *PermissionApp) handleCreatePolicySynPackage(ctx sdk.Context, createPo
 		}
 	}
 
+	if ctx.IsUpgraded(upgradetypes.Taiga) {
+		if !createPolicyPackage.Operator.Equals(resOwner) {
+			return sdk.ExecuteResult{
+				Payload: types.CreatePolicyAckPackage{
+					Status:    types.StatusFail,
+					Creator:   createPolicyPackage.Operator,
+					ExtraData: createPolicyPackage.ExtraData,
+				}.MustSerialize(),
+				Err: types.ErrAccessDenied.Wrapf(
+					"Only resource owner can create policy, operator (%s), owner (%s)",
+					createPolicyPackage.Operator.String(), resOwner.String()),
+			}
+		}
+	}
+
 	app.storageKeeper.NormalizePrincipal(ctx, policy.Principal)
 	err = app.storageKeeper.ValidatePrincipal(ctx, resOwner, policy.Principal)
 	if err != nil {
