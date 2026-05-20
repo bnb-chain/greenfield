@@ -56,6 +56,12 @@ func (k Keeper) RemoveChallengeUntil(ctx sdk.Context, height uint64) {
 	}
 }
 
+// RemoveChallenge removes a specific challenge from the store
+func (k Keeper) RemoveChallenge(ctx sdk.Context, challengeId uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChallengeKeyPrefix)
+	store.Delete(getChallengeKeyBytes(challengeId))
+}
+
 // ExistsChallenge check whether there exists ongoing challenge for an id
 func (k Keeper) ExistsChallenge(ctx sdk.Context, challengeId uint64) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChallengeKeyPrefix)
