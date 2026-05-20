@@ -1236,6 +1236,21 @@ func (k Keeper) CopyObject(
 			operator.String(), srcObjectInfo.BucketName, srcObjectInfo.ObjectName)
 	}
 
+	// check destination bucket write permission
+	verifyOpts := &permtypes.VerifyOptions{WantedSize: &srcObjectInfo.PayloadSize}
+	effect = k.VerifyBucketPermission(ctx, dstBucketInfo, operator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
+	if effect != permtypes.EFFECT_ALLOW {
+		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator("+
+			"%s) has no CreateObject permission of the destination bucket(%s)",
+			operator.String(), dstBucketInfo.BucketName)
+	}
+
+	// check destination object name does not already exist
+	dstObjectKey := types.GetObjectKey(dstBucketName, dstObjectName)
+	if store.Has(dstObjectKey) {
+		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
+	}
+
 	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
 		if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 			return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
