@@ -41,8 +41,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerTundraUpgradeHandler()
 	app.registerPrairieUpgradeHandler()
 	app.registerTaigaUpgradeHandler()
-	// app.register...()
-	// ...
+	app.registerSteppeUpgradeHandler()
 	return nil
 }
 
@@ -378,6 +377,20 @@ func (app *App) registerTaigaUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Taiga,
 		func() error {
 			app.Logger().Info("Init Taiga upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerSteppeUpgradeHandler() {
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Steppe,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Steppe,
+		func() error {
+			app.Logger().Info("Init Steppe upgrade")
 			return nil
 		})
 }
