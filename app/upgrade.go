@@ -42,6 +42,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerPrairieUpgradeHandler()
 	app.registerTaigaUpgradeHandler()
 	app.registerSteppeUpgradeHandler()
+	app.registerCerradoUpgradeHandler()
 	return nil
 }
 
@@ -391,6 +392,20 @@ func (app *App) registerSteppeUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Steppe,
 		func() error {
 			app.Logger().Info("Init Steppe upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerCerradoUpgradeHandler() {
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Cerrado,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Cerrado,
+		func() error {
+			app.Logger().Info("Init Cerrado upgrade")
 			return nil
 		})
 }
