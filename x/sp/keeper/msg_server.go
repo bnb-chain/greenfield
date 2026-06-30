@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"time"
@@ -189,6 +190,13 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		return nil, types.ErrStorageProviderNotFound
 	}
 
+	// Capture the current operational identities before mutation so their stale
+	// secondary-index entries can be revoked once a value is rotated.
+	oldSealAddr := sp.SealAddress
+	oldApprovalAddr := sp.ApprovalAddress
+	oldGcAddr := sp.GcAddress
+	oldBlsKey := sp.BlsKey
+
 	changed := false
 
 	// replace endpoint
@@ -208,18 +216,27 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 
 	if msg.SealAddress != "" {
 		sealAcc := sdk.MustAccAddressFromHex(msg.SealAddress)
+		if existing, exists := k.GetStorageProviderBySealAddr(ctx, sealAcc); exists && existing.Id != sp.Id {
+			return nil, types.ErrStorageProviderSealAddrExists
+		}
 		sp.SealAddress = sealAcc.String()
 		changed = true
 	}
 
 	if msg.ApprovalAddress != "" {
 		approvalAcc := sdk.MustAccAddressFromHex(msg.ApprovalAddress)
+		if existing, exists := k.GetStorageProviderByApprovalAddr(ctx, approvalAcc); exists && existing.Id != sp.Id {
+			return nil, types.ErrStorageProviderApprovalAddrExists
+		}
 		sp.ApprovalAddress = approvalAcc.String()
 		changed = true
 	}
 
 	if msg.GcAddress != "" {
 		gcAcc := sdk.MustAccAddressFromHex(msg.GcAddress)
+		if existing, exists := k.GetStorageProviderByGcAddr(ctx, gcAcc); exists && existing.Id != sp.Id {
+			return nil, types.ErrStorageProviderGcAddrExists
+		}
 		sp.GcAddress = gcAcc.String()
 		changed = true
 	}
@@ -232,6 +249,9 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		blsPk, err := hex.DecodeString(msg.BlsKey)
 		if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
 			return nil, types.ErrStorageProviderInvalidBlsKey
+		}
+		if existing, exists := k.GetStorageProviderByBlsKey(ctx, blsPk); exists && existing.Id != sp.Id {
+			return nil, types.ErrStorageProviderBlsKeyExists
 		}
 		if err = k.checkBlsProof(blsPk, msg.BlsProof); err != nil {
 			return nil, err
@@ -250,6 +270,22 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 	k.SetStorageProviderByApprovalAddr(ctx, sp)
 	k.SetStorageProviderByGcAddr(ctx, sp)
 	k.SetStorageProviderByBlsKey(ctx, sp)
+
+	// Revoke the stale secondary indexes so a rotated operational key no longer
+	// resolves to this SP in the privileged x/storage authorization paths.
+	store := ctx.KVStore(k.storeKey)
+	if oldSealAddr != sp.SealAddress {
+		store.Delete(types.GetStorageProviderBySealAddrKey(sdk.MustAccAddressFromHex(oldSealAddr)))
+	}
+	if oldApprovalAddr != sp.ApprovalAddress {
+		store.Delete(types.GetStorageProviderByApprovalAddrKey(sdk.MustAccAddressFromHex(oldApprovalAddr)))
+	}
+	if oldGcAddr != sp.GcAddress {
+		store.Delete(types.GetStorageProviderByGcAddrKey(sdk.MustAccAddressFromHex(oldGcAddr)))
+	}
+	if !bytes.Equal(oldBlsKey, sp.BlsKey) {
+		store.Delete(types.GetStorageProviderByBlsKeyKey(oldBlsKey))
+	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
 		SpId:               sp.Id,
