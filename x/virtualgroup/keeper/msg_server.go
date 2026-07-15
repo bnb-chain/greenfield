@@ -344,6 +344,29 @@ func (k msgServer) SwapOut(goCtx context.Context, msg *types.MsgSwapOut) (*types
 		return nil, err
 	}
 
+	// TODO: replace upgradetypes.Cerrado with the next hardfork constant once defined in greenfield-cosmos-sdk
+	if ctx.IsUpgraded(upgradetypes.Cerrado) {
+		if msg.GlobalVirtualGroupFamilyId != types.NoSpecifiedFamilyId {
+			family, found := k.GetGVGFamily(ctx, msg.GlobalVirtualGroupFamilyId)
+			if !found {
+				return nil, types.ErrGVGFamilyNotExist
+			}
+			if family.PrimarySpId != sp.Id {
+				return nil, types.ErrSwapOutFailed.Wrapf("sp (ID: %d) does not own family (ID: %d)", sp.Id, msg.GlobalVirtualGroupFamilyId)
+			}
+		} else {
+			for _, gvgID := range msg.GlobalVirtualGroupIds {
+				gvg, found := k.GetGVG(ctx, gvgID)
+				if !found {
+					return nil, types.ErrGVGNotExist
+				}
+				if !gvg.ContainsSecondarySP(sp.Id) {
+					return nil, types.ErrSwapOutFailed.Wrapf("sp (ID: %d) is not a secondary SP of GVG (ID: %d)", sp.Id, gvgID)
+				}
+			}
+		}
+	}
+
 	err = k.SetSwapOutInfo(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupIds, sp.Id, successorSP.Id)
 	if err != nil {
 		return nil, err
