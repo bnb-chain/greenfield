@@ -136,6 +136,8 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		if err != nil {
 			return nil, err
 		}
+		// prevent heartbeat attestation replay (SRC-816)
+		k.RemoveChallenge(ctx, msg.ChallengeId)
 	}
 	k.AppendAttestedChallenge(ctx, &types.AttestedChallenge{
 		Id:     msg.ChallengeId,
