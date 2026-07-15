@@ -138,8 +138,10 @@ func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.St
 	if !change.FrozenRateChange.IsZero() {
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(change.FrozenRateChange)
 	}
-	if !change.StaticBalanceChange.IsZero() {
-		streamRecord.StaticBalance = streamRecord.StaticBalance.Add(change.StaticBalanceChange)
+	if ctx.IsUpgraded(upgradetypes.Sahel) {
+		if !change.StaticBalanceChange.IsZero() {
+			streamRecord.StaticBalance = streamRecord.StaticBalance.Add(change.StaticBalanceChange)
+		}
 	}
 	return nil
 }

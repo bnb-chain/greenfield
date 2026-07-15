@@ -3,6 +3,7 @@ package keeper
 import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/prysmaticlabs/prysm/v5/crypto/bls"
 
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
@@ -72,11 +73,13 @@ func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketI
 		if !found {
 			return types.ErrVirtualGroupOperateFailed.Wrapf("dst global virtual group not found in blockchain state. ID: %d", dstGVGID)
 		}
-		if dstGVG.FamilyId != gvgFamilyID {
-			return types.ErrMigrationBucketFailed.Wrapf("destination GVG %d belongs to family %d, expected %d", dstGVGID, dstGVG.FamilyId, gvgFamilyID)
-		}
-		if dstGVG.PrimarySpId != dstSPId {
-			return types.ErrMigrationBucketFailed.Wrapf("destination GVG %d primary SP is %d, expected %d", dstGVGID, dstGVG.PrimarySpId, dstSPId)
+		if ctx.IsUpgraded(upgradetypes.Sahel) {
+			if dstGVG.FamilyId != gvgFamilyID {
+				return types.ErrMigrationBucketFailed.Wrapf("destination GVG %d belongs to family %d, expected %d", dstGVGID, dstGVG.FamilyId, gvgFamilyID)
+			}
+			if dstGVG.PrimarySpId != dstSPId {
+				return types.ErrMigrationBucketFailed.Wrapf("destination GVG %d primary SP is %d, expected %d", dstGVGID, dstGVG.PrimarySpId, dstSPId)
+			}
 		}
 
 		srcGVG, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)

@@ -43,6 +43,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerTaigaUpgradeHandler()
 	app.registerSteppeUpgradeHandler()
 	app.registerCerradoUpgradeHandler()
+	app.registerSahelUpgradeHandler()
 	return nil
 }
 
@@ -392,6 +393,20 @@ func (app *App) registerSteppeUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Steppe,
 		func() error {
 			app.Logger().Info("Init Steppe upgrade")
+			return nil
+		})
+}
+
+func (app *App) registerSahelUpgradeHandler() {
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Sahel,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Sahel,
+		func() error {
+			app.Logger().Info("Init Sahel upgrade")
 			return nil
 		})
 }

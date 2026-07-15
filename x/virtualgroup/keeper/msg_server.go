@@ -344,8 +344,7 @@ func (k msgServer) SwapOut(goCtx context.Context, msg *types.MsgSwapOut) (*types
 		return nil, err
 	}
 
-	// TODO: replace upgradetypes.Cerrado with the next hardfork constant once defined in greenfield-cosmos-sdk
-	if ctx.IsUpgraded(upgradetypes.Cerrado) {
+	if ctx.IsUpgraded(upgradetypes.Sahel) {
 		if msg.GlobalVirtualGroupFamilyId != types.NoSpecifiedFamilyId {
 			family, found := k.GetGVGFamily(ctx, msg.GlobalVirtualGroupFamilyId)
 			if !found {

@@ -1236,19 +1236,21 @@ func (k Keeper) CopyObject(
 			operator.String(), srcObjectInfo.BucketName, srcObjectInfo.ObjectName)
 	}
 
-	// check destination bucket write permission
-	verifyOpts := &permtypes.VerifyOptions{WantedSize: &srcObjectInfo.PayloadSize}
-	effect = k.VerifyBucketPermission(ctx, dstBucketInfo, operator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
-	if effect != permtypes.EFFECT_ALLOW {
-		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator("+
-			"%s) has no CreateObject permission of the destination bucket(%s)",
-			operator.String(), dstBucketInfo.BucketName)
-	}
+	if ctx.IsUpgraded(upgradetypes.Sahel) {
+		// check destination bucket write permission
+		verifyOpts := &permtypes.VerifyOptions{WantedSize: &srcObjectInfo.PayloadSize}
+		effect = k.VerifyBucketPermission(ctx, dstBucketInfo, operator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
+		if effect != permtypes.EFFECT_ALLOW {
+			return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator("+
+				"%s) has no CreateObject permission of the destination bucket(%s)",
+				operator.String(), dstBucketInfo.BucketName)
+		}
 
-	// check destination object name does not already exist
-	dstObjectKey := types.GetObjectKey(dstBucketName, dstObjectName)
-	if store.Has(dstObjectKey) {
-		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
+		// check destination object name does not already exist
+		dstObjectKey := types.GetObjectKey(dstBucketName, dstObjectName)
+		if store.Has(dstObjectKey) {
+			return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
+		}
 	}
 
 	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
@@ -2272,8 +2274,10 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 	if !found {
 		return virtualgroupmoduletypes.ErrGVGFamilyNotExist
 	}
-	if finalFamily.PrimarySpId != dstSP.Id {
-		return types.ErrMigrationBucketFailed.Wrapf("final family primary SP %d does not match destination SP %d", finalFamily.PrimarySpId, dstSP.Id)
+	if ctx.IsUpgraded(upgradetypes.Sahel) {
+		if finalFamily.PrimarySpId != dstSP.Id {
+			return types.ErrMigrationBucketFailed.Wrapf("final family primary SP %d does not match destination SP %d", finalFamily.PrimarySpId, dstSP.Id)
+		}
 	}
 
 	srcGvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
