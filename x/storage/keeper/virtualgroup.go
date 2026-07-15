@@ -56,7 +56,7 @@ func (k Keeper) DeleteObjectFromVirtualGroup(ctx sdk.Context, bucketInfo *types.
 	return nil
 }
 
-func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, internalBucketInfo *types.InternalBucketInfo, gvgMappings []*types.GVGMapping) error {
+func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, internalBucketInfo *types.InternalBucketInfo, gvgMappings []*types.GVGMapping, gvgFamilyID uint32, dstSPId uint32) error {
 	gvgsMap := make(map[uint32]uint32)
 	for _, mapping := range gvgMappings {
 		gvgsMap[mapping.SrcGlobalVirtualGroupId] = mapping.DstGlobalVirtualGroupId
@@ -71,6 +71,12 @@ func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketI
 		dstGVG, found := k.virtualGroupKeeper.GetGVG(ctx, dstGVGID)
 		if !found {
 			return types.ErrVirtualGroupOperateFailed.Wrapf("dst global virtual group not found in blockchain state. ID: %d", dstGVGID)
+		}
+		if dstGVG.FamilyId != gvgFamilyID {
+			return types.ErrMigrationBucketFailed.Wrapf("destination GVG %d belongs to family %d, expected %d", dstGVGID, dstGVG.FamilyId, gvgFamilyID)
+		}
+		if dstGVG.PrimarySpId != dstSPId {
+			return types.ErrMigrationBucketFailed.Wrapf("destination GVG %d primary SP is %d, expected %d", dstGVGID, dstGVG.PrimarySpId, dstSPId)
 		}
 
 		srcGVG, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)

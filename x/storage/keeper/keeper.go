@@ -2253,9 +2253,12 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 		return types.ErrMigrationBucketFailed.Wrapf("dst sp info not match")
 	}
 
-	_, found = k.virtualGroupKeeper.GetGVGFamily(ctx, gvgFamilyID)
+	finalFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, gvgFamilyID)
 	if !found {
 		return virtualgroupmoduletypes.ErrGVGFamilyNotExist
+	}
+	if finalFamily.PrimarySpId != dstSP.Id {
+		return types.ErrMigrationBucketFailed.Wrapf("final family primary SP %d does not match destination SP %d", finalFamily.PrimarySpId, dstSP.Id)
 	}
 
 	srcGvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
@@ -2290,7 +2293,7 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 	}
 
 	// rebinding gvg and lvg
-	err = k.RebindingVirtualGroup(ctx, bucketInfo, internalBucketInfo, gvgMappings)
+	err = k.RebindingVirtualGroup(ctx, bucketInfo, internalBucketInfo, gvgMappings, gvgFamilyID, dstSP.Id)
 	if err != nil {
 		return types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
