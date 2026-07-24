@@ -1413,6 +1413,16 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 		if !ctx.IsUpgraded(upgradetypes.Hulunbeier) {
 			return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
 		}
+		if ctx.IsUpgraded(upgradetypes.Sahel) {
+			// SECURITY (SRC-947): a pending swap-in reservation must NOT grant discontinue authority.
+			// Any in-service SP can ReserveSwapIn against an exiting primary SP with no deposit and no
+			// migration progress, and SwapInInfo carries no "completed" marker; the Hulunbeier branch
+			// below treated a bare reservation as authorization, letting a malicious successor
+			// permanently DiscontinueObject arbitrary objects in the target family. From Sahel on,
+			// only the current on-chain family primary SP may discontinue; a successor earns this right
+			// only after CompleteSwapIn makes it the family primary (covered by the equality above).
+			return errors.Wrapf(types.ErrAccessDenied, "only the current primary sp of the bucket's family is allowed to discontinue objects")
+		}
 		swapInInfo, found := k.virtualGroupKeeper.GetSwapInInfo(ctx, bucketInfo.GlobalVirtualGroupFamilyId, virtualgroupmoduletypes.NoSpecifiedGVGId)
 		if !found || swapInInfo.TargetSpId != spInState.Id || swapInInfo.SuccessorSpId != sp.Id {
 			return errors.Wrapf(types.ErrAccessDenied, "the sp is not allowed to do discontinue objects")
