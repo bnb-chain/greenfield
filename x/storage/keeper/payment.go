@@ -43,7 +43,8 @@ func (k Keeper) ChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.Bu
 func (k Keeper) UnChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) error {
 	if internalBucketInfo.TotalChargeSize > 0 {
-		if ctx.ChainID() == upgradetypes.TestnetChainID && ctx.BlockHeight() == 33332888 {
+		//force fix testnet broken buckets (created by replying bug of SRC-770)
+		if ctx.ChainID() == upgradetypes.TestnetChainID {
 			ctx.Logger().Error("unexpected total store charge size when deleting bucket, force reset to zero",
 				"bucket", bucketInfo.BucketName, "bucketId", bucketInfo.Id, "totalChargeSize", internalBucketInfo.TotalChargeSize)
 			internalBucketInfo.TotalChargeSize = 0
