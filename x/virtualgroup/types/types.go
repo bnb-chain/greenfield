@@ -41,6 +41,15 @@ func (f *GlobalVirtualGroupFamily) MustRemoveGVG(gvgID uint32) {
 	}
 }
 
+func (g *GlobalVirtualGroup) ContainsSecondarySP(spID uint32) bool {
+	for _, id := range g.SecondarySpIds {
+		if id == spID {
+			return true
+		}
+	}
+	return false
+}
+
 func (g *GlobalVirtualGroupsBindingOnBucket) AppendGVGAndLVG(gvgID, lvgID uint32) {
 	g.GlobalVirtualGroupIds = append(g.GlobalVirtualGroupIds, gvgID)
 	g.LocalVirtualGroupIds = append(g.LocalVirtualGroupIds, lvgID)

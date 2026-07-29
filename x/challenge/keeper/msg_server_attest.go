@@ -136,6 +136,9 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		if err != nil {
 			return nil, err
 		}
+		if ctx.IsUpgraded(upgradetypes.Sahel) {
+			k.RemoveChallenge(ctx, msg.ChallengeId)
+		}
 	}
 	k.AppendAttestedChallenge(ctx, &types.AttestedChallenge{
 		Id:     msg.ChallengeId,
