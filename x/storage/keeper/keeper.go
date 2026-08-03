@@ -1236,6 +1236,23 @@ func (k Keeper) CopyObject(
 			operator.String(), srcObjectInfo.BucketName, srcObjectInfo.ObjectName)
 	}
 
+	if ctx.IsUpgraded(upgradetypes.Sahel) {
+		// check destination bucket write permission
+		verifyOpts := &permtypes.VerifyOptions{WantedSize: &srcObjectInfo.PayloadSize}
+		effect = k.VerifyBucketPermission(ctx, dstBucketInfo, operator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
+		if effect != permtypes.EFFECT_ALLOW {
+			return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator("+
+				"%s) has no CreateObject permission of the destination bucket(%s)",
+				operator.String(), dstBucketInfo.BucketName)
+		}
+
+		// check destination object name does not already exist
+		dstObjectKey := types.GetObjectKey(dstBucketName, dstObjectName)
+		if store.Has(dstObjectKey) {
+			return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
+		}
+	}
+
 	if !ctx.IsUpgraded(upgradetypes.Serengeti) {
 		if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 			return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
@@ -1395,6 +1412,16 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 	if sp.Id != spInState.Id {
 		if !ctx.IsUpgraded(upgradetypes.Hulunbeier) {
 			return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
+		}
+		if ctx.IsUpgraded(upgradetypes.Sahel) {
+			// SECURITY (SRC-947): a pending swap-in reservation must NOT grant discontinue authority.
+			// Any in-service SP can ReserveSwapIn against an exiting primary SP with no deposit and no
+			// migration progress, and SwapInInfo carries no "completed" marker; the Hulunbeier branch
+			// below treated a bare reservation as authorization, letting a malicious successor
+			// permanently DiscontinueObject arbitrary objects in the target family. From Sahel on,
+			// only the current on-chain family primary SP may discontinue; a successor earns this right
+			// only after CompleteSwapIn makes it the family primary (covered by the equality above).
+			return errors.Wrapf(types.ErrAccessDenied, "only the current primary sp of the bucket's family is allowed to discontinue objects")
 		}
 		swapInInfo, found := k.virtualGroupKeeper.GetSwapInInfo(ctx, bucketInfo.GlobalVirtualGroupFamilyId, virtualgroupmoduletypes.NoSpecifiedGVGId)
 		if !found || swapInInfo.TargetSpId != spInState.Id || swapInInfo.SuccessorSpId != sp.Id {
@@ -2253,9 +2280,14 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 		return types.ErrMigrationBucketFailed.Wrapf("dst sp info not match")
 	}
 
-	_, found = k.virtualGroupKeeper.GetGVGFamily(ctx, gvgFamilyID)
+	finalFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, gvgFamilyID)
 	if !found {
 		return virtualgroupmoduletypes.ErrGVGFamilyNotExist
+	}
+	if ctx.IsUpgraded(upgradetypes.Sahel) {
+		if finalFamily.PrimarySpId != dstSP.Id {
+			return types.ErrMigrationBucketFailed.Wrapf("final family primary SP %d does not match destination SP %d", finalFamily.PrimarySpId, dstSP.Id)
+		}
 	}
 
 	srcGvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
@@ -2290,7 +2322,7 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 	}
 
 	// rebinding gvg and lvg
-	err = k.RebindingVirtualGroup(ctx, bucketInfo, internalBucketInfo, gvgMappings)
+	err = k.RebindingVirtualGroup(ctx, bucketInfo, internalBucketInfo, gvgMappings, gvgFamilyID, dstSP.Id)
 	if err != nil {
 		return types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
